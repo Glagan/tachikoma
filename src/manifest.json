@@ -1,0 +1,61 @@
+{
+	"manifest_version": 3,
+	"author": "Glagan",
+	"description": "Automatically sync what you read on MangaDex across many services like MyAnimeList, Anilist, Kitsu and more.",
+	"permissions": ["storage", "firefox:webRequest", "firefox:webRequestBlocking", "firefox:cookies"],
+	"host_permissions": [
+		"https://api.mangadex.org/*",
+
+		"https://mochi.nikurasu.org/*",
+		"https://syncdex.nikurasu.org/*",
+
+		"https://myanimelist.net/about.php",
+		"https://myanimelist.net/manga/*",
+		"https://myanimelist.net/ownlist/manga/*",
+		"https://myanimelist.net/mangalist/*",
+
+		"https://graphql.anilist.co/",
+		"https://kitsu.io/api/*",
+
+		"https://*.mangaupdates.com/aboutus.html",
+		"https://*.mangaupdates.com/series.html?id=*",
+		"https://*.mangaupdates.com/ajax/*",
+
+		"https://*.anime-planet.com/contact",
+		"https://*.anime-planet.com/manga/*",
+		"https://*.anime-planet.com/api/*"
+	],
+	"icons": {
+		"24": "/icons/tachikoma/24.png",
+		"48": "/icons/tachikoma/48.png",
+		"96": "/icons/tachikoma/96.png",
+		"128": "/icons/tachikoma/128.png"
+	},
+	"background": {
+		"scripts": ["/webextension-polyfill.js", "/background.js"]
+	},
+	"content_scripts": [
+		{
+			"matches": ["https://*.mangadex.org/*"],
+			"js": ["/SimpleNotification.js", "/webextension-polyfill.js", "/mangadex.js"],
+			"css": ["/SimpleNotification.css", "/mangadex.css"]
+		},
+		{
+			"matches": ["https://anilist.co/api/v2/oauth/pin?syncdex*"],
+			"js": ["/SimpleNotification.js", "/webextension-polyfill.js", "/anilist.js"],
+			"css": ["/SimpleNotification.css"]
+		}
+	],
+	"web_accessible_resources": [
+		{
+			"resources": ["/icons/tachikoma/*.png", "/icons/*.png"],
+			"matches": ["<all_urls>"]
+		}
+	],
+	"firefox:applications": {
+		"gecko": {
+			"id": "tachikoma@glagan",
+			"strict_min_version": "78.0"
+		}
+	}
+}
