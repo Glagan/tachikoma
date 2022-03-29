@@ -148,6 +148,18 @@ export default class ManifestPlugin {
 				}
 			}
 		}
+
+		// Remove host_permissions in manifest v2
+		if (manifest.manifest_version == 2 && manifest.host_permissions && Array.isArray(manifest.host_permissions)) {
+			if (!manifest.permissions) {
+				manifest.permissions = [];
+			}
+			if (Array.isArray(manifest.permissions)) {
+				manifest.permissions.push(...manifest.host_permissions);
+				delete manifest.host_permissions;
+			}
+		}
+
 		return manifest;
 	}
 }
