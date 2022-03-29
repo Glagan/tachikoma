@@ -5,6 +5,6 @@
 .jshintrc
 
 # Build
-build
-web-ext-artifacts
-node_modules
+/build
+/web-ext-artifacts
+/node_modules
