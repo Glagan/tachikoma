@@ -6,6 +6,7 @@ import TsconfigPathsPlugin from "tsconfig-paths-webpack-plugin";
 import CaseSensitivePathsPlugin from "case-sensitive-paths-webpack-plugin";
 import CopyWebpackPlugin from "copy-webpack-plugin";
 import ZipPlugin from "zip-webpack-plugin";
+import { ESBuildMinifyPlugin } from "esbuild-loader";
 import { default as ManifestPlugin } from "./src/Build/ManifestPlugin.js";
 
 // Collect manifests
@@ -69,6 +70,11 @@ export default (env, argv) => {
 					},
 				},
 			},
+			minimizer: [
+				new ESBuildMinifyPlugin({
+					target: "es2015",
+				}),
+			],
 		},
 		devtool: argv.mode === "production" ? undefined : "source-map",
 		module: {
