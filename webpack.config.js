@@ -1,4 +1,4 @@
-import { fstat, readdirSync, readFileSync } from "fs";
+import { readdirSync, readFileSync } from "fs";
 import { resolve } from "path";
 import webpack from "webpack";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
@@ -75,7 +75,7 @@ export default (env, argv) => {
 			rules: [
 				{
 					test: /\.ts$/,
-					use: "ts-loader",
+					use: "esbuild-loader",
 					exclude: /node_modules/,
 				},
 				{
