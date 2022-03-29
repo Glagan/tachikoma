@@ -1,0 +1,7 @@
+{
+	"entry": "index.ts",
+	"host_permissions": ["https://graphql.anilist.co/"],
+	"content_scripts": {
+		"matches": ["https://anilist.co/api/v2/oauth/pin?syncdex*"]
+	}
+}
