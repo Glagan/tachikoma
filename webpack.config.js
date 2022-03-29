@@ -76,7 +76,7 @@ export default (env, argv) => {
 				}),
 			],
 		},
-		devtool: argv.mode === "production" ? undefined : "source-map",
+		devtool: argv.mode === "production" ? undefined : "inline-source-map",
 		module: {
 			rules: [
 				{
