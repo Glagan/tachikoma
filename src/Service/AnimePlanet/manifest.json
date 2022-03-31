@@ -1,3 +1,7 @@
 {
-	"host_permissions": ["https://*.anime-planet.com/contact", "https://*.anime-planet.com/manga/*", "https://*.anime-planet.com/api/*"]
+	"host_permissions": [
+		"https://*.anime-planet.com/contact",
+		"https://*.anime-planet.com/manga/*",
+		"https://*.anime-planet.com/api/*"
+	]
 }
