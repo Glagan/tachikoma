@@ -10,7 +10,7 @@
 		"build": "npm run build:firefox && npm run build:chrome",
 		"build:firefox": "webpack --env vendor=firefox --mode=production --progress",
 		"build:chrome": "webpack --env vendor=chrome --mode=production --progress",
-		"build:webext": "node build.js"
+		"format": "prettier --write ."
 	},
 	"dependencies": {
 		"webextension-polyfill": "^0.8.0"
@@ -48,7 +48,6 @@
 		"anilist",
 		"kitsu",
 		"animeplanet",
-		"mangaupdates",
 		"extension"
 	],
 	"author": "Glagan",
