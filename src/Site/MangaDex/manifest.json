@@ -1,6 +1,5 @@
 {
 	"entry": "index.ts",
-	"host_permissions": ["https://api.mangadex.org/*"],
 	"content_scripts": {
 		"matches": ["https://*.mangadex.org/*"]
 	}
