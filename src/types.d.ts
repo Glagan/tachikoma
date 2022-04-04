@@ -4,20 +4,51 @@
 
 type TitleIdentifier = Record<any, any>;
 
+declare const enum Status {
+	NONE,
+	READING,
+	COMPLETED,
+	PAUSED,
+	PLAN_TO_READ,
+	DROPPED,
+	REREADING,
+	WONT_READ,
+}
+
+type DateTime = import("luxon").DateTime;
+
 type TitleInterface = {
+	// Local **tachikoma** id
 	id?: number;
+	// Favorite name for the title
 	name?: string;
-	alt?: string[];
 
+	// Last read chapter
 	chapter: number;
+	// Volume of the current chapter
 	volume?: number;
+	// Stauts of the title
+	status: Status;
 
+	/**
+	 * Score from 0-100
+	 * TODO Convert to a class to handle different ranges
+	 */
 	score?: number;
 
-	startDate?: Date;
-	endDate?: Date;
+	// Start time (automatically updated)
+	startDate?: DateTime;
+	// End time (automatically updated)
+	endDate?: DateTime;
 
+	// List of {Service.key}
 	services: { [key: string]: TitleIdentifier };
+	// Creation time
+	creation?: DateTime;
+	// Last update time
+	lastUpdate?: DateTime;
+	// Last access time (update in all pages)
+	lastAccess?: DateTime;
 };
 
 type ServiceLoginInformations = Record<any, any>;
@@ -103,3 +134,26 @@ type MessageResponse<K extends keyof MessageDescriptions> = MessageDescriptions[
 	: MessageDescriptions[K];
 
 type AnyMessagePayload<K = keyof MessageDescriptions> = K extends infer U ? MessagePayload<U> : never;
+
+/**
+ * Storage
+ */
+
+declare const OPTIONS_KEY = "~options";
+declare const NEXT_KEY = "@next";
+
+type BasicToken = {
+	token: string;
+	refresh: string;
+};
+
+type StorageMap = {
+	[OPTIONS_KEY]: OptionList;
+	[NEXT_KEY]: number;
+} & {
+	[key: `_${number}`]: import("@Core/Title").Title | undefined;
+} & {
+	[key: `=${string}>${string}`]: number | undefined;
+} & {
+	[key: `$${string}`]: Record<string, any> | undefined;
+};
