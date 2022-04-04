@@ -13,9 +13,11 @@
 		"format": "prettier --write ."
 	},
 	"dependencies": {
+		"luxon": "^2.3.1",
 		"webextension-polyfill": "^0.8.0"
 	},
 	"devDependencies": {
+		"@types/luxon": "^2.3.1",
 		"@types/webextension-polyfill": "^0.8.3",
 		"acorn": "^8.5.0",
 		"case-sensitive-paths-webpack-plugin": "^2.4.0",
