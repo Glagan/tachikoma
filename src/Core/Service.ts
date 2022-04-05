@@ -3,14 +3,17 @@ import Title from "./Title";
 export default abstract class Service {
 	abstract name: string;
 	abstract key: string;
+	theme?: { background: string; color?: string; title?: () => HTMLElement };
 
 	abstract isLoggedIn(): Promise<boolean>;
 
 	abstract areDifferent(title: TitleInterface, other: TitleInterface): boolean;
 
 	abstract get(id: TitleIdentifier): Promise<Title | null>;
-	abstract save(title: Title): Promise<boolean>;
+	abstract save(id: TitleIdentifier, title: Title): Promise<boolean>;
 	abstract delete(id: TitleIdentifier): Promise<boolean>;
+
+	link?(id: TitleIdentifier): string | undefined;
 }
 
 /**
