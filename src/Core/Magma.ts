@@ -82,8 +82,12 @@ export namespace Magma {
 			} else if (request.body) {
 				if (!headers.has("Content-Type") && typeof request.body === "object" && request.body !== null) {
 					headers.set("Content-Type", "application/json");
+					body = JSON.stringify(request.body);
+				} else if (typeof request.body === "object") {
+					body = JSON.stringify(request.body);
+				} else {
+					body = request.body;
 				}
-				body = request.body;
 			}
 
 			// Options

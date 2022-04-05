@@ -97,7 +97,7 @@ interface FormDataProxy {
 interface HttpRequest {
 	method?: "GET" | "POST" | "HEAD" | "OPTIONS" | "DELETE" | "PUT" | "PATCH";
 	url: string;
-	body?: string | null;
+	body?: string | object | null;
 	query?: Record<any, any>;
 	form?: FormDataProxy | FormData;
 	mode?: RequestMode;
