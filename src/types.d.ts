@@ -51,6 +51,21 @@ type TitleInterface = {
 	lastAccess?: DateTime;
 };
 
+type TitleStorageInterface = {
+	i: number; // ID
+	n?: string; // Name
+	c: number; // Chapter
+	v?: number; // Volume
+	s: Status; // Status
+	r?: number; // Score
+	t?: number; // Start Date
+	e?: number; // End Date
+	$?: { [key: string]: TitleIdentifier }; // Services
+	o?: number; // Creation Date
+	u?: number; // Last Update
+	a?: number; // Last Access
+};
+
 type ServiceLoginInformations = Record<any, any>;
 
 interface Progress {
@@ -147,13 +162,17 @@ type BasicToken = {
 	refresh: string;
 };
 
+type StorageTitle = {
+	[key: `_${number}`]: TitleStorageInterface | undefined;
+	[key: `=${string}>${string}`]: number | undefined;
+};
+
+type StorageService = {
+	[key: `$${string}`]: Record<string, any> | undefined;
+};
+
 type StorageMap = {
 	[OPTIONS_KEY]: OptionList;
 	[NEXT_KEY]: number;
-} & {
-	[key: `_${number}`]: import("@Core/Title").Title | undefined;
-} & {
-	[key: `=${string}>${string}`]: number | undefined;
-} & {
-	[key: `$${string}`]: Record<string, any> | undefined;
-};
+} & StorageTitle &
+	StorageService;
