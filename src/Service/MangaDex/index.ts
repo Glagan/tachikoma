@@ -1,9 +1,6 @@
 import { APIService } from "@Core/Service";
 import Title from "@Core/Title";
-import { ServiceStorage } from "@Core/ServiceStorage";
 import { Volcano } from "@Core/Volcano";
-
-declare const API_URL = "https://api.mangadex.org/";
 
 type Token = {
 	session: string;
@@ -35,6 +32,8 @@ type ResponseError = {
 export default new (class MangaDex extends APIService {
 	name = "MangaDex";
 	key = "md";
+	url = "https://mangadex.org/";
+	apiUrl = "https://api.mangadex.org/";
 
 	theme = {
 		background: "rgb(44, 44, 44)",
@@ -42,26 +41,18 @@ export default new (class MangaDex extends APIService {
 	};
 
 	headers(token: string) {
-		return {
-			Authorization: `Bearer ${token}`,
-			Accept: "application/json",
-		};
-	}
-
-	url(route: string): string {
-		if (route.startsWith("/")) route = route.slice(1);
-		return `${API_URL}${route}`;
+		return { Authorization: `Bearer ${token}` };
 	}
 
 	async isLoggedIn() {
-		const token = await ServiceStorage.get<Token>(this.key);
-		if (!token || !token.session) return false;
+		const token = await this.storage.get<Token>();
+		if (!token.session) return false;
 		const response = await Volcano.post<{
 			result: string;
 			isAuthenticated: boolean;
 			roles: string[];
 			permissions: string[];
-		}>(this.url("/auth/check"), { headers: this.headers(token.session) });
+		}>(this.route("auth/check"), { headers: this.headers(token.session) });
 		if (response.ok && response.body?.isAuthenticated) {
 			return true;
 		}
@@ -69,15 +60,15 @@ export default new (class MangaDex extends APIService {
 	}
 
 	async refreshToken(): Promise<boolean> {
-		const token = await ServiceStorage.get<Token>(this.key);
-		if (!token || !token.refresh) return false;
+		const token = await this.storage.get<Token>();
+		if (!token.refresh) return false;
 		const response = await Volcano.post<{
 			result: string;
 			token: {
 				session: string;
 				refresh: string;
 			};
-		}>(this.url("auth/refresh"), {
+		}>(this.route("auth/refresh"), {
 			body: { token: token.refresh },
 		});
 		if (response.status >= 401 || response.status <= 403) {
@@ -86,7 +77,7 @@ export default new (class MangaDex extends APIService {
 		if (!response.body) {
 			return false;
 		}
-		await ServiceStorage.set<Token>(this.key, {
+		await this.storage.set<Token>({
 			session: response.body.token.session,
 			refresh: response.body.token.refresh,
 		});
@@ -103,7 +94,7 @@ export default new (class MangaDex extends APIService {
 				session: string;
 				refresh: string;
 			};
-		}>(this.url("auth/login"), {
+		}>(this.route("auth/login"), {
 			body: {
 				username: informations.username,
 				password: informations.password,
@@ -113,7 +104,7 @@ export default new (class MangaDex extends APIService {
 		if (!response.body) {
 			return false;
 		}
-		await ServiceStorage.set<Token>(this.key, {
+		await this.storage.set<Token>({
 			session: response.body.token.session,
 			refresh: response.body.token.refresh,
 		});
@@ -121,15 +112,15 @@ export default new (class MangaDex extends APIService {
 	}
 
 	async logout(): Promise<boolean> {
-		const token = await ServiceStorage.get<Token>(this.key);
+		const token = await this.storage.get<Token>();
 		// If the request failed (invalid token or expired) then the sessions is already "disconnected"
 		// So we can safely ignore the error and just remove the stored tokens
 		if (token && token.session) {
-			await Volcano.post(this.url("auth/logout"), {
+			await Volcano.post(this.route("auth/logout"), {
 				headers: this.headers(token.session),
 			});
 		}
-		await ServiceStorage.remove(this.key);
+		await this.storage.clear();
 		return true;
 	}
 
@@ -182,7 +173,7 @@ export default new (class MangaDex extends APIService {
 
 	async get(id: TitleIdentifier): Promise<Title | null> {
 		if (!id.id) return null;
-		const token = await ServiceStorage.get<Token>(this.key);
+		const token = await this.storage.get<Token>();
 		if (!token || !token.session) return null;
 
 		const response = await Volcano.get<
@@ -191,7 +182,7 @@ export default new (class MangaDex extends APIService {
 				status: ListStatus;
 			},
 			ResponseError
-		>(this.url(`manga/${id.id}/status`), { headers: this.headers(token.session) });
+		>(this.route(`manga/${id.id}/status`), { headers: this.headers(token.session) });
 
 		if (response.status >= 401 || response.status <= 403) {
 			return null;
@@ -209,10 +200,10 @@ export default new (class MangaDex extends APIService {
 
 	async save(id: TitleIdentifier, title: Title): Promise<boolean> {
 		if (!id.id) return false;
-		const token = await ServiceStorage.get<Token>(this.key);
+		const token = await this.storage.get<Token>();
 		if (!token || !token.session) return false;
 
-		const response = await Volcano.post<{ result: "ok" }, ResponseError>(this.url(`manga/${id.id}/status`), {
+		const response = await Volcano.post<{ result: "ok" }, ResponseError>(this.route(`manga/${id.id}/status`), {
 			headers: this.headers(token.session),
 			body: { status: this.fromStatus(title.status) },
 		});
@@ -222,12 +213,12 @@ export default new (class MangaDex extends APIService {
 
 	async delete(id: TitleIdentifier): Promise<boolean> {
 		if (!id.id) return false;
-		const token = await ServiceStorage.get<Token>(this.key);
+		const token = await this.storage.get<Token>();
 		if (!token || !token.session) return false;
 
 		// Only the status is currently available on MangaDex
 		// So "deleting" the title only means setting it's status to null
-		const response = await Volcano.post<{ result: "ok" }, ResponseError>(this.url(`manga/${id.id}/status`), {
+		const response = await Volcano.post<{ result: "ok" }, ResponseError>(this.route(`manga/${id.id}/status`), {
 			headers: this.headers(token.session),
 			body: { status: null },
 		});
