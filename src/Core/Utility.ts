@@ -1,3 +1,5 @@
+import getPkce from "oauth-pkce";
+
 /**
  * source: https://stackoverflow.com/a/9517879
  * Inject a page script
@@ -41,4 +43,12 @@ export function nestedKeyReference<E extends any, R extends Record<string, E> = 
 		}
 	}
 	return { ref: currentReference as R, key: parts[last - 1] };
+}
+
+export function pkce(length: number): Promise<{ verifier: string; challenge: string }> {
+	return new Promise((resolve) => {
+		getPkce(length, (_error, codes) => {
+			resolve(codes);
+		});
+	});
 }
