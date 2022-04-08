@@ -228,6 +228,6 @@ export default new (class MangaDex extends APIService {
 
 	link(id: TitleIdentifier): string | undefined {
 		if (!id.id) return undefined;
-		return `https://mangadex.org/title/${id.id}`;
+		return this.route(`title/${id.id}`, true);
 	}
 })();
