@@ -15,11 +15,13 @@
 	"dependencies": {
 		"luxon": "^2.3.1",
 		"oauth-pkce": "^0.0.6",
+		"vue": "^3.2.31",
 		"webextension-polyfill": "^0.8.0"
 	},
 	"devDependencies": {
 		"@types/luxon": "^2.3.1",
 		"@types/webextension-polyfill": "^0.8.3",
+		"@vue/compiler-sfc": "^3.2.31",
 		"acorn": "^8.5.0",
 		"case-sensitive-paths-webpack-plugin": "^2.4.0",
 		"clean-webpack-plugin": "^4.0.0",
@@ -31,6 +33,7 @@
 		"tsconfig-paths-webpack-plugin": "^3.5.2",
 		"tslib": "^2.3.1",
 		"typescript": "^4.6.3",
+		"vue-loader": "^17.0.0",
 		"webpack": "^5.70.0",
 		"webpack-cli": "^4.9.2",
 		"webpack-sources": "3.2.3",
