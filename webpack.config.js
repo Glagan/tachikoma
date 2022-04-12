@@ -95,7 +95,7 @@ export default (env, argv) => {
 				},
 				{
 					test: /\.css$/,
-					use: [MiniCssExtractPlugin.loader, "css-loader"],
+					use: [MiniCssExtractPlugin.loader, "css-loader", "postcss-loader"],
 				},
 			],
 		},
