@@ -1,4 +1,5 @@
 import { storage } from "webextension-polyfill";
+import { NEXT_KEY, StorageMap } from "./Storage";
 
 export namespace Shelf {
 	export async function get<K extends keyof StorageMap>(key: K): Promise<StorageMap[K] | undefined>;

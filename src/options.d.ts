@@ -59,7 +59,6 @@ type OptionList = {
 	useMochi: boolean;
 	version: number;
 	subVersion: number;
-} & {
 	// Site options
 	[key: string]: {
 		colors: Colors;

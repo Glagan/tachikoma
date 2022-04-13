@@ -149,30 +149,3 @@ type MessageResponse<K extends keyof MessageDescriptions> = MessageDescriptions[
 	: MessageDescriptions[K];
 
 type AnyMessagePayload<K = keyof MessageDescriptions> = K extends infer U ? MessagePayload<U> : never;
-
-/**
- * Storage
- */
-
-declare const OPTIONS_KEY = "~options";
-declare const NEXT_KEY = "@next";
-
-type BasicToken = {
-	token: string;
-	refresh: string;
-};
-
-type StorageTitle = {
-	[key: `_${number}`]: TitleStorageInterface | undefined;
-	[key: `=${string}>${string}`]: number | undefined;
-};
-
-type StorageService = {
-	[key: `$${string}`]: Record<string, any> | undefined;
-};
-
-type StorageMap = {
-	[OPTIONS_KEY]: OptionList;
-	[NEXT_KEY]: number;
-} & StorageTitle &
-	StorageService;

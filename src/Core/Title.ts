@@ -1,6 +1,7 @@
 import { DateTime } from "luxon";
 import { Options } from "./Options";
 import { Shelf } from "./Shelf";
+import { StorageTitle } from "./Storage";
 
 export default class Title implements TitleInterface {
 	public id?: number;

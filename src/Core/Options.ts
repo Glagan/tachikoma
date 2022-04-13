@@ -1,5 +1,6 @@
 import { Shelf } from "@Core/Shelf";
 import { runtime } from "webextension-polyfill";
+import { OPTIONS_KEY } from "./Storage";
 import { nestedKeyReference } from "./Utility";
 
 export namespace Options {
