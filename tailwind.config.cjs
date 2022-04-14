@@ -7,6 +7,11 @@ module.exports = {
 	theme: {
 		colors: {
 			...colors,
+			lightBlue: undefined,
+			warmGray: undefined,
+			trueGray: undefined,
+			coolGray: undefined,
+			blueGray: undefined,
 			tachikoma: {
 				50: "#EFF1F6",
 				100: "#CFD4E3",
