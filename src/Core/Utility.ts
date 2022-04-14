@@ -1,4 +1,5 @@
 import getPkce from "oauth-pkce";
+import { runtime } from "webextension-polyfill";
 
 /**
  * source: https://stackoverflow.com/a/9517879
@@ -51,4 +52,12 @@ export function pkce(length: number): Promise<{ verifier: string; challenge: str
 			resolve(codes);
 		});
 	});
+}
+
+/**
+ * Returns the full URL of file from the extension.
+ * @param file Absolute path to the file
+ */
+export function file(file: string): string {
+	return runtime.getURL(file);
 }
