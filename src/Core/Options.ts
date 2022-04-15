@@ -53,7 +53,7 @@ export namespace Options {
 		useMochi: false,
 		version: parseFloat(runtime.getManifest().version),
 		subVersion: parseInt(/\.(\d+)$/.exec(runtime.getManifest().version)![1]),
-	} as any; // TODO
+	} as unknown as OptionList; // TODO
 
 	export let values: OptionList = JSON.parse(JSON.stringify(defaults)); // Avoid references
 
@@ -120,5 +120,9 @@ export namespace Options {
 		key: MutableOption
 	): { ref: R; key: keyof R } {
 		return nestedKeyReference(Options.values, key);
+	}
+
+	export function save(): Promise<void> {
+		return Shelf.set(OPTIONS_KEY, values);
 	}
 }
