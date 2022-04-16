@@ -17,24 +17,13 @@
 </template>
 
 <script setup lang="ts">
-import { Lake } from "@Core/Lake";
 import Title from "./Title.vue";
-import { ref, watch } from "vue";
-import Service from "@Core/Service";
 import ServiceCard from "./ServiceCard.vue";
+import { useOptions } from "../Options";
 
-const props = defineProps<{ loading: boolean }>();
+defineProps<{ loading: boolean }>();
 
-const activeServices = ref<Service[]>([]);
-const inactiveServices = ref<Service[]>([]);
-
-watch(
-	() => props.loading,
-	() => {
-		activeServices.value = Lake.active();
-		inactiveServices.value = Lake.inactive();
-	}
-);
+const { activeServices, inactiveServices } = useOptions();
 </script>
 
 <style></style>

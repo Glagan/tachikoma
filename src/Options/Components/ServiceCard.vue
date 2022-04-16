@@ -11,8 +11,11 @@
 		</div>
 		<div class="actions flex flex-row flex-grow-0 flex-shrink-0 items-center">
 			<div class="main-action">
-				<Button v-if="!isActive" type="success" @click="activateService">Activate</Button>
-				<Button v-else="isActive" type="success">Login</Button>
+				<Button v-if="!isActive" type="success" @click="activateServiceAndSave">Activate</Button>
+				<template v-else>
+					<Button type="success">Login</Button>
+					<Button type="danger" class="ml-2" @click="deactivateServiceAndSave">Deactivate</Button>
+				</template>
 			</div>
 			<div v-if="isActive" class="sub-actions flex flex-col ml-4">
 				<Button type="info" size="sm" class="mb-2"><i class="light-icon-chevron-up"></i></Button>
@@ -26,14 +29,16 @@
 import { ref, computed } from "@vue/reactivity";
 import { file } from "@Core/Utility";
 import Service from "@Core/Service";
-import { Options } from "@Core/Options";
 import Button from "./Button.vue";
 import Badge from "./Badge.vue";
+import { useOptions } from "../Options";
 
 const props = defineProps<{ service: Service }>();
 
+const { hasService, activateService, deactivateService, save } = useOptions();
+
 const isActive = computed(() => {
-	return Options.hasService(props.service.key);
+	return hasService(props.service.key);
 });
 
 const filePath = (path: string) => {
@@ -41,10 +46,16 @@ const filePath = (path: string) => {
 };
 
 const loading = ref(false);
-const activateService = async () => {
+const activateServiceAndSave = async () => {
 	loading.value = true;
-	Options.enableService(props.service.key);
-	await Options.save();
+	activateService(props.service.key);
+	await save();
+	loading.value = false;
+};
+const deactivateServiceAndSave = async () => {
+	loading.value = true;
+	deactivateService(props.service.key);
+	await save();
 	loading.value = false;
 };
 </script>

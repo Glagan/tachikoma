@@ -122,6 +122,10 @@ export namespace Options {
 		return nestedKeyReference(Options.values, key);
 	}
 
+	export function set(options: OptionList): void {
+		Object.assign(Options.values, options);
+	}
+
 	export function save(): Promise<void> {
 		return Shelf.set(OPTIONS_KEY, values);
 	}
