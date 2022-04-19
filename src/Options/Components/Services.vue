@@ -2,16 +2,16 @@
 	<div>
 		<Title size="1">Services</Title>
 		<Title size="2">
-			Active <span v-if="!loading"> ({{ activeServices.length }}) </span>
+			Active <span v-if="!loading"> ({{ active.length }}) </span>
 		</Title>
 		<div>
-			<ServiceCard v-for="service in activeServices" :key="`active-${service.key}`" :service="service" />
+			<ServiceCard v-for="service in active" :key="`active-${service.key}`" :service="service" />
 		</div>
 		<Title size="2">
-			Inactive <span v-if="!loading"> ({{ inactiveServices.length }}) </span>
+			Inactive <span v-if="!loading"> ({{ inactive.length }}) </span>
 		</Title>
 		<div>
-			<ServiceCard v-for="service in inactiveServices" :key="`inactive-${service.key}`" :service="service" />
+			<ServiceCard v-for="service in inactive" :key="`inactive-${service.key}`" :service="service" />
 		</div>
 	</div>
 </template>
@@ -19,11 +19,13 @@
 <script setup lang="ts">
 import Title from "./Title.vue";
 import ServiceCard from "./ServiceCard.vue";
-import { useOptions } from "../Options";
+import { useOptions } from "../Hooks/Options";
 
 defineProps<{ loading: boolean }>();
 
-const { activeServices, inactiveServices } = useOptions();
+const {
+	services: { active, inactive },
+} = useOptions();
 </script>
 
 <style></style>

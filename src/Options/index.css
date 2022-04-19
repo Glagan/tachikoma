@@ -8,7 +8,7 @@
 
 html,
 body {
-	@apply bg-tachikoma-700 text-gray-200;
+	@apply bg-tachikoma-700 text-gray-200 scroll-smooth;
 }
 
 .body {

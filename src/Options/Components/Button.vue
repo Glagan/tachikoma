@@ -1,5 +1,5 @@
 <template>
-	<button class="button" :class="classes">
+	<button class="button" :class="classes" :disabled="disabled">
 		<slot name="default"></slot>
 	</button>
 </template>
@@ -9,15 +9,21 @@ import { computed } from "@vue/reactivity";
 
 const props = defineProps<{
 	type: "loading" | "success" | "danger" | "warning" | "info";
-	size?: "sm" | "md";
+	size?: "sm" | "md" | "lg";
+	disabled?: boolean;
+	block?: boolean;
 }>();
 
 const classes = computed(() => {
-	return `${props.type} ${props.size ?? ""}`;
+	const classes: string[] = [props.type];
+	if (props.size) classes.push(props.size);
+	if (props.block) classes.push("block");
+	return classes;
 });
 </script>
 
 <style>
+/** Add text-shadow */
 .button {
 	@apply inline-block leading-tight text-center rounded shadow-md hover:shadow-lg focus:shadow-lg focus:outline-none focus:ring-0 active:shadow-lg transition duration-150 ease-in-out;
 }
@@ -27,6 +33,9 @@ const classes = computed(() => {
 }
 .button.sm {
 	@apply px-4 py-2.5 font-medium text-xs;
+}
+.button.lg {
+	@apply px-7 py-3 font-normal text-base;
 }
 .button.loading {
 	@apply bg-purple-500 text-white hover:bg-purple-600  focus:bg-purple-600 active:bg-purple-700;
@@ -42,5 +51,12 @@ const classes = computed(() => {
 }
 .button.info {
 	@apply bg-blue-500 text-white hover:bg-blue-600  focus:bg-blue-600 active:bg-blue-700;
+}
+.button:disabled,
+.button.disabled {
+	@apply pointer-events-none opacity-60;
+}
+.button.block {
+	@apply w-full;
 }
 </style>
