@@ -1,10 +1,15 @@
 <template>
-	<div class="service-card bg-tachikoma-600 border-tachikoma-500">
+	<div class="service-card" :class="cardClasses" :style="cardStyle">
 		<div class="icon flex-grow-0 flex-shrink-0 mr-4">
 			<img :src="filePath(`/icons/${service.key}.png`)" :alt="`${service.name} icon`" />
 		</div>
 		<div class="name-status flex flex-col flex-grow flex-shrink text-ellipsis">
-			<div class="name text-xl font-bold">{{ service.name }}</div>
+			<div
+				v-if="service.theme?.title"
+				class="name text-xl font-bold"
+				v-html="service.theme.title().innerHTML"
+			></div>
+			<div v-else class="name text-xl font-bold">{{ service.name }}</div>
 			<div v-if="isActive" class="status mt-1">
 				<Badge type="success">Logged in</Badge>
 			</div>
@@ -38,6 +43,20 @@ import Badge from "./Badge.vue";
 import { useOptions } from "../Hooks/Options";
 
 const props = defineProps<{ service: Service }>();
+
+const cardClasses: string[] = [];
+const cardStyle: { borderColor: string | undefined; backgroundColor: string | undefined; color: string | undefined } = {
+	borderColor: undefined,
+	backgroundColor: undefined,
+	color: undefined,
+};
+if (props.service.theme?.color) {
+	cardStyle.borderColor = props.service.theme.color;
+	cardStyle.color = props.service.theme.color;
+} else cardClasses.push("border-tachikoma-500");
+if (props.service.theme?.background) {
+	cardStyle.backgroundColor = props.service.theme.background;
+} else cardClasses.push("bg-tachikoma-600");
 
 const { services, save } = useOptions();
 
