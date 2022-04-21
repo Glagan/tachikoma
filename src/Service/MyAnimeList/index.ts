@@ -1,12 +1,12 @@
-import { APIService } from "@Core/Service";
-import Title from "@Core/Title";
+import { DateTime } from "luxon";
+import { APIService, ServiceStatus } from "@Core/Service";
 import { Volcano } from "@Core/Volcano";
 import { pkce } from "@Core/Utility";
-import { DateTime } from "luxon";
+import Title from "@Core/Title";
 
-declare const CLIENT_ID = "aaead2491067691606c70a480a0ebb02";
-declare const OAUTH2_AUTHORIZE = "https://myanimelist.net/v1/oauth2/authorize";
-declare const OAUTH2_TOKEN = "https://myanimelist.net/v1/oauth2/token";
+const CLIENT_ID = "aaead2491067691606c70a480a0ebb02" as const;
+const OAUTH2_AUTHORIZE = "https://myanimelist.net/v1/oauth2/authorize" as const;
+const OAUTH2_TOKEN = "https://myanimelist.net/v1/oauth2/token" as const;
 
 type Token = {
 	token: string;
@@ -105,16 +105,21 @@ export default new (class MyAnimeList extends APIService {
 		return { Authorization: `Bearer ${token}` };
 	}
 
-	async isLoggedIn() {
+	async status() {
 		const token = await this.storage.get<Token>();
-		if (!token.token) return false;
+		if (!token.token) return { status: ServiceStatus.MISSING_TOKEN };
 		// MyAnimeList doesn't have an oauth check route so
 		// -- simply request a route that require authentication and expect a ok response
-		const response = await Volcano.post(this.route("users/@me"), { headers: this.headers(token.token) });
+		const response = await Volcano.get(this.route("users/@me"), { headers: this.headers(token.token) });
 		if (response.ok && response.body) {
-			return true;
+			return { status: ServiceStatus.LOGGED_IN };
 		}
-		return false;
+		if (response.status == 401) {
+			return { status: ServiceStatus.INVALID_TOKEN };
+		} else if (response.status >= 400 && response.status < 500) {
+			return { status: ServiceStatus.TACHIKOMA_ERROR };
+		}
+		return { status: ServiceStatus.SERVICE_ERROR };
 	}
 
 	async refreshToken(): Promise<boolean> {
@@ -211,8 +216,8 @@ export default new (class MyAnimeList extends APIService {
 			case ListStatus.DROPPED:
 				return Status.DROPPED;
 		}
-		// REREADING and WONT_READ are not available on MyAnimeList
-		// REREADING is hidden behind a flag
+		// WONT_READ is not available on MyAnimeList
+		// and REREADING is hidden behind a flag
 		return Status.NONE;
 	}
 

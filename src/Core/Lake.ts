@@ -1,14 +1,14 @@
-import Service from "./Service";
+import { AnyService } from "./Service";
 import * as Services from "@Service";
 import { Options } from "./Options";
 
 export namespace Lake {
-	export const services: Service[] = [];
-	export const map: { [key: string]: Service } = {};
-	export const reverse: { [key: string]: Service } = {};
+	export const services: AnyService[] = [];
+	export const map: { [key: string]: AnyService } = {};
+	export const reverse: { [key: string]: AnyService } = {};
 
 	for (const dependency of Object.values(Services)) {
-		const service = (dependency as { default: Service }).default;
+		const service = (dependency as { default: AnyService }).default;
 		services.push(service);
 		map[service.key] = service;
 		map[service.name] = service;
@@ -17,9 +17,9 @@ export namespace Lake {
 	/**
 	 * Get the list of *active* services from the options and their mapped related class.
 	 */
-	export const active = (): Service[] => {
+	export const active = (): AnyService[] => {
 		const serviceKeys = Options.services();
-		const serviceClasses: Service[] = [];
+		const serviceClasses: AnyService[] = [];
 		for (const serviceKey of serviceKeys) {
 			if (map[serviceKey]) serviceClasses.push(map[serviceKey]);
 		}
@@ -29,7 +29,7 @@ export namespace Lake {
 	/**
 	 * Get the list of *inactive* services from the options and their mapped related class.
 	 */
-	export const inactive = (): Service[] => {
+	export const inactive = (): AnyService[] => {
 		const serviceKeys = Options.services();
 		return services.filter((service) => !serviceKeys.includes(service.key));
 	};

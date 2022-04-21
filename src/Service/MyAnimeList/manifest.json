@@ -1,8 +1,3 @@
 {
-	"host_permissions": [
-		"https://myanimelist.net/about.php",
-		"https://myanimelist.net/manga/*",
-		"https://myanimelist.net/ownlist/manga/*",
-		"https://myanimelist.net/mangalist/*"
-	]
+	"host_permissions": ["https://api.myanimelist.net/v2/*"]
 }

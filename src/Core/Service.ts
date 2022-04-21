@@ -1,15 +1,34 @@
 import { Shelf } from "./Shelf";
 import Title from "./Title";
 
+export enum ServiceStatus {
+	MISSING_TOKEN, // Missing tokens in API services
+	MISSING_COOKIES, // Missing cookies in non-API services
+	INVALID_TOKEN, // After a service login check
+	SERVICE_ERROR, // 500+
+	TACHIKOMA_ERROR, // 400-499
+	LOADING, // Spin around
+	LOGGED_IN, // Success
+}
+
+export type AnyService = APIService | CookieService;
+export type LoginField = { type: "text" | "email" | "password"; name: string; label: string; required?: boolean };
+
 export default abstract class Service {
 	abstract name: string;
 	abstract key: string;
 	theme?: { background: string; color?: string; title?: () => HTMLElement };
 	abstract url: string;
 	apiUrl?: string;
+	loginInformations?: LoginField[];
 
+	// Redirect URL if there is one for the service (also used for API authorizations)
 	loginRedirect?(): Promise<string>;
-	abstract isLoggedIn(): Promise<boolean>;
+	abstract status(): Promise<{ status: ServiceStatus; message?: string }>;
+	async isLoggedIn(): Promise<boolean> {
+		const status = await this.status();
+		return status.status == ServiceStatus.LOGGED_IN;
+	}
 
 	abstract areDifferent(title: TitleInterface, other: TitleInterface): boolean;
 
@@ -26,7 +45,7 @@ export default abstract class Service {
 
 	storage = {
 		get: async <Values extends Record<string, any>>(): Promise<Partial<Values>> => {
-			const result = Shelf.get(`$${this.key}`) as unknown as Values | undefined;
+			const result = (await Shelf.get(`$${this.key}`)) as unknown as Values | undefined;
 			if (result) return result;
 			return {};
 		},
@@ -50,4 +69,4 @@ export abstract class APIService extends Service {
 /**
  * Service that doesn't have a token or an API and use users cookies.
  */
-export class CookieService {}
+export abstract class CookieService extends Service {}

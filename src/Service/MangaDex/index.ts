@@ -1,6 +1,6 @@
-import { APIService } from "@Core/Service";
-import Title from "@Core/Title";
+import { APIService, LoginField, ServiceStatus } from "@Core/Service";
 import { Volcano } from "@Core/Volcano";
+import Title from "@Core/Title";
 
 type Token = {
 	session: string;
@@ -40,13 +40,26 @@ export default new (class MangaDex extends APIService {
 		color: "rgb(255, 103, 64)",
 	};
 
+	loginInformations: LoginField[] = [
+		{
+			type: "text",
+			name: "username",
+			label: "Username",
+		},
+		{
+			type: "password",
+			name: "password",
+			label: "Password",
+		},
+	];
+
 	headers(token: string) {
 		return { Authorization: `Bearer ${token}` };
 	}
 
-	async isLoggedIn() {
+	async status() {
 		const token = await this.storage.get<Token>();
-		if (!token.session) return false;
+		if (!token.session) return { status: ServiceStatus.MISSING_TOKEN };
 		const response = await Volcano.post<{
 			result: string;
 			isAuthenticated: boolean;
@@ -54,9 +67,14 @@ export default new (class MangaDex extends APIService {
 			permissions: string[];
 		}>(this.route("auth/check"), { headers: this.headers(token.session) });
 		if (response.ok && response.body?.isAuthenticated) {
-			return true;
+			return { status: ServiceStatus.LOGGED_IN };
 		}
-		return false;
+		if (response.status == 401 || response.body?.isAuthenticated === false) {
+			return { status: ServiceStatus.INVALID_TOKEN };
+		} else if (response.status >= 400 && response.status < 500) {
+			return { status: ServiceStatus.TACHIKOMA_ERROR };
+		}
+		return { status: ServiceStatus.SERVICE_ERROR };
 	}
 
 	async refreshToken(): Promise<boolean> {
