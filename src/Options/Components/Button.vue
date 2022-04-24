@@ -43,10 +43,10 @@ const classes = computed(() => {
 }
 .button,
 .button.md {
-	@apply px-6 py-2.5 font-medium text-sm;
+	@apply px-6 py-2.5 font-medium;
 }
 .button.sm {
-	@apply px-4 py-2.5 font-medium text-xs;
+	@apply px-4 py-2.5 font-medium text-sm;
 }
 .button.lg {
 	@apply px-7 py-3 font-normal text-base;

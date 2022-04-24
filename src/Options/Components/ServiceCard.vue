@@ -11,7 +11,7 @@
 			></div>
 			<div v-else class="name text-xl font-bold">{{ service.name }}</div>
 			<div v-if="isActive" class="status mt-1">
-				<Badge :type="statusColor[status]">{{ statusMap[status] }}</Badge>
+				<Badge :type="statusMap.color[status]">{{ statusMap.description[status] }}</Badge>
 			</div>
 		</div>
 		<div class="actions flex flex-row flex-grow-0 flex-shrink-0 items-center">
@@ -21,12 +21,12 @@
 					<template v-if="canLogin">
 						<Button v-if="service.loginRedirect" type="success" @click="loginOrRedirect">
 							<span>Login</span>
-							<i class="light-icon-external-link w-3 ml-2"></i>
+							<i class="light-icon-external-link text-lg ml-2"></i>
 						</Button>
 						<template v-else>
 							<Button type="success" @click="loginOrRedirect">
 								<span>Login</span>
-								<i class="light-icon-login ml-2"></i>
+								<i class="light-icon-login text-lg ml-2"></i>
 							</Button>
 							<Modal v-model="loginModalVisible">
 								<template #header>Login</template>
@@ -35,49 +35,52 @@
 										Missing login informations !
 									</template>
 									<template v-else>
-										<template v-for="field in service.loginInformations">
-											<input
-												v-if="field.type == 'text'"
-												:key="`text-${field.name}`"
-												class="input"
-												type="text"
-												:name="field.name"
-												:placeholder="field.label"
-											/>
-											<input
-												v-else-if="field.type == 'password'"
-												:key="`password-${field.name}`"
-												class="input"
-												type="password"
-												:name="field.name"
-												:placeholder="field.label"
-											/>
-										</template>
+										<input
+											v-for="field in service.loginInformations"
+											:key="`password-${field.name}`"
+											v-model="loginInformations[field.name]"
+											class="input"
+											:type="field.type"
+											:name="field.name"
+											:placeholder="field.label"
+											:required="field.required"
+										/>
 									</template>
+									<Alert
+										v-if="loginResult && loginResult.status !== ServiceLogin.SUCCESS"
+										:type="loginMap.color[loginResult.status]"
+									>
+										{{ loginMap.description[loginResult.status] }}
+									</Alert>
 								</template>
 								<template #footer="{ hide }">
-									<Button type="success" class="mr-2" @click="loginOrRedirect">
+									<Button
+										type="success"
+										:disabled="loggingIn"
+										class="mr-2"
+										@click="sendLoginInformations"
+									>
 										<span>Login</span>
-										<i class="light-icon-login ml-2"></i>
+										<i class="light-icon-login text-lg ml-2"></i>
 									</Button>
-									<Button type="warning" @click="hide">Close</Button>
+									<Button type="warning" :disabled="loggingIn" @click="hide">Close</Button>
 								</template>
 							</Modal>
 						</template>
 					</template>
-					<Button v-else-if="canLogout" type="info" @click="logout">
+					<Button v-if="canLogout" type="info" class="ml-2" @click="logout">
 						<span>Logout</span>
-						<i class="light-icon-logout w-3 ml-2"></i>
+						<i class="light-icon-logout text-lg ml-2"></i>
 					</Button>
 					<Button type="error" class="ml-2" @click="deactivateServiceAndSave">Deactivate</Button>
 				</template>
 			</div>
 			<div v-if="isActive" class="sub-actions flex flex-col ml-4">
 				<Button type="info" size="sm" class="mb-2" :disabled="index(service.key) == 0" @click="moveUpAndSave">
-					<i class="light-icon-chevron-up"></i>
+					<i class="light-icon-chevron-up text-lg"></i>
 				</Button>
 				<Button type="info" size="sm" :disabled="isLast(service.key)" @click="moveDownAndSave">
-					<i class="light-icon-chevron-down"></i>
+					<i class="light-icon-chevron-down text-lg"></i>
 				</Button>
 			</div>
 		</div>
@@ -89,14 +92,17 @@ import { onMounted } from "vue";
 import { windows } from "webextension-polyfill";
 import { ref, computed } from "@vue/reactivity";
 import { file } from "@Core/Utility";
-import { AnyService, ServiceStatus } from "@Core/Service";
+import { AnyService, ServiceStatus, ServiceLogin } from "@Core/Service";
 import Button from "./Button.vue";
 import Badge from "./Badge.vue";
 import Modal from "./Modal.vue";
+import Alert from "./Alert.vue";
 import { useOptions } from "../Hooks/Options";
-import { useStatus } from "../Hooks/Status";
+import { useService } from "../Hooks/Service";
 
 const props = defineProps<{ service: AnyService }>();
+
+// * Style
 
 const cardClasses: string[] = [];
 const cardStyle: { borderColor: string | undefined; backgroundColor: string | undefined; color: string | undefined } = {
@@ -112,16 +118,25 @@ if (props.service.theme?.background) {
 	cardStyle.backgroundColor = props.service.theme.background;
 } else cardClasses.push("bg-tachikoma-600");
 
+//
+
 const { services, save } = useOptions();
-const { description: statusMap, color: statusColor } = useStatus();
+const { status: statusMap, login: loginMap } = useService();
 const status = ref<ServiceStatus>(ServiceStatus.LOADING);
 const loginModalVisible = ref(false);
+const loginInformations = ref<ServiceLoginInformations>({});
+const loginResult = ref<{ status: ServiceLogin; message?: string } | null>(null);
+const loggingIn = ref(false);
 
 const canLogin = computed(() => {
 	return status.value !== ServiceStatus.LOGGED_IN && status.value !== ServiceStatus.SERVICE_ERROR;
 });
 const canLogout = computed(() => {
-	return status.value === ServiceStatus.LOGGED_IN && "logout" in props.service;
+	return (
+		status.value !== ServiceStatus.MISSING_COOKIES &&
+		status.value !== ServiceStatus.MISSING_TOKEN &&
+		"logout" in props.service
+	);
 });
 
 const isActive = computed(() => {
@@ -150,6 +165,7 @@ async function closeSelf() {
 }
 
 const loginOrRedirect = async () => {
+	loginResult.value = null;
 	loading.value = true;
 	if (props.service.loginRedirect) {
 		const redirectUrl = await props.service.loginRedirect();
@@ -166,6 +182,18 @@ const loginOrRedirect = async () => {
 		loginModalVisible.value = true;
 	}
 	loading.value = false;
+};
+const sendLoginInformations = async () => {
+	loggingIn.value = true;
+	loginResult.value = { status: ServiceLogin.LOADING };
+	if ("login" in props.service) {
+		loginResult.value = await props.service.login(loginInformations.value);
+		if (loginResult.value.status === ServiceLogin.SUCCESS) {
+			loadStatus();
+			loginModalVisible.value = false;
+		}
+	}
+	loggingIn.value = false;
 };
 const logout = async () => {
 	loading.value = true;

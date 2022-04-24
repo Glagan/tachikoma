@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import { APIService, ServiceStatus } from "@Core/Service";
+import { APIService, ServiceLogin, ServiceStatus } from "@Core/Service";
 import { Volcano } from "@Core/Volcano";
 import { pkce } from "@Core/Utility";
 import Title from "@Core/Title";
@@ -164,11 +164,17 @@ export default new (class MyAnimeList extends APIService {
 		})}`;
 	}
 
-	async login(informations: ServiceLoginInformations): Promise<boolean> {
+	async login(informations: ServiceLoginInformations): Promise<{ status: ServiceLogin; message?: string }> {
 		const savedState = await this.storage.get<{ challenge: String; verifier: string }>();
-		if (!savedState.challenge || !savedState.verifier) return false;
-		if (!informations.code || !informations.state) return false;
-		if (informations.state != savedState.verifier) return false;
+		if (!savedState.challenge || !savedState.verifier) {
+			return { status: ServiceLogin.EXPIRED_CHALLENGE };
+		}
+		if (!informations.code || !informations.state) {
+			return { status: ServiceLogin.MISSING_FIELDS };
+		}
+		if (informations.state != savedState.verifier) {
+			return { status: ServiceLogin.INVALID_CHALLENGE };
+		}
 		const response = await Volcano.post<{
 			token_type: string;
 			expires_in: number;
@@ -183,13 +189,13 @@ export default new (class MyAnimeList extends APIService {
 			},
 		});
 		if (!response.ok || !response.body) {
-			return false;
+			return { status: ServiceLogin.INVALID_CREDENTIALS };
 		}
 		await this.storage.set<Token>({
 			token: response.body.access_token,
 			refresh: response.body.refresh_token,
 		});
-		return true;
+		return { status: ServiceLogin.SUCCESS };
 	}
 
 	async logout(): Promise<boolean> {

@@ -1,4 +1,4 @@
-import { APIService, LoginField, ServiceStatus } from "@Core/Service";
+import { APIService, LoginField, ServiceLogin, ServiceStatus } from "@Core/Service";
 import { Volcano } from "@Core/Volcano";
 import Title from "@Core/Title";
 
@@ -60,7 +60,7 @@ export default new (class MangaDex extends APIService {
 	async status() {
 		const token = await this.storage.get<Token>();
 		if (!token.session) return { status: ServiceStatus.MISSING_TOKEN };
-		const response = await Volcano.post<{
+		const response = await Volcano.get<{
 			result: string;
 			isAuthenticated: boolean;
 			roles: string[];
@@ -102,9 +102,9 @@ export default new (class MangaDex extends APIService {
 		return true;
 	}
 
-	async login(informations: ServiceLoginInformations): Promise<boolean> {
+	async login(informations: ServiceLoginInformations): Promise<{ status: ServiceLogin }> {
 		if (!informations.username || !informations.password) {
-			return false;
+			return { status: ServiceLogin.MISSING_FIELDS };
 		}
 		const response = await Volcano.post<{
 			result: string;
@@ -118,15 +118,17 @@ export default new (class MangaDex extends APIService {
 				password: informations.password,
 			},
 		});
-		if (response.status == 401) return false;
+		if (response.status >= 400 && response.status <= 401) {
+			return { status: ServiceLogin.INVALID_CREDENTIALS };
+		}
 		if (!response.body) {
-			return false;
+			return { status: ServiceLogin.SERVICE_ERROR };
 		}
 		await this.storage.set<Token>({
 			session: response.body.token.session,
 			refresh: response.body.token.refresh,
 		});
-		return true;
+		return { status: ServiceLogin.SUCCESS };
 	}
 
 	async logout(): Promise<boolean> {
