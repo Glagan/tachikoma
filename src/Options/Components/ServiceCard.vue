@@ -89,7 +89,7 @@
 
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { windows } from "webextension-polyfill";
+import { windows, tabs } from "webextension-polyfill";
 import { ref, computed } from "@vue/reactivity";
 import { file } from "@Core/Utility";
 import { AnyService, ServiceStatus, ServiceLogin } from "@Core/Service";
@@ -169,15 +169,16 @@ const loginOrRedirect = async () => {
 	loading.value = true;
 	if (props.service.loginRedirect) {
 		const redirectUrl = await props.service.loginRedirect();
-		const link = document.createElement("a");
-		link.style.display = "none";
-		link.href = redirectUrl;
-		link.target = "_blank";
-		link.rel = "noreferrer noopener";
-		document.body.appendChild(link);
-		link.click();
-		link.remove();
-		closeSelf();
+		// const link = document.createElement("a");
+		// link.style.display = "none";
+		// link.href = redirectUrl;
+		// link.target = "_blank";
+		// link.rel = "noreferrer noopener";
+		// document.body.appendChild(link);
+		// link.click();
+		// link.remove();
+		await tabs.create({ url: redirectUrl, active: true });
+		// closeSelf();
 	} else {
 		loginModalVisible.value = true;
 	}
