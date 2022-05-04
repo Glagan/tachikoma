@@ -1,6 +1,6 @@
 type Route = {
-	identifier: string | RegExp;
-	fnct: (results?: string[]) => PromiseLike<any>;
+	identifier: (string | RegExp)[];
+	fnct: (() => Promise<any>) | ((results?: string[]) => Promise<any>) | (() => any) | ((results?: string[]) => any);
 	meta?: Record<any, any>;
 };
 
@@ -8,22 +8,29 @@ export default class Router {
 	protected routes: Route[] = [];
 	protected watcherBinded: boolean = false;
 
-	public add(identifier: Route["identifier"], fnct: Route["fnct"], meta?: Route["meta"]) {
+	public add(identifier: string | RegExp | (string | RegExp)[], fnct: Route["fnct"], meta?: Route["meta"]) {
+		if (!Array.isArray(identifier)) identifier = [identifier];
 		this.routes.push({ identifier, fnct, meta });
 	}
 
 	public match(identifier: string): [Route, string[]] | null {
 		for (const route of this.routes) {
-			if (typeof route.identifier === "string") {
-				if (route.identifier == identifier) {
-					return [route, []];
-				}
-			} else {
-				const results = route.identifier.exec(identifier);
-				if (results) {
-					return [route, results.slice(1)];
+			let match: [Route, string[]] | null = null;
+			for (const id of route.identifier) {
+				if (typeof id === "string") {
+					if (id == identifier) {
+						match = [route, []];
+						break;
+					}
+				} else {
+					const results = id.exec(identifier);
+					if (results) {
+						match = [route, results.slice(1)];
+						break;
+					}
 				}
 			}
+			if (match) return match;
 		}
 		return null;
 	}
