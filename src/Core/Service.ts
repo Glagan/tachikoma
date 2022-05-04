@@ -43,6 +43,54 @@ export const loginResultMap: { [key in ServiceLogin]: string } = {
 	[ServiceLogin.SUCCESS]: "Logged In",
 };
 
+export enum ExternalStatus {
+	ID_ERROR, // Invalid given ID format
+	ACCOUNT_ERROR, // Any Token, Cookies or expired tokens error
+	SERVICE_ERROR, // 500+
+	TACHIKOMA_ERROR, // 400-499
+	NO_SERVICE, // tachikoma doesn't know this service
+	NO_ID, // No saved ID
+	NOT_IN_LIST, // Not currently in list
+	LOADING,
+}
+
+export type TitleFetchFailure = {
+	status: ExternalStatus;
+	service?: ServiceStatus;
+	message?: string;
+};
+
+export enum SaveStatus {
+	ID_ERROR, // Invalid given ID format
+	ACCOUNT_ERROR, // Any Token, Cookies or expired tokens error
+	SERVICE_ERROR, // 500+
+	TACHIKOMA_ERROR, // 400-499
+	SUCCESS,
+	DELETED, // Status.NONE
+	CREATED, // 201 -- or create
+	LOADING,
+}
+
+export type SaveResult = {
+	status: SaveStatus;
+	message?: string;
+};
+
+export enum DeleteStatus {
+	ID_ERROR, // Invalid given ID format
+	ACCOUNT_ERROR, // Any Token, Cookies or expired tokens error
+	SERVICE_ERROR, // 500+
+	TACHIKOMA_ERROR, // 400-499
+	NOT_IN_LIST, // 404 ?
+	SUCCESS,
+	LOADING,
+}
+
+export type DeleteResult = {
+	status: DeleteStatus;
+	message?: string;
+};
+
 export type AnyService = APIService | CookieService;
 export type LoginField = { type: "text" | "email" | "password"; name: string; label: string; required?: boolean };
 
@@ -64,9 +112,9 @@ export default abstract class Service {
 
 	abstract areDifferent(title: TitleInterface, other: TitleInterface): boolean;
 
-	abstract get(id: TitleIdentifier): Promise<Title | null>;
-	abstract save(id: TitleIdentifier, title: Title): Promise<boolean>;
-	abstract delete(id: TitleIdentifier): Promise<boolean>;
+	abstract get(id: TitleIdentifier): Promise<Title | TitleFetchFailure>;
+	abstract save(id: TitleIdentifier, title: Title): Promise<SaveResult>;
+	abstract delete(id: TitleIdentifier): Promise<DeleteResult>;
 
 	route(path: string, useBaseUrl: boolean = false): string {
 		const base = !useBaseUrl && this.apiUrl ? this.apiUrl : this.url;

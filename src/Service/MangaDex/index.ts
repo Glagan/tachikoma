@@ -1,4 +1,15 @@
-import { APIService, LoginField, ServiceLogin, ServiceStatus } from "@Core/Service";
+import {
+	APIService,
+	LoginField,
+	ServiceLogin,
+	ServiceStatus,
+	TitleFetchFailure,
+	ExternalStatus,
+	SaveResult,
+	SaveStatus,
+	DeleteResult,
+	DeleteStatus,
+} from "@Core/Service";
 import { Volcano } from "@Core/Volcano";
 import Title from "@Core/Title";
 
@@ -152,7 +163,7 @@ export default new (class MangaDex extends APIService {
 		return false;
 	}
 
-	toStatus(status: ListStatus): Status {
+	toStatus(status: ListStatus | null): Status {
 		switch (status) {
 			case ListStatus.READING:
 				return Status.READING;
@@ -191,50 +202,55 @@ export default new (class MangaDex extends APIService {
 		return null;
 	}
 
-	async get(id: TitleIdentifier): Promise<Title | null> {
-		if (!id.id) return null;
+	async get(id: TitleIdentifier): Promise<Title | TitleFetchFailure> {
+		if (!id.id) return { status: ExternalStatus.ACCOUNT_ERROR };
 		const token = await this.storage.get<Token>();
-		if (!token || !token.session) return null;
+		if (!token || !token.session) return { status: ExternalStatus.ACCOUNT_ERROR };
 
 		const response = await Volcano.get<
 			{
 				result: "ok";
-				status: ListStatus;
+				status: ListStatus | null;
 			},
 			ResponseError
 		>(this.route(`manga/${id.id}/status`), { headers: this.headers(token.session) });
 
 		if (response.status >= 401 || response.status <= 403) {
-			return null;
+			return { status: ExternalStatus.ACCOUNT_ERROR };
 		}
 		if (!response.body || response.body.result == "error") {
-			return null;
+			return { status: ExternalStatus.SERVICE_ERROR };
 		}
 
-		return new Title({
-			chapter: 0,
-			services: { [this.key]: id },
-			status: this.toStatus(response.body.status),
-		});
+		const status = this.toStatus(response.body.status);
+		if (status != Status.NONE) {
+			return new Title({
+				chapter: 0,
+				services: { [this.key]: id },
+				status: this.toStatus(response.body.status),
+			});
+		}
+		return { status: ExternalStatus.NOT_IN_LIST };
 	}
 
-	async save(id: TitleIdentifier, title: Title): Promise<boolean> {
-		if (!id.id) return false;
+	async save(id: TitleIdentifier, title: Title): Promise<SaveResult> {
+		if (!id.id) return { status: SaveStatus.ACCOUNT_ERROR };
 		const token = await this.storage.get<Token>();
-		if (!token || !token.session) return false;
+		if (!token || !token.session) return { status: SaveStatus.ACCOUNT_ERROR };
 
+		const created = title.status === Status.NONE;
 		const response = await Volcano.post<{ result: "ok" }, ResponseError>(this.route(`manga/${id.id}/status`), {
 			headers: this.headers(token.session),
 			body: { status: this.fromStatus(title.status) },
 		});
 
-		return response.ok && response.body?.result === "ok";
+		return { status: created ? SaveStatus.CREATED : SaveStatus.SUCCESS };
 	}
 
-	async delete(id: TitleIdentifier): Promise<boolean> {
-		if (!id.id) return false;
+	async delete(id: TitleIdentifier): Promise<DeleteResult> {
+		if (!id.id) return { status: DeleteStatus.ACCOUNT_ERROR };
 		const token = await this.storage.get<Token>();
-		if (!token || !token.session) return false;
+		if (!token || !token.session) return { status: DeleteStatus.ACCOUNT_ERROR };
 
 		// Only the status is currently available on MangaDex
 		// So "deleting" the title only means setting it's status to null
@@ -243,7 +259,7 @@ export default new (class MangaDex extends APIService {
 			body: { status: null },
 		});
 
-		return response.ok && response.body?.result === "ok";
+		return { status: DeleteStatus.SUCCESS };
 	}
 
 	link(id: TitleIdentifier): string | undefined {

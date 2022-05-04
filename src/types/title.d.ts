@@ -17,6 +17,8 @@ declare const enum Status {
 
 type DateTime = import("luxon").DateTime;
 
+type ServiceList = { [key: string]: TitleIdentifier };
+
 type TitleInterface = {
 	// Local **tachikoma** id
 	id?: number;
@@ -30,19 +32,18 @@ type TitleInterface = {
 	// Stauts of the title
 	status: Status;
 
-	/**
-	 * Score from 0-100
-	 * TODO Convert to a class to handle different ranges
-	 */
-	score?: number;
+	// Score from any given range
+	score?: import("@Core/Score").Score;
 
 	// Start time (automatically updated)
 	startDate?: DateTime;
 	// End time (automatically updated)
 	endDate?: DateTime;
 
+	// List of locked Service keys
+	lockedServices?: string[];
 	// List of {Service.key}
-	services: { [key: string]: TitleIdentifier };
+	services: ServiceList;
 	// Creation time
 	creation?: DateTime;
 	// Last update time
@@ -57,10 +58,11 @@ type TitleStorageInterface = {
 	c: number; // Chapter
 	v?: number; // Volume
 	s: Status; // Status
-	r?: number; // Score
+	r?: [number, number, number]; // Score
 	t?: number; // Start Date
 	e?: number; // End Date
-	$?: { [key: string]: TitleIdentifier }; // Services
+	l?: string[]; // Locked Services
+	$?: ServiceList; // Services
 	o?: number; // Creation Date
 	u?: number; // Last Update
 	a?: number; // Last Access

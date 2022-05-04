@@ -1,8 +1,19 @@
 import { DateTime } from "luxon";
-import { APIService, ServiceLogin, ServiceStatus } from "@Core/Service";
+import {
+	APIService,
+	ServiceLogin,
+	ServiceStatus,
+	TitleFetchFailure,
+	ExternalStatus,
+	SaveResult,
+	DeleteResult,
+	SaveStatus,
+	DeleteStatus,
+} from "@Core/Service";
 import { Volcano } from "@Core/Volcano";
 import { pkce } from "@Core/Utility";
 import Title from "@Core/Title";
+import { Score } from "@Core/Score";
 
 const CLIENT_ID = "aaead2491067691606c70a480a0ebb02" as const;
 const OAUTH2_AUTHORIZE = "https://myanimelist.net/v1/oauth2/authorize" as const;
@@ -246,16 +257,19 @@ export default new (class MyAnimeList extends APIService {
 		return null;
 	}
 
-	async get(id: TitleIdentifier): Promise<Title | null> {
-		if (!id.id) return null;
+	async get(id: TitleIdentifier): Promise<Title | TitleFetchFailure> {
+		if (!id.id) return { status: ExternalStatus.ID_ERROR };
 		const token = await this.storage.get<Token>();
-		if (!token.token) return null;
+		if (!token.token) return { status: ExternalStatus.ACCOUNT_ERROR };
 
 		const response = await Volcano.get<MangaDetails>(this.route(`manga/${id.id}`), {
 			headers: this.headers(token.token),
 		});
-		if (response.status >= 401 || response.status <= 403 || !response.body) {
-			return null;
+		if (response.status >= 401 || response.status <= 403) {
+			return { status: ExternalStatus.ACCOUNT_ERROR };
+		}
+		if (!response.body || response.status >= 500) {
+			return { status: ExternalStatus.SERVICE_ERROR };
 		}
 
 		if (response.body.my_list_status) {
@@ -266,29 +280,30 @@ export default new (class MyAnimeList extends APIService {
 				chapter: listStatus.num_chapters_read,
 				volume: listStatus.num_volumes_read,
 				status: this.toStatus(listStatus.status),
-				score: listStatus.score ? media.my_list_status!.score * 10 : undefined, // TODO Add Score class to handle ranges
+				score: listStatus.score ? new Score(media.my_list_status!.score, [1, 10]) : undefined,
 				startDate: listStatus.start_date ? DateTime.fromISO(listStatus.start_date) : undefined,
 				endDate: listStatus.finish_date ? DateTime.fromISO(listStatus.finish_date) : undefined,
 				lastAccess: DateTime.now(),
 				services: { [this.key]: id },
 			});
 		}
-		return new Title({
-			chapter: 0,
-			services: { [this.key]: id },
-			status: Status.NONE,
-		});
+		return { status: ExternalStatus.NOT_IN_LIST };
 	}
 
-	async save(id: TitleIdentifier, title: Title): Promise<boolean> {
-		if (!id.id) return false;
+	async save(id: TitleIdentifier, title: Title): Promise<SaveResult> {
+		if (!id.id) return { status: SaveStatus.ACCOUNT_ERROR };
 		const token = await this.storage.get<Token>();
-		if (!token.token) return false;
+		if (!token.token) return { status: SaveStatus.ACCOUNT_ERROR };
 
 		if (title.status === Status.NONE) {
-			return this.delete(id);
+			const deleteResult = await this.delete(id);
+			if (deleteResult.status <= DeleteStatus.SUCCESS) {
+				return { status: deleteResult.status as unknown as SaveStatus };
+			}
+			return { status: SaveStatus.DELETED };
 		}
 
+		const created = title.status === Status.NONE;
 		const response = await Volcano.patch(this.route(`manga/${id.id}/my_list_status`), {
 			headers: this.headers(token.token),
 			query: {
@@ -307,19 +322,19 @@ export default new (class MyAnimeList extends APIService {
 			},
 		});
 
-		return response.ok && response.body?.result === "ok";
+		return { status: created ? SaveStatus.CREATED : SaveStatus.SUCCESS };
 	}
 
-	async delete(id: TitleIdentifier): Promise<boolean> {
-		if (!id.id) return false;
+	async delete(id: TitleIdentifier): Promise<DeleteResult> {
+		if (!id.id) return { status: DeleteStatus.ACCOUNT_ERROR };
 		const token = await this.storage.get<Token>();
-		if (!token.token) return false;
+		if (!token.token) return { status: DeleteStatus.ACCOUNT_ERROR };
 
 		const response = await Volcano.deleteRequest(this.route(`manga/${id.id}/my_list_status`), {
 			headers: this.headers(token.token),
 		});
 
-		return response.ok;
+		return { status: DeleteStatus.SUCCESS };
 	}
 
 	link(id: TitleIdentifier): string | undefined {
