@@ -1,6 +1,10 @@
 import { Lake } from "@Core/Lake";
 import { loginResultMap, ServiceLogin } from "@Core/Service";
 
+const LOADING_IMG = "/loading.png" as const;
+const SUCCESS_IMG = "/ok.png" as const;
+const ERROR_IMG = "/sleepy.png" as const;
+
 (async () => {
 	const path = window.location.pathname.slice(1); // Ignore `/`
 	for (const service of Lake.services) {
@@ -18,15 +22,15 @@ import { loginResultMap, ServiceLogin } from "@Core/Service";
 				});
 
 				// Login...
-				image.src = "/loading.png";
+				image.src = LOADING_IMG;
 				body.textContent = "Logging in...";
 				const result = await service.login(params);
 
 				if (result.status === ServiceLogin.SUCCESS) {
-					image.src = "/ok.png";
+					image.src = SUCCESS_IMG;
 					body.textContent = "Logged in ! You can now close this page.";
 				} else {
-					image.src = "/sleepy.png";
+					image.src = ERROR_IMG;
 					if (result.message) {
 						body.textContent = `${loginResultMap[result.status]}\n${result.message}`;
 					} else {
