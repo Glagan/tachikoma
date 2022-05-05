@@ -215,7 +215,7 @@ export default new (class MangaDex extends APIService {
 			ResponseError
 		>(this.route(`manga/${id.id}/status`), { headers: this.headers(token.session) });
 
-		if (response.status >= 401 || response.status <= 403) {
+		if (response.status >= 401 && response.status <= 403) {
 			return { status: ExternalStatus.ACCOUNT_ERROR };
 		}
 		if (!response.body || response.body.result == "error") {

@@ -8,6 +8,7 @@ import { Message } from "./Message";
 export namespace Volcano {
 	export function buildQuery(params: { [key: string]: any }, doBody: boolean = true): string {
 		return Object.keys(params)
+			.filter((f) => params[f] !== undefined)
 			.map((f) => `${encodeURIComponent(f)}=${doBody ? encodeURIComponent(params[f]) : params[f]}`)
 			.join("&");
 	}

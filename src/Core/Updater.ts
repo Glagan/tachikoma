@@ -120,7 +120,7 @@ export default class Updater {
 		const updates: Promise<SaveResult>[] = [];
 		for (const serviceKey of services) {
 			const id = this.title.services[serviceKey];
-			if (id && this.state[serviceKey] && this.state instanceof Title) {
+			if (id && this.state[serviceKey] && this.state[serviceKey] instanceof Title) {
 				const externalTitle = this.state[serviceKey] as Title;
 				updates.push(
 					Lake.map[serviceKey].save(id, externalTitle).then((result) => {

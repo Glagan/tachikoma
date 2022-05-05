@@ -265,7 +265,7 @@ export default new (class MyAnimeList extends APIService {
 		const response = await Volcano.get<MangaDetails>(this.route(`manga/${id.id}?fields=my_list_status`), {
 			headers: this.headers(token.token),
 		});
-		if (response.status >= 401 || response.status <= 403) {
+		if (response.status >= 401 && response.status <= 403) {
 			return { status: ExternalStatus.ACCOUNT_ERROR };
 		}
 		if (!response.body || response.status >= 500) {
@@ -309,9 +309,9 @@ export default new (class MyAnimeList extends APIService {
 			query: {
 				status: this.fromStatus(title.status),
 				is_rereading: title.status == Status.REREADING,
-				score: title.score ?? 0,
+				score: title.score?.get([1, 10]) ?? 0,
+				num_chapters_read: title.chapter ?? 0,
 				num_volumes_read: title.volume ?? 0,
-				num_chapters_read: title.volume ?? 0,
 				start_date: title.startDate?.toISODate(),
 				finish_date: title.endDate?.toISODate(),
 				// priority: 0,
@@ -321,6 +321,9 @@ export default new (class MyAnimeList extends APIService {
 				// comments: '',
 			},
 		});
+		if (response.status >= 401 && response.status <= 403) {
+			return { status: SaveStatus.ACCOUNT_ERROR };
+		}
 
 		return { status: created ? SaveStatus.CREATED : SaveStatus.SUCCESS };
 	}
