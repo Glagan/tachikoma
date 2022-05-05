@@ -1,3 +1,4 @@
+import { Options } from "@Core/Options";
 import Router from "@Core/Router";
 import { injectScript } from "@Core/Utility";
 import ChapterPage from "./Pages/ChapterPage";
@@ -44,7 +45,8 @@ router.add([/^\/manga\/(\d+)\/?/, /^\/title\/([-A-Za-z0-9]{36})\/?/], TitlePage)
 
 // * Wait until MangaDex loaded to do anything
 
-document.addEventListener("md:ready", () => {
+document.addEventListener("md:ready", async () => {
+	await Options.load();
 	router.execute(window.location.pathname);
 	router.watch();
 });

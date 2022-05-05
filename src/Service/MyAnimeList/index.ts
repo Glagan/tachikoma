@@ -262,7 +262,7 @@ export default new (class MyAnimeList extends APIService {
 		const token = await this.storage.get<Token>();
 		if (!token.token) return { status: ExternalStatus.ACCOUNT_ERROR };
 
-		const response = await Volcano.get<MangaDetails>(this.route(`manga/${id.id}`), {
+		const response = await Volcano.get<MangaDetails>(this.route(`manga/${id.id}?fields=my_list_status`), {
 			headers: this.headers(token.token),
 		});
 		if (response.status >= 401 || response.status <= 403) {
