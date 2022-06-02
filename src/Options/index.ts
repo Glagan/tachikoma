@@ -1,6 +1,7 @@
-import { createApp } from "vue";
-import App from "./index.vue";
-import "light-icons/dist/light-icon.css";
-import "./index.css";
+import App from "./index.svelte";
 
-createApp(App).mount("#app");
+const app = new App({
+	target: document.body,
+});
+
+export default app;

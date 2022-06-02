@@ -1,7 +1,7 @@
 import { DateTime } from "luxon";
 import { Score } from "./Score";
 import { Shelf } from "./Shelf";
-import { StorageTitle } from "./Storage";
+import type { StorageTitle } from "./Storage";
 
 export type ProgressResult = {
 	started: boolean;

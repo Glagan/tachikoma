@@ -1,4 +1,4 @@
-import { AnyService } from "./Service";
+import type { AnyService } from "./Service";
 import * as Services from "@Service";
 import { Options } from "./Options";
 
