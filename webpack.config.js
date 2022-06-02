@@ -1,7 +1,6 @@
 import { readdirSync, readFileSync } from "fs";
 import { resolve } from "path";
 import webpack from "webpack";
-import { VueLoaderPlugin } from "vue-loader";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import TsconfigPathsPlugin from "tsconfig-paths-webpack-plugin";
 import CaseSensitivePathsPlugin from "case-sensitive-paths-webpack-plugin";
@@ -9,6 +8,7 @@ import CopyWebpackPlugin from "copy-webpack-plugin";
 import ZipPlugin from "zip-webpack-plugin";
 import { ESBuildMinifyPlugin } from "esbuild-loader";
 import { default as ManifestPlugin } from "./src/Build/ManifestPlugin.js";
+import preprocess from "svelte-preprocess";
 
 // Collect manifests
 let subManifests = [];
@@ -54,6 +54,7 @@ export default (env, argv) => {
 	if (!vendor) throw new Error("Missing `vendor`.");
 	const version = process.env.npm_package_version;
 	const name = process.env.npm_package_name;
+	const production = argv.mode === "production";
 
 	return {
 		entry: {
@@ -74,27 +75,33 @@ export default (env, argv) => {
 			},
 			minimizer: [
 				new ESBuildMinifyPlugin({
-					target: "es2015",
+					target: "es2017",
 				}),
 			],
 		},
-		devtool: argv.mode === "production" ? undefined : "inline-source-map",
+		devtool: production ? undefined : "inline-source-map",
 		module: {
 			rules: [
 				{
-					test: /\.vue$/,
-					loader: "vue-loader",
+					test: /\.svelte$/,
+					use: {
+						loader: "svelte-loader",
+						options: {
+							compilerOptions: {
+								dev: !production,
+							},
+							emitCss: production,
+							preprocess: preprocess(),
+						},
+					},
 				},
 				{
 					test: /\.ts$/,
 					loader: "ts-loader",
 					exclude: /node_modules/,
-					options: {
-						appendTsSuffixTo: [/\.vue$/],
-					},
 				},
 				{
-					test: /\.css$/,
+					test: /\.p?css$/,
 					use: [MiniCssExtractPlugin.loader, "css-loader", "postcss-loader"],
 				},
 			],
@@ -110,7 +117,6 @@ export default (env, argv) => {
 		},
 		plugins: (() => {
 			const plugins = [
-				new VueLoaderPlugin(),
 				new MiniCssExtractPlugin(),
 				new CaseSensitivePathsPlugin(),
 				new CopyWebpackPlugin({
@@ -124,7 +130,7 @@ export default (env, argv) => {
 				}),
 				new ManifestPlugin({ meta: { name }, manifest: "./src/manifest.json", version, vendor, subManifests }),
 			];
-			if (argv.mode === "production") {
+			if (production) {
 				plugins.push(
 					new ZipPlugin({
 						path: resolve(process.cwd(), "web-ext-artifacts"),
