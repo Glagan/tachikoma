@@ -67,7 +67,7 @@ export default class Updater {
 	 * Save snapshots of the state for each Services and returns them.
 	 * A Service with no snapshot means it was not in the list before.
 	 */
-	async mergeExternal(): Promise<Snapshots> {
+	async import(): Promise<Snapshots> {
 		const snapshots: Snapshots = {};
 		await this.initialize();
 		const titleServices = Object.keys(this.title.services);
@@ -87,7 +87,7 @@ export default class Updater {
 	 * Save snapshots of the state for each Services and returns them.
 	 * A Service with no snapshot means it was not in the list before.
 	 */
-	async applyToExternal(): Promise<Snapshots> {
+	async export(): Promise<Snapshots> {
 		const snapshots: Snapshots = {};
 		await this.initialize();
 		const titleServices = Object.keys(this.title.services);
@@ -104,16 +104,16 @@ export default class Updater {
 		return snapshots;
 	}
 
-	// Update all external services to sync to the current state of the Title
 	/**
-	 * Call Update.applyToExternal and save snapshots, then call the Service.save function
-	 * on each Service that are can be updated (No account or service error)
+	 * Call Update.export and save snapshots, then call the Service.save function
+	 * on each Service that are can be updated (No account or service error).
+	 * Update all external services to sync to the current state of the Title
 	 * @returns Sync report
 	 */
 	async sync(): Promise<SyncReport> {
 		const report: SyncReport = {
 			perServices: {},
-			snapshot: await this.applyToExternal(),
+			snapshot: await this.export(),
 		};
 		const titleServices = Object.keys(this.title.services);
 		const services = Options.services(true).filter((service) => titleServices.indexOf(service) >= 0);

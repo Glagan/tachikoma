@@ -4,6 +4,7 @@ import { OPTIONS_KEY } from "./Storage";
 import { nestedKeyReference } from "./Utility";
 
 export namespace Options {
+	export let loaded = false;
 	export const defaults: OptionList = {
 		// Options that can override by Site options
 		highlight: true,
@@ -62,6 +63,7 @@ export namespace Options {
 		if (options) {
 			Object.assign(Options.values, options);
 		} else await Shelf.set({ [OPTIONS_KEY]: defaults });
+		loaded = true;
 	}
 
 	export function reset() {
