@@ -90,7 +90,7 @@ export default (env, argv) => {
 							compilerOptions: {
 								dev: !production,
 							},
-							emitCss: production,
+							emitCss: true,
 							preprocess: preprocess(),
 						},
 					},

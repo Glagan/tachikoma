@@ -25,7 +25,7 @@ const colors = {
 
 module.exports = {
 	mode: "jit",
-	content: ["src/**/*.html", "src/**/*.ts", "src/**/*.vue"],
+	content: ["src/**/*.html", "src/**/*.ts", "src/**/*.svelte"],
 	darkMode: "class",
 	theme: {
 		colors,
