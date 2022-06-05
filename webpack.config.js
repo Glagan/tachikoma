@@ -91,7 +91,9 @@ export default (env, argv) => {
 								dev: !production,
 							},
 							emitCss: true,
-							preprocess: preprocess(),
+							preprocess: preprocess({
+								postcss: true,
+							}),
 						},
 					},
 				},

@@ -1,5 +1,6 @@
+const postCssPresetEnv = require("postcss-preset-env");
 const tailwindcss = require("tailwindcss");
 
 module.exports = {
-	plugins: ["postcss-preset-env", tailwindcss],
+	plugins: [postCssPresetEnv(), tailwindcss("./tailwind.config.cjs")],
 };
