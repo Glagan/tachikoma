@@ -11,18 +11,7 @@
 		"96": "/icons/tachikoma/96.png",
 		"128": "/icons/tachikoma/128.png"
 	},
-	"firefox:browser_action": {
-		"browser_style": true,
-		"default_title": "tachikoma",
-		"default_popup": "options.html",
-		"default_icon": {
-			"16": "/icons/tachikoma/16.png",
-			"32": "/icons/tachikoma/32.png",
-			"64": "/icons/tachikoma/64.png",
-			"128": "/icons/tachikoma/128.png"
-		}
-	},
-	"chrome:browser_action": {
+	"browser_action": {
 		"browser_style": true,
 		"default_title": "tachikoma",
 		"default_popup": "/options.html",

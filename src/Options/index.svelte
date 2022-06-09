@@ -1,6 +1,5 @@
 <script lang="ts">
 	import Services from "./lib/Services.svelte";
-	import Title from "./lib/Title.svelte";
 	import { loading, optionsStore } from "./stores/Options";
 
 	optionsStore.load();

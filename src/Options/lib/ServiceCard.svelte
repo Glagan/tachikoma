@@ -5,10 +5,10 @@
 	import { file } from "@Core/Utility";
 	import { loginResultMap, loginStatusMap, ServiceLogin, ServiceStatus } from "@Core/Service";
 	import { optionsStore } from "../stores/Options";
-	import Button from "./Button.svelte";
-	import Badge from "./Badge.svelte";
-	import Modal from "./Modal.svelte";
-	import Alert from "./Alert.svelte";
+	import Button from "@Components/Button.svelte";
+	import Badge from "@Components/Badge.svelte";
+	import Modal from "@Components/Modal.svelte";
+	import Alert from "@Components/Alert.svelte";
 
 	export let serviceKey: string;
 
@@ -16,7 +16,7 @@
 	const service = Lake.services.find((service) => service.key === serviceKey)!;
 	$: isActive = $optionsStore ? $optionsStore.services.includes(serviceKey) : false;
 
-	let modal: Moùdal;
+	let modal: Modal;
 
 	let cardClasses = "service-card";
 	let cardStyle = "";
