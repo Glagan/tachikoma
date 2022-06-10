@@ -1,4 +1,3 @@
-import { readdirSync, readFileSync } from "fs";
 import { resolve } from "path";
 import webpack from "webpack";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
@@ -7,47 +6,8 @@ import CaseSensitivePathsPlugin from "case-sensitive-paths-webpack-plugin";
 import CopyWebpackPlugin from "copy-webpack-plugin";
 import ZipPlugin from "zip-webpack-plugin";
 import { ESBuildMinifyPlugin } from "esbuild-loader";
-import { default as ManifestPlugin } from "./src/Build/ManifestPlugin.js";
 import preprocess from "svelte-preprocess";
-
-// Collect manifests
-let subManifests = [];
-let entryPoints = {};
-const collectManifests = (path) => {
-	const files = readdirSync(path, { withFileTypes: true });
-	for (const file of files) {
-		if (file.isDirectory()) {
-			collectManifests(`${path}/${file.name}`);
-		} else if (file.name == "manifest.json" && path != "./src") {
-			const filePath = `${path}/${file.name}`;
-			const subManifest = {
-				namespace: path.split("/").pop(),
-				path: filePath,
-				content: JSON.parse(readFileSync(filePath)),
-			};
-			const scriptName = subManifest.namespace.toLocaleLowerCase();
-			subManifests.push(subManifest);
-			// Add to the Webpack entries if there is a script to build
-			if (subManifest.content.entry) {
-				entryPoints[scriptName] = { import: `${path}/${subManifest.content.entry}` };
-				delete subManifest.content.entry;
-			}
-			// -- if there is a script to build it should have a
-			// -- `content_scripts` key to know *where* to use the script
-			// Add the mandatory webextension polyfill and the scripts
-			if (subManifest.content.content_scripts) {
-				subManifest.content.content_scripts = {
-					js: ["/webextension-polyfill.js", `/${scriptName}.js`],
-					...subManifest.content.content_scripts,
-				};
-				if (!subManifest.content.content_scripts.matches) {
-					console.error("A `content_scripts` should always have at least one element in `matches`");
-				}
-			}
-		}
-	}
-};
-collectManifests("./src");
+import { default as WebExtensionPlugin } from "./config/WebExtensionPlugin.js";
 
 export default (env, argv) => {
 	const vendor = env.vendor;
@@ -57,21 +17,28 @@ export default (env, argv) => {
 	const production = argv.mode === "production";
 
 	return {
-		entry: {
-			background: "./src/Background/index.ts",
-			options: "./src/Options/index.ts",
-			...entryPoints,
-		},
+		entry: { manifest: "./src/manifest.json" },
 		optimization: {
 			splitChunks: {
-				minSize: 0,
-				cacheGroups: {
-					"webextension-polyfill": {
-						test: /[\\/]node_modules[\\/](webextension-polyfill)[\\/]/,
-						name: "webextension-polyfill",
-						chunks: "all",
-					},
-				},
+				// minSize: 0,
+				// cacheGroups: {
+				// 	"webextension-polyfill": {
+				// 		test: /[\\/]node_modules[\\/](webextension-polyfill)[\\/]/,
+				// 		name: "webextension-polyfill",
+				// 		chunks: "all",
+				// 	},
+				// 	svelte: {
+				// 		test: /[\\/]node_modules[\\/](svelte)[\\/]/,
+				// 		name: "svelte",
+				// 		chunks: "all",
+				// 	},
+				// 	"light-icons": {
+				// 		test: /[\\/]node_modules[\\/](light-icons)[\\/]/,
+				// 		name: "light_icons",
+				// 		chunks: "all",
+				// 	},
+				// },
+				chunks: "all",
 			},
 			minimizer: [
 				new ESBuildMinifyPlugin({
@@ -106,6 +73,21 @@ export default (env, argv) => {
 					test: /\.p?css$/,
 					use: [MiniCssExtractPlugin.loader, "css-loader", "postcss-loader"],
 				},
+				/*{
+					// type: "javascript/auto",
+					test: /manifest\.json$/,
+					use: [
+						{
+							loader: resolve("./config/ManifestLoader.js"),
+							options: {
+								usePackageVersion: true,
+								loadSubManifests: true,
+								vendor,
+							},
+						},
+					],
+					exclude: "/node_modules",
+				},*/
 			],
 		},
 		resolve: {
@@ -130,7 +112,7 @@ export default (env, argv) => {
 				new webpack.DefinePlugin({
 					"process.env.VENDOR": JSON.stringify(vendor),
 				}),
-				new ManifestPlugin({ meta: { name }, manifest: "./src/manifest.json", version, vendor, subManifests }),
+				new WebExtensionPlugin({ vendor }),
 			];
 			if (production) {
 				plugins.push(

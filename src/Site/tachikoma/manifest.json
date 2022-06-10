@@ -1,6 +1,6 @@
 {
-	"entry": "index.ts",
 	"content_scripts": {
+		"entry": "index.ts",
 		"matches": ["https://tachikoma.app/*"]
 	}
 }

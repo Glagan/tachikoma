@@ -14,7 +14,7 @@
 	"browser_action": {
 		"browser_style": true,
 		"default_title": "tachikoma",
-		"default_popup": "/options.html",
+		"default_popup": "./src/Options/index.html",
 		"default_icon": {
 			"16": "/icons/tachikoma/16.png",
 			"32": "/icons/tachikoma/32.png",
@@ -23,10 +23,10 @@
 		}
 	},
 	"firefox:background": {
-		"scripts": ["/webextension-polyfill.js", "/background.js"]
+		"scripts": ["./src/Background/index.ts"]
 	},
 	"background": {
-		"service_worker": "/background.js"
+		"service_worker": "./src/Background/index.ts"
 	},
 	"content_scripts": [],
 	"firefox:web_accessible_resources": [
