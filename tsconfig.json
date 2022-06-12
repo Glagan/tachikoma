@@ -14,6 +14,7 @@
 		"sourceMap": true /* Generates corresponding '.map' file. */,
 		// "outFile": "./build/SyncDex.js" /* Concatenate and emit output to single file. */,
 		"outDir": "./build" /* Redirect output structure to the directory. */,
+		"rootDir": ".",
 		// "rootDir": "./src" /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */,
 		// "composite": true,                     /* Enable project compilation */
 		// "tsBuildInfoFile": "./",               /* Specify file to store incremental compilation information */
@@ -44,7 +45,6 @@
 		"baseUrl": "." /* Base directory to resolve non-absolute module names. */,
 		"paths": {
 			"@Background/*": ["src/Background/*"],
-			"@Components/*": ["src/Components/*"],
 			"@Core/*": ["src/Core/*"],
 			"@Overlay": ["src/Overlay/index.ts"],
 			"@Service": ["src/Service/index.ts"],
@@ -74,6 +74,6 @@
 		"skipLibCheck": true
 		// "listFiles": true
 	},
-	"include": ["src/**/*.ts", "src/**/*.vue", "tests/**/*.ts"],
-	"exclude": ["node_modules", "build", "web-ext-artifacts"]
+	"include": ["src/**/*", "src/node_modules"],
+	"exclude": ["node_modules/*", "build/*", "web-ext-artifacts/*"]
 }

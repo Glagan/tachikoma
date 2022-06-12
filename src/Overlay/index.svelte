@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { fade } from "svelte/transition";
 	import type Title from "@Core/Title";
-	import Button from "@Components/Button.svelte";
+	import Button from "../Components/Button.svelte";
 
 	export let title: Title;
 </script>

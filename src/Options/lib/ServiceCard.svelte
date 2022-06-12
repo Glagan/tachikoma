@@ -5,10 +5,10 @@
 	import { file } from "@Core/Utility";
 	import { loginResultMap, loginStatusMap, ServiceLogin, ServiceStatus } from "@Core/Service";
 	import { optionsStore } from "../stores/Options";
-	import Button from "@Components/Button.svelte";
-	import Badge from "@Components/Badge.svelte";
-	import Modal from "@Components/Modal.svelte";
-	import Alert from "@Components/Alert.svelte";
+	import Button from "../../Components/Button.svelte";
+	import Badge from "../../Components/Badge.svelte";
+	import Modal from "../../Components/Modal.svelte";
+	import Alert from "../../Components/Alert.svelte";
 
 	export let serviceKey: string;
 
