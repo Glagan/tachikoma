@@ -7,7 +7,7 @@ import CopyWebpackPlugin from "copy-webpack-plugin";
 import ZipPlugin from "zip-webpack-plugin";
 import { ESBuildMinifyPlugin } from "esbuild-loader";
 import preprocess from "svelte-preprocess";
-import { default as WebExtensionPlugin } from "./config/WebExtensionPlugin.js";
+import { getResources, readAndTransformManifest } from "./config/ManifestTransformer.js";
 
 export default (env, argv) => {
 	const vendor = env.vendor;
@@ -16,28 +16,21 @@ export default (env, argv) => {
 	const name = process.env.npm_package_name;
 	const production = argv.mode === "production";
 
+	// Transform manifest
+	const manifestPath = "./src/manifest.json";
+	const manifest = readAndTransformManifest(manifestPath, vendor);
+
+	// Collect entrypoints
+	const resources = getResources(manifest);
+	const entry = { manifest: "./src/manifest.json" };
+	for (const entrypoint of resources.entries) {
+		entry[entrypoint.name] = entrypoint.script;
+	}
+
 	return {
-		entry: { manifest: "./src/manifest.json" },
+		entry,
 		optimization: {
 			splitChunks: {
-				// minSize: 0,
-				// cacheGroups: {
-				// 	"webextension-polyfill": {
-				// 		test: /[\\/]node_modules[\\/](webextension-polyfill)[\\/]/,
-				// 		name: "webextension-polyfill",
-				// 		chunks: "all",
-				// 	},
-				// 	svelte: {
-				// 		test: /[\\/]node_modules[\\/](svelte)[\\/]/,
-				// 		name: "svelte",
-				// 		chunks: "all",
-				// 	},
-				// 	"light-icons": {
-				// 		test: /[\\/]node_modules[\\/](light-icons)[\\/]/,
-				// 		name: "light_icons",
-				// 		chunks: "all",
-				// 	},
-				// },
 				chunks: "all",
 			},
 			minimizer: [
@@ -112,7 +105,7 @@ export default (env, argv) => {
 				new webpack.DefinePlugin({
 					"process.env.VENDOR": JSON.stringify(vendor),
 				}),
-				new WebExtensionPlugin({ vendor }),
+				// new WebExtensionPlugin({ vendor }),
 			];
 			if (production) {
 				plugins.push(
