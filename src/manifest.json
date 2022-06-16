@@ -29,20 +29,10 @@
 		"service_worker": "./src/Background/index.ts"
 	},
 	"content_scripts": [],
-	"firefox:web_accessible_resources": [
-		"/icons/al.png",
-		"/icons/ap.png",
-		"/icons/ku.png",
-		"/icons/mal.png",
-		"/icons/md.png",
-		"/icons/mmd.png",
-		"/icons/mu.png",
-		"/icons/sc.png",
-		"/icons/tk.png"
-	],
+	"firefox:web_accessible_resources": [],
 	"web_accessible_resources": [
 		{
-			"resources": ["/icons/*.png"],
+			"resources": [],
 			"matches": ["<all_urls>"]
 		}
 	],

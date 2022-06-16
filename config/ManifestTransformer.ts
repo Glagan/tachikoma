@@ -12,6 +12,7 @@ import { dirname, join, resolve } from "path";
 
 export type Manifest = {
 	manifest_version: 2 | 3;
+	name: string;
 	author: string;
 	description?: string;
 	permissions?: string[];
@@ -185,7 +186,6 @@ function buildManifest(manifestPath: string, manifest: Manifest, vendor: string)
 					(manifest[matchingKey] as Array<string>).push(...content[matchingKey]);
 				}
 			}
-			manifest.version = "2";
 		};
 		for (const subManifest of subManifests) {
 			mergeSubManifestContent(subManifest.content, "host_permissions");
@@ -196,14 +196,6 @@ function buildManifest(manifestPath: string, manifest: Manifest, vendor: string)
 		// * Remove `vendor:` prefix
 		// Check each keys in the manifest for the `vendor:` prefix
 		manifest = buildObject(manifest, vendor) as Manifest;
-
-		// * Update the `version` key to use the package.json version
-		const version = process.env.npm_package_version;
-		if (version) {
-			manifest.version = version;
-		} else {
-			manifest.version = "0";
-		}
 
 		// * Remove host_permissions in manifest v2
 		// They are merged to the `permissions` key with the other API permissions
@@ -232,8 +224,8 @@ export type Resources = {
 	entries: {
 		name: string;
 		script: string;
-		reference: object;
-		key?: string;
+		path: string;
+		mode: "content_object" | "script_list" | "script";
 	}[];
 	assets: string[];
 };
@@ -248,27 +240,31 @@ export function getResources(manifest: Manifest) {
 			Array.isArray(manifest.content_scripts) &&
 			manifest.content_scripts.length > 0
 		) {
+			let index = 0;
 			for (let script of manifest.content_scripts) {
 				if (script.entry) {
+					// Path points to an Array of objects
 					resources.entries.push({
 						name: dirname(script.entry).split("/").pop()!,
 						script: script.entry,
-						reference: script,
+						path: `content_scripts.${index}`,
+						mode: "content_object",
 					});
 					delete script.entry;
 				}
+				index += 1;
 			}
 		}
 		// * Background scripts
 		if (manifest.background) {
 			if ("scripts" in manifest.background && manifest.background.scripts) {
 				for (const script of manifest.background.scripts) {
-					const path = resolve(script);
+					// Path points to an Array of strings
 					resources.entries.push({
 						name: dirname(script).split("/").pop()!,
 						script: script,
-						reference: manifest.background,
-						key: "scripts",
+						path: `background.scripts`,
+						mode: "script_list",
 					});
 				}
 				manifest.background.scripts = [];
@@ -276,8 +272,8 @@ export function getResources(manifest: Manifest) {
 				resources.entries.push({
 					name: "background",
 					script: resolve(manifest.background.service_worker),
-					reference: manifest.background,
-					key: "service_worker",
+					path: `background.service_worker`,
+					mode: "script",
 				});
 				manifest.background.service_worker = "";
 			}

@@ -8,6 +8,7 @@ import ZipPlugin from "zip-webpack-plugin";
 import { ESBuildMinifyPlugin } from "esbuild-loader";
 import preprocess from "svelte-preprocess";
 import { getResources, readAndTransformManifest } from "./config/ManifestTransformer.js";
+import WebExtensionPlugin from "./config/WebExtensionPlugin.js";
 
 export default (env, argv) => {
 	const vendor = env.vendor;
@@ -22,7 +23,7 @@ export default (env, argv) => {
 
 	// Collect entrypoints
 	const resources = getResources(manifest);
-	const entry = { manifest: "./src/manifest.json" };
+	const entry = {};
 	for (const entrypoint of resources.entries) {
 		entry[entrypoint.name] = entrypoint.script;
 	}
@@ -105,7 +106,7 @@ export default (env, argv) => {
 				new webpack.DefinePlugin({
 					"process.env.VENDOR": JSON.stringify(vendor),
 				}),
-				// new WebExtensionPlugin({ vendor }),
+				new WebExtensionPlugin(manifest, resources, { vendor }),
 			];
 			if (production) {
 				plugins.push(
