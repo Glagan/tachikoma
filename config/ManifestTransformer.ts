@@ -220,18 +220,15 @@ export function readAndTransformManifest(manifestPath: string, vendor: string) {
 	return buildManifest(manifestPath, manifest, vendor);
 }
 
-export type Resources = {
-	entries: {
-		name: string;
-		script: string;
-		path: string;
-		mode: "content_object" | "script_list" | "script";
-	}[];
-	assets: string[];
+export type Entry = {
+	name: string;
+	script: string;
+	path: string;
+	mode: "content_object" | "script_list" | "script";
 };
 
-export function getResources(manifest: Manifest) {
-	let resources: Resources = { entries: [], assets: [] };
+export function getEntries(manifest: Manifest) {
+	let entries: Entry[] = [];
 	try {
 		// TODO add html entry points (browser_action.default_popup)
 		// * Content scripts
@@ -244,7 +241,7 @@ export function getResources(manifest: Manifest) {
 			for (let script of manifest.content_scripts) {
 				if (script.entry) {
 					// Path points to an Array of objects
-					resources.entries.push({
+					entries.push({
 						name: dirname(script.entry).split("/").pop()!,
 						script: script.entry,
 						path: `content_scripts.${index}`,
@@ -260,7 +257,7 @@ export function getResources(manifest: Manifest) {
 			if ("scripts" in manifest.background && manifest.background.scripts) {
 				for (const script of manifest.background.scripts) {
 					// Path points to an Array of strings
-					resources.entries.push({
+					entries.push({
 						name: dirname(script).split("/").pop()!,
 						script: script,
 						path: `background.scripts`,
@@ -269,7 +266,7 @@ export function getResources(manifest: Manifest) {
 				}
 				manifest.background.scripts = [];
 			} else if ("service_worker" in manifest.background && manifest.background.service_worker) {
-				resources.entries.push({
+				entries.push({
 					name: "background",
 					script: resolve(manifest.background.service_worker),
 					path: `background.service_worker`,
@@ -281,8 +278,5 @@ export function getResources(manifest: Manifest) {
 	} catch (error) {
 		console.error(error);
 	}
-	// * Add `web_accessible_resources` as assets
-	// * Add `browser_action.default_icon` as assets
-	// * Add `icons` as assets
-	return resources;
+	return entries;
 }

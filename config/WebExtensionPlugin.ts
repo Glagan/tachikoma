@@ -1,5 +1,5 @@
 import { Compiler } from "webpack";
-import { Manifest, Resources } from "./ManifestTransformer";
+import { Manifest, Entry } from "./ManifestTransformer";
 
 export type Options = {
 	usePackageVersion: boolean;
@@ -9,7 +9,7 @@ export type Options = {
 
 export default class WebExtensionPlugin {
 	manifest: Manifest;
-	resources: Resources;
+	entries: Entry[];
 	options: Options;
 
 	static defaultOptions = {
@@ -18,9 +18,9 @@ export default class WebExtensionPlugin {
 		exposeIcons: true,
 	};
 
-	constructor(manifest: Manifest, resources: Resources, options: Partial<Options> = {}) {
+	constructor(manifest: Manifest, entries: Entry[], options: Partial<Options> = {}) {
 		this.manifest = manifest;
-		this.resources = resources;
+		this.entries = entries;
 		this.options = { ...WebExtensionPlugin.defaultOptions, ...options };
 	}
 
@@ -36,6 +36,58 @@ export default class WebExtensionPlugin {
 			}
 		}
 		return [reference, finalkey];
+	}
+
+	resetManifest(staticAssets: string[]) {
+		for (const entry of this.entries) {
+			let [reference, key] = this.getReference(entry.path);
+			if (entry.mode == "script") {
+				reference[key] = "";
+			} else if (entry.mode == "script_list") {
+				reference[key] = [];
+			} else {
+				if (reference[key].js) {
+					delete reference[key].js;
+				}
+				if (reference[key].css) {
+					delete reference[key].css;
+				}
+			}
+		}
+		if (this.options.exposeIcons) {
+			// Reset assets in manifest
+			if (!this.manifest.web_accessible_resources) {
+				if (this.manifest.manifest_version == 2) {
+					this.manifest.web_accessible_resources = [];
+				} else {
+					this.manifest.web_accessible_resources = [
+						{
+							resources: [],
+							matches: ["<all_urls>"],
+						},
+					];
+				}
+			}
+			if (
+				this.manifest.manifest_version == 3 &&
+				Array.isArray(this.manifest.web_accessible_resources) &&
+				this.manifest.web_accessible_resources.length == 0
+			) {
+				this.manifest.web_accessible_resources = [
+					{
+						resources: [],
+						matches: ["<all_urls>"],
+					},
+				];
+			}
+			// Reset web_accessible_resources and add static assets
+			this.manifest.web_accessible_resources = [];
+			if (this.manifest.manifest_version == 2) {
+				(this.manifest.web_accessible_resources as string[]).push(...staticAssets);
+			} else {
+				this.manifest.web_accessible_resources[0].resources.push(...staticAssets);
+			}
+		}
 	}
 
 	apply(compiler: Compiler) {
@@ -64,34 +116,36 @@ export default class WebExtensionPlugin {
 			}
 		}
 
+		// * Add static assets from `icons` and `browser_action.default_icon`
+		const staticAssets: string[] = [];
+		// * Add `icons` as assets
+		if (this.manifest.icons) {
+			staticAssets.push(...Object.values(this.manifest.icons));
+		}
+		// * Add `browser_action.default_icon` as assets
+		if (this.manifest.browser_action?.default_icon) {
+			staticAssets.push(...Object.values(this.manifest.browser_action.default_icon));
+		}
+
 		compiler.hooks.thisCompilation.tap(pluginName, (thisCompilation) => {
 			// Reset update manifest values to avoid duplicates in watch mode
-			thisCompilation.hooks.optimizeChunkAssets.tap(pluginName, (chunks) => {
-				for (const entry of this.resources.entries) {
-					let [reference, key] = this.getReference(entry.path);
-					if (entry.mode == "script") {
-						reference[key] = "";
-					} else if (entry.mode == "script_list") {
-						reference[key] = [];
-					} else {
-						if (reference[key].js) {
-							delete reference[key].js;
-						}
-						if (reference[key].css) {
-							delete reference[key].css;
-						}
-					}
-				}
+			thisCompilation.hooks.optimizeChunkAssets.tap(pluginName, () => {
+				this.resetManifest(staticAssets);
 			});
 
 			// Process each final chunks and get the list of files associated to each entry points
 			thisCompilation.hooks.afterOptimizeChunkAssets.tap(pluginName, (chunks) => {
 				const rChunks = Array.from(chunks).reverse();
 				for (const chunk of rChunks) {
-					const scripts = Array.from(chunk.files).filter((file) => file.endsWith(".js"));
-					const styles = Array.from(chunk.files)
+					const files = Array.from(chunk.files);
+					const auxFiles = Array.from(chunk.auxiliaryFiles);
+					const scripts = files.filter((file) => file.endsWith(".js"));
+					const styles = files
 						.filter((file) => file.endsWith(".css"))
-						.concat(Array.from(chunk.auxiliaryFiles).filter((file) => file.endsWith(".css")));
+						.concat(auxFiles.filter((file) => file.endsWith(".css")));
+					const otherAssets = files
+						.filter((file) => scripts.indexOf(file) < 0 && styles.indexOf(file) < 0)
+						.concat(auxFiles.filter((file) => scripts.indexOf(file) < 0 && styles.indexOf(file) < 0));
 					// Collect runtimes or the entrypoint itself
 					let runtimes: string[] = [];
 					if (chunk.name) {
@@ -106,7 +160,7 @@ export default class WebExtensionPlugin {
 					}
 					// Check and assign each scripts and css files for each entrypoints
 					for (const runtime of Array.from(runtimes!)) {
-						let entry = this.resources.entries.find((entry) => entry.name == runtime);
+						let entry = this.entries.find((entry) => entry.name == runtime);
 						if (!entry) continue;
 						let [reference, key] = this.getReference(entry.path);
 						if (entry.mode == "script") {
@@ -126,13 +180,16 @@ export default class WebExtensionPlugin {
 							}
 						}
 					}
-
-					// TODO options.exposeIcons
-					// TODO Expose auxiliaryFiles that are *not* scripts and styles and add them to web_accessible_resources
-					// TODO -- along with emitting them as assets ?
-
-					// TODO auxiliaryFiles as assets
-					// * chunk.auxiliaryFiles
+					// Add other assets (most likely fonts) to web_accessible_resources
+					if (this.manifest.web_accessible_resources && otherAssets.length > 0) {
+						// Remove timestamp from file
+						const cleanAssets = otherAssets.map((file) => file.split("?")[0]);
+						if (this.manifest.manifest_version == 2) {
+							(this.manifest.web_accessible_resources as string[]).push(...cleanAssets);
+						} else {
+							this.manifest.web_accessible_resources[0].resources.push(...cleanAssets);
+						}
+					}
 				}
 			});
 

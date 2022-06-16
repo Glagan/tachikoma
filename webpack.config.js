@@ -7,7 +7,7 @@ import CopyWebpackPlugin from "copy-webpack-plugin";
 import ZipPlugin from "zip-webpack-plugin";
 import { ESBuildMinifyPlugin } from "esbuild-loader";
 import preprocess from "svelte-preprocess";
-import { getResources, readAndTransformManifest } from "./config/ManifestTransformer.js";
+import { getEntries, readAndTransformManifest } from "./config/ManifestTransformer.js";
 import WebExtensionPlugin from "./config/WebExtensionPlugin.js";
 
 export default (env, argv) => {
@@ -22,9 +22,9 @@ export default (env, argv) => {
 	const manifest = readAndTransformManifest(manifestPath, vendor);
 
 	// Collect entrypoints
-	const resources = getResources(manifest);
+	const entries = getEntries(manifest);
 	const entry = {};
-	for (const entrypoint of resources.entries) {
+	for (const entrypoint of entries) {
 		entry[entrypoint.name] = entrypoint.script;
 	}
 
@@ -106,7 +106,7 @@ export default (env, argv) => {
 				new webpack.DefinePlugin({
 					"process.env.VENDOR": JSON.stringify(vendor),
 				}),
-				new WebExtensionPlugin(manifest, resources, { vendor }),
+				new WebExtensionPlugin(manifest, entries, { vendor }),
 			];
 			if (production) {
 				plugins.push(
