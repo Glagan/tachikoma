@@ -12,9 +12,10 @@
 		"128": "icons/tachikoma/128.png"
 	},
 	"browser_action": {
+		"entry": "src/Options/index.ts",
+		"template": "src/Options/index.html",
 		"browser_style": true,
 		"default_title": "tachikoma",
-		"default_popup": "src/Options/index.html",
 		"default_icon": {
 			"16": "icons/tachikoma/16.png",
 			"32": "icons/tachikoma/32.png",

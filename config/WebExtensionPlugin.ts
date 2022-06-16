@@ -129,76 +129,80 @@ export default class WebExtensionPlugin {
 
 		compiler.hooks.thisCompilation.tap(pluginName, (thisCompilation) => {
 			// Reset update manifest values to avoid duplicates in watch mode
-			thisCompilation.hooks.optimizeChunkAssets.tap(pluginName, () => {
-				this.resetManifest(staticAssets);
-			});
+			thisCompilation.hooks.processAssets.tap(
+				{ name: pluginName, stage: 100 /* Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE */ },
+				() => {
+					this.resetManifest(staticAssets);
+				}
+			);
 
 			// Process each final chunks and get the list of files associated to each entry points
-			thisCompilation.hooks.afterOptimizeChunkAssets.tap(pluginName, (chunks) => {
-				const rChunks = Array.from(chunks).reverse();
-				for (const chunk of rChunks) {
-					const files = Array.from(chunk.files);
-					const auxFiles = Array.from(chunk.auxiliaryFiles);
-					const scripts = files.filter((file) => file.endsWith(".js"));
-					const styles = files
-						.filter((file) => file.endsWith(".css"))
-						.concat(auxFiles.filter((file) => file.endsWith(".css")));
-					const otherAssets = files
-						.filter((file) => scripts.indexOf(file) < 0 && styles.indexOf(file) < 0)
-						.concat(auxFiles.filter((file) => scripts.indexOf(file) < 0 && styles.indexOf(file) < 0));
-					// Collect runtimes or the entrypoint itself
-					let runtimes: string[] = [];
-					if (chunk.name) {
-						runtimes.push(chunk.name);
-					} else {
-						if (!chunk.runtime) continue;
-						if (typeof chunk.runtime === "string") {
-							runtimes.push(chunk.runtime);
+			thisCompilation.hooks.processAssets.tap(
+				{ name: pluginName, stage: 1000 /* Compilation.PROCESS_ASSETS_STAGE_SUMMARIZE */ },
+				() => {
+					const chunks = thisCompilation.chunks;
+					const rChunks = Array.from(chunks).reverse();
+					for (const chunk of rChunks) {
+						const files = Array.from(chunk.files);
+						const auxFiles = Array.from(chunk.auxiliaryFiles);
+						const scripts = files.filter((file) => file.endsWith(".js"));
+						const styles = files
+							.filter((file) => file.endsWith(".css"))
+							.concat(auxFiles.filter((file) => file.endsWith(".css")));
+						const otherAssets = files
+							.filter((file) => scripts.indexOf(file) < 0 && styles.indexOf(file) < 0)
+							.concat(auxFiles.filter((file) => scripts.indexOf(file) < 0 && styles.indexOf(file) < 0));
+						// Collect runtimes or the entrypoint itself
+						let runtimes: string[] = [];
+						if (chunk.name) {
+							runtimes.push(chunk.name);
 						} else {
-							runtimes.push(...Array.from(chunk.runtime));
-						}
-					}
-					// Check and assign each scripts and css files for each entrypoints
-					for (const runtime of Array.from(runtimes!)) {
-						let entry = this.entries.find((entry) => entry.name == runtime);
-						if (!entry) continue;
-						let [reference, key] = this.getReference(entry.path);
-						if (entry.mode == "script") {
-							reference[key] = scripts[0];
-						} else if (entry.mode == "script_list") {
-							reference[key].push(...scripts);
-						} else {
-							if (!reference[key].js) {
-								reference[key].js = [];
+							if (!chunk.runtime) continue;
+							if (typeof chunk.runtime === "string") {
+								runtimes.push(chunk.runtime);
+							} else {
+								runtimes.push(...Array.from(chunk.runtime));
 							}
-							reference[key].js.push(...scripts);
-							if (styles.length > 0) {
-								if (!reference[key].css) {
-									reference[key].css = [];
+						}
+						// Check and assign each scripts and css files for each entrypoints
+						for (const runtime of Array.from(runtimes!)) {
+							let entry = this.entries.find((entry) => entry.name == runtime);
+							if (!entry) continue;
+							let [reference, key] = this.getReference(entry.path);
+							if (entry.mode == "script") {
+								reference[key] = scripts[0];
+							} else if (entry.mode == "script_list") {
+								reference[key].push(...scripts);
+							} else {
+								if (!reference[key].js) {
+									reference[key].js = [];
 								}
-								reference[key].css.push(...styles);
+								reference[key].js.push(...scripts);
+								if (styles.length > 0) {
+									if (!reference[key].css) {
+										reference[key].css = [];
+									}
+									reference[key].css.push(...styles);
+								}
+							}
+						}
+						// Add other assets (most likely fonts) to web_accessible_resources
+						if (this.manifest.web_accessible_resources && otherAssets.length > 0) {
+							// Remove timestamp from file
+							const cleanAssets = otherAssets.map((file) => file.split("?")[0]);
+							if (this.manifest.manifest_version == 2) {
+								(this.manifest.web_accessible_resources as string[]).push(...cleanAssets);
+							} else {
+								this.manifest.web_accessible_resources[0].resources.push(...cleanAssets);
 							}
 						}
 					}
-					// Add other assets (most likely fonts) to web_accessible_resources
-					if (this.manifest.web_accessible_resources && otherAssets.length > 0) {
-						// Remove timestamp from file
-						const cleanAssets = otherAssets.map((file) => file.split("?")[0]);
-						if (this.manifest.manifest_version == 2) {
-							(this.manifest.web_accessible_resources as string[]).push(...cleanAssets);
-						} else {
-							this.manifest.web_accessible_resources[0].resources.push(...cleanAssets);
-						}
-					}
-				}
-			});
 
-			// * Add the final manifest.json to the output
-			thisCompilation.hooks.afterSeal.tap(pluginName, () => {
-				// * Add the final manifest.json to the output
-				const manifestStr = JSON.stringify(this.manifest);
-				thisCompilation.emitAsset("manifest.json", new RawSource(manifestStr));
-			});
+					// * Add the final manifest.json to the output
+					const manifestStr = JSON.stringify(this.manifest);
+					thisCompilation.emitAsset("manifest.json", new RawSource(manifestStr));
+				}
+			);
 		});
 	}
 }

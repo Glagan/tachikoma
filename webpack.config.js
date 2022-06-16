@@ -1,4 +1,4 @@
-import { resolve } from "path";
+import { resolve as resolvePath } from "path";
 import webpack from "webpack";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import TsconfigPathsPlugin from "tsconfig-paths-webpack-plugin";
@@ -7,8 +7,9 @@ import CopyWebpackPlugin from "copy-webpack-plugin";
 import ZipPlugin from "zip-webpack-plugin";
 import { ESBuildMinifyPlugin } from "esbuild-loader";
 import preprocess from "svelte-preprocess";
-import { getEntries, readAndTransformManifest } from "./config/ManifestTransformer.js";
+import { getBrowserAction, getEntries, readAndTransformManifest } from "./config/ManifestTransformer.js";
 import WebExtensionPlugin from "./config/WebExtensionPlugin.js";
+import HtmlWebpackPlugin from "html-webpack-plugin";
 
 export default (env, argv) => {
 	const vendor = env.vendor;
@@ -27,6 +28,12 @@ export default (env, argv) => {
 	for (const entrypoint of entries) {
 		entry[entrypoint.name] = entrypoint.script;
 	}
+	const browserAction = getBrowserAction(manifest);
+	if (browserAction.entry) {
+		entry.options = browserAction.entry;
+	}
+
+	// TODO Add folder to add to web_accessible_resources (go /icons/*.png)
 
 	return {
 		entry,
@@ -67,21 +74,6 @@ export default (env, argv) => {
 					test: /\.p?css$/,
 					use: [MiniCssExtractPlugin.loader, "css-loader", "postcss-loader"],
 				},
-				/*{
-					// type: "javascript/auto",
-					test: /manifest\.json$/,
-					use: [
-						{
-							loader: resolve("./config/ManifestLoader.js"),
-							options: {
-								usePackageVersion: true,
-								loadSubManifests: true,
-								vendor,
-							},
-						},
-					],
-					exclude: "/node_modules",
-				},*/
 			],
 		},
 		resolve: {
@@ -90,33 +82,33 @@ export default (env, argv) => {
 		},
 		output: {
 			clean: true,
-			path: resolve(process.cwd(), `build/${env.vendor}`),
+			path: resolvePath(process.cwd(), `build/${env.vendor}`),
 			filename: "[name].js",
 		},
-		plugins: (() => {
-			const plugins = [
-				new MiniCssExtractPlugin(),
-				new CaseSensitivePathsPlugin(),
-				new CopyWebpackPlugin({
-					patterns: [
-						{ from: "./src/Options/index.html", to: "./options.html" },
-						{ from: "./static/", to: "." },
-					],
-				}),
-				new webpack.DefinePlugin({
-					"process.env.VENDOR": JSON.stringify(vendor),
-				}),
-				new WebExtensionPlugin(manifest, entries, { vendor }),
-			];
-			if (production) {
-				plugins.push(
-					new ZipPlugin({
-						path: resolve(process.cwd(), "web-ext-artifacts"),
+		plugins: [
+			new MiniCssExtractPlugin(),
+			new CaseSensitivePathsPlugin(),
+			new webpack.DefinePlugin({
+				"process.env.VENDOR": JSON.stringify(vendor),
+			}),
+			new CopyWebpackPlugin({
+				patterns: [{ from: "./static/", to: "." }],
+			}),
+			browserAction.entry
+				? new HtmlWebpackPlugin({
+						template: browserAction.template,
+						filename: "options.html",
+						excludeChunks: entries.filter((entry) => entry.name != "options").map((entry) => entry.name),
+						inject: "body",
+				  })
+				: { apply: () => {} },
+			new WebExtensionPlugin(manifest, entries, { vendor }),
+			production
+				? new ZipPlugin({
+						path: resolvePath(process.cwd(), "web-ext-artifacts"),
 						filename: `${name}_${version}_${vendor}.zip`,
-					})
-				);
-			}
-			return plugins;
-		})(),
+				  })
+				: { apply: () => {} },
+		],
 	};
 };

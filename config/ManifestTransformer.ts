@@ -19,6 +19,8 @@ export type Manifest = {
 	host_permissions?: string[];
 	icons?: { [key: string]: string };
 	browser_action?: {
+		entry?: string;
+		template?: string;
 		browser_style: boolean;
 		default_title?: string;
 		default_popup?: string;
@@ -230,7 +232,6 @@ export type Entry = {
 export function getEntries(manifest: Manifest) {
 	let entries: Entry[] = [];
 	try {
-		// TODO add html entry points (browser_action.default_popup)
 		// * Content scripts
 		if (
 			manifest.content_scripts &&
@@ -242,7 +243,7 @@ export function getEntries(manifest: Manifest) {
 				if (script.entry) {
 					// Path points to an Array of objects
 					entries.push({
-						name: dirname(script.entry).split("/").pop()!,
+						name: dirname(script.entry).split("/").pop()!.toLocaleLowerCase(),
 						script: script.entry,
 						path: `content_scripts.${index}`,
 						mode: "content_object",
@@ -258,7 +259,7 @@ export function getEntries(manifest: Manifest) {
 				for (const script of manifest.background.scripts) {
 					// Path points to an Array of strings
 					entries.push({
-						name: dirname(script).split("/").pop()!,
+						name: dirname(script).split("/").pop()!.toLocaleLowerCase(),
 						script: script,
 						path: `background.scripts`,
 						mode: "script_list",
@@ -279,4 +280,17 @@ export function getEntries(manifest: Manifest) {
 		console.error(error);
 	}
 	return entries;
+}
+
+export function getBrowserAction(manifest: Manifest) {
+	let browserAction: { entry?: string; template?: string } = {
+		entry: manifest.browser_action?.entry,
+		template: manifest.browser_action?.template,
+	};
+	if (manifest.browser_action) {
+		manifest.browser_action.default_popup = "options.html";
+		delete manifest.browser_action.entry;
+		delete manifest.browser_action.template;
+	}
+	return browserAction;
 }
