@@ -1,3 +1,4 @@
+import { glob } from "glob";
 import { Compiler } from "webpack";
 import { Manifest, Entry } from "./ManifestTransformer";
 
@@ -5,6 +6,7 @@ export type Options = {
 	usePackageVersion: boolean;
 	usePackageName: boolean;
 	exposeIcons: boolean;
+	expose: string[];
 };
 
 export default class WebExtensionPlugin {
@@ -16,6 +18,7 @@ export default class WebExtensionPlugin {
 		usePackageVersion: true,
 		usePackageName: true,
 		exposeIcons: true,
+		expose: [],
 	};
 
 	constructor(manifest: Manifest, entries: Entry[], options: Partial<Options> = {}) {
@@ -38,7 +41,62 @@ export default class WebExtensionPlugin {
 		return [reference, finalkey];
 	}
 
-	resetManifest(staticAssets: string[]) {
+	resetManifest() {
+		let staticAssets: string[] = [];
+		// * Add static assets from `icons` and `browser_action.default_icon`
+		if (this.options.exposeIcons) {
+			// * Add `icons` as assets
+			if (this.manifest.icons) {
+				staticAssets.push(...Object.values(this.manifest.icons));
+			}
+			// * Add `browser_action.default_icon` as assets
+			if (this.manifest.browser_action?.default_icon) {
+				staticAssets.push(...Object.values(this.manifest.browser_action.default_icon));
+			}
+		}
+		// * Reset web_accessible_resources
+		if (!this.manifest.web_accessible_resources) {
+			if (this.manifest.manifest_version == 2) {
+				this.manifest.web_accessible_resources = [];
+			} else {
+				this.manifest.web_accessible_resources = [
+					{
+						resources: [],
+						matches: ["<all_urls>"],
+					},
+				];
+			}
+		}
+		if (
+			this.manifest.manifest_version == 3 &&
+			Array.isArray(this.manifest.web_accessible_resources) &&
+			this.manifest.web_accessible_resources.length == 0
+		) {
+			this.manifest.web_accessible_resources = [
+				{
+					resources: [],
+					matches: ["<all_urls>"],
+				},
+			];
+		}
+		// * Add manually added path from the `expose` option
+		if (this.options.expose.length > 0) {
+			for (const path of this.options.expose) {
+				const paths: string[] = glob.sync(path);
+				for (const path of paths) {
+					staticAssets.push(path);
+				}
+			}
+		}
+		// * Reset web_accessible_resources and add static assets
+		staticAssets = Array.from(new Set(staticAssets));
+		this.manifest.web_accessible_resources = [];
+		if (this.manifest.manifest_version == 2) {
+			(this.manifest.web_accessible_resources as string[]).push(...staticAssets);
+		} else {
+			this.manifest.web_accessible_resources[0].resources.push(...staticAssets);
+		}
+		// * Reset scripts file references
 		for (const entry of this.entries) {
 			let [reference, key] = this.getReference(entry.path);
 			if (entry.mode == "script") {
@@ -52,40 +110,6 @@ export default class WebExtensionPlugin {
 				if (reference[key].css) {
 					delete reference[key].css;
 				}
-			}
-		}
-		if (this.options.exposeIcons) {
-			// Reset assets in manifest
-			if (!this.manifest.web_accessible_resources) {
-				if (this.manifest.manifest_version == 2) {
-					this.manifest.web_accessible_resources = [];
-				} else {
-					this.manifest.web_accessible_resources = [
-						{
-							resources: [],
-							matches: ["<all_urls>"],
-						},
-					];
-				}
-			}
-			if (
-				this.manifest.manifest_version == 3 &&
-				Array.isArray(this.manifest.web_accessible_resources) &&
-				this.manifest.web_accessible_resources.length == 0
-			) {
-				this.manifest.web_accessible_resources = [
-					{
-						resources: [],
-						matches: ["<all_urls>"],
-					},
-				];
-			}
-			// Reset web_accessible_resources and add static assets
-			this.manifest.web_accessible_resources = [];
-			if (this.manifest.manifest_version == 2) {
-				(this.manifest.web_accessible_resources as string[]).push(...staticAssets);
-			} else {
-				this.manifest.web_accessible_resources[0].resources.push(...staticAssets);
 			}
 		}
 	}
@@ -116,29 +140,18 @@ export default class WebExtensionPlugin {
 			}
 		}
 
-		// * Add static assets from `icons` and `browser_action.default_icon`
-		const staticAssets: string[] = [];
-		// * Add `icons` as assets
-		if (this.manifest.icons) {
-			staticAssets.push(...Object.values(this.manifest.icons));
-		}
-		// * Add `browser_action.default_icon` as assets
-		if (this.manifest.browser_action?.default_icon) {
-			staticAssets.push(...Object.values(this.manifest.browser_action.default_icon));
-		}
-
 		compiler.hooks.thisCompilation.tap(pluginName, (thisCompilation) => {
 			// Reset update manifest values to avoid duplicates in watch mode
 			thisCompilation.hooks.processAssets.tap(
 				{ name: pluginName, stage: 100 /* Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE */ },
 				() => {
-					this.resetManifest(staticAssets);
+					this.resetManifest();
 				}
 			);
 
 			// Process each final chunks and get the list of files associated to each entry points
 			thisCompilation.hooks.processAssets.tap(
-				{ name: pluginName, stage: 1000 /* Compilation.PROCESS_ASSETS_STAGE_SUMMARIZE */ },
+				{ name: pluginName, stage: 5000 /* Compilation.PROCESS_ASSETS_STAGE_REPORT */ },
 				() => {
 					const chunks = thisCompilation.chunks;
 					const rChunks = Array.from(chunks).reverse();

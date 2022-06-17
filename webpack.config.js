@@ -19,7 +19,7 @@ export default (env, argv) => {
 	const production = argv.mode === "production";
 
 	// Transform manifest
-	const manifestPath = "./src/manifest.json";
+	const manifestPath = "src/manifest.json";
 	const manifest = readAndTransformManifest(manifestPath, vendor);
 
 	// Collect entrypoints
@@ -32,8 +32,6 @@ export default (env, argv) => {
 	if (browserAction.entry) {
 		entry.options = browserAction.entry;
 	}
-
-	// TODO Add folder to add to web_accessible_resources (go /icons/*.png)
 
 	return {
 		entry,
@@ -83,16 +81,22 @@ export default (env, argv) => {
 		output: {
 			clean: true,
 			path: resolvePath(process.cwd(), `build/${env.vendor}`),
-			filename: "[name].js",
+			filename: (pathData) => {
+				return entry[pathData.chunk.name] ? "[name].js" : "[contenthash].js";
+			},
 		},
 		plugins: [
-			new MiniCssExtractPlugin(),
+			new MiniCssExtractPlugin({
+				filename: (pathData) => {
+					return entry[pathData.chunk.name] ? "[name].css" : "[contenthash].css";
+				},
+			}),
 			new CaseSensitivePathsPlugin(),
 			new webpack.DefinePlugin({
 				"process.env.VENDOR": JSON.stringify(vendor),
 			}),
 			new CopyWebpackPlugin({
-				patterns: [{ from: "./static/", to: "." }],
+				patterns: [{ from: "static", to: "static" }],
 			}),
 			browserAction.entry
 				? new HtmlWebpackPlugin({
@@ -102,7 +106,7 @@ export default (env, argv) => {
 						inject: "body",
 				  })
 				: { apply: () => {} },
-			new WebExtensionPlugin(manifest, entries, { vendor }),
+			new WebExtensionPlugin(manifest, entries, { vendor, expose: ["static/icons/*.png"] }),
 			production
 				? new ZipPlugin({
 						path: resolvePath(process.cwd(), "web-ext-artifacts"),

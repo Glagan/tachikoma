@@ -164,7 +164,7 @@
 {#if service}
 	<div class={cardClasses} style={cardStyle}>
 		<div class="icon flex-grow-0 flex-shrink-0 mr-4">
-			<img src={file(`/icons/${service.key}.png`)} alt={`${service.name} icon`} />
+			<img src={file(`/static/icons/${service.key}.png`)} alt={`${service.name} icon`} />
 		</div>
 		<div class="name-status flex flex-col flex-grow flex-shrink text-ellipsis">
 			{#if service.theme?.title}
@@ -202,7 +202,7 @@
 										Missing login informations !
 									{:else}
 										{#each service.loginInformations as field (field.name)}
-											<!-- TODO `'type' attribute cannot be dynamic if input uses two-way binding`  -->
+											<!-- ? `'type' attribute cannot be dynamic if input uses two-way binding`  -->
 											{#if field.type == "password"}
 												<input
 													bind:value={loginInformations[field.name]}

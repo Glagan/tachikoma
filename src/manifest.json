@@ -6,10 +6,10 @@
 	"permissions": ["storage", "firefox:webRequest", "firefox:webRequestBlocking", "firefox:cookies"],
 	"host_permissions": ["https://mochi.nikurasu.org/*"],
 	"icons": {
-		"24": "icons/tachikoma/24.png",
-		"48": "icons/tachikoma/48.png",
-		"96": "icons/tachikoma/96.png",
-		"128": "icons/tachikoma/128.png"
+		"24": "static/icons/tachikoma/24.png",
+		"48": "static/icons/tachikoma/48.png",
+		"96": "static/icons/tachikoma/96.png",
+		"128": "static/icons/tachikoma/128.png"
 	},
 	"browser_action": {
 		"entry": "src/Options/index.ts",
@@ -17,10 +17,10 @@
 		"browser_style": true,
 		"default_title": "tachikoma",
 		"default_icon": {
-			"16": "icons/tachikoma/16.png",
-			"32": "icons/tachikoma/32.png",
-			"64": "icons/tachikoma/64.png",
-			"128": "icons/tachikoma/128.png"
+			"16": "static/icons/tachikoma/16.png",
+			"32": "static/icons/tachikoma/32.png",
+			"64": "static/icons/tachikoma/64.png",
+			"128": "static/icons/tachikoma/128.png"
 		}
 	},
 	"firefox:background": {
