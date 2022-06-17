@@ -194,7 +194,6 @@
 								<span>Login</span>
 								<i class="light-icon-login text-lg ml-2" />
 							</Button>
-							<!-- TODO Remove 'error' `Property 'hide' does not exist on type '{}'.`  -->
 							<Modal bind:this={modal} let:hide>
 								<span slot="header">Login</span>
 								<div slot="default">
