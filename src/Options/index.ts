@@ -1,5 +1,6 @@
 import App from "./index.svelte";
 import "light-icons/dist/light-icon.css";
+import "../Core/tailwind.css";
 import "./index.css";
 
 const app = new App({

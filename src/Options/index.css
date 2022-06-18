@@ -1,12 +1,9 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /** tachikoma */
 
 html,
 body {
 	@apply bg-tachikoma-700 text-gray-200 scroll-smooth;
+	font-style: italic;
 }
 
 body {

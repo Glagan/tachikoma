@@ -1,6 +1,6 @@
 import FloatingOverlay from "./index.svelte";
 import "light-icons/dist/light-icon.css";
-import "./index.css";
+import "../Core/tailwind.css";
 import type Title from "@Core/Title";
 
 export namespace Overlay {
