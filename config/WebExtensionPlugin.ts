@@ -90,7 +90,6 @@ export default class WebExtensionPlugin {
 		}
 		// * Reset web_accessible_resources and add static assets
 		staticAssets = Array.from(new Set(staticAssets));
-		this.manifest.web_accessible_resources = [];
 		if (this.manifest.manifest_version == 2) {
 			(this.manifest.web_accessible_resources as string[]).push(...staticAssets);
 		} else {
