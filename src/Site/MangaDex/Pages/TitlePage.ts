@@ -1,6 +1,7 @@
 import TemporaryLogs from "@Core/TemporaryLogs";
 import Title from "@Core/Title";
 import Updater from "@Core/Updater";
+import { Overlay } from "@Overlay";
 import MangaDex from "@Service/MangaDex";
 import { convertServices, IDFromLink } from "../Utility";
 
@@ -46,7 +47,23 @@ function getInformations(): TitlePageInformations {
 }
 
 export default async () => {
-	// TODO Wait for required existing node
+	// * Wait for required existing node
+	if (!document.querySelector('[to^="/title/"]')) {
+		console.log("Waiting for the page to load");
+		await new Promise((resolve, reject) => {
+			setTimeout(() => {
+				reject();
+			}, 5000);
+			const initObserver = new MutationObserver((mutations, observer) => {
+				if (document.querySelector('[to^="/title/"]')) {
+					resolve(true);
+					observer.disconnect();
+				}
+			});
+			initObserver.observe(document.body, { childList: true, subtree: true });
+		});
+	}
+	// * Handle page
 	const informations = getInformations();
 	// Load Title
 	TemporaryLogs.debug("found informations", { informations });
@@ -61,11 +78,13 @@ export default async () => {
 	TemporaryLogs.debug("found title", { title });
 	// Update from services and sync
 	const updater = new Updater(title);
-	const snapshots = await updater.mergeExternal();
+	const snapshots = await updater.import();
 	TemporaryLogs.debug("mergeExternal snapshots", { snapshots });
 	TemporaryLogs.debug("updater", { updater });
+	updater.title.status = Status.READING;
+	updater.title.chapter += 1;
 	const report = await updater.sync();
 	TemporaryLogs.debug("sync report", { report });
-	// TODO Display summary somewhere, somehow
-	// TODO > Maybe in a modal, like "MiniMAL"
+	const overlay = Overlay.create(title);
+	console.log("overlay:", overlay);
 };
