@@ -10,6 +10,8 @@ import preprocess from "svelte-preprocess";
 import { getBrowserAction, getEntries, readAndTransformManifest } from "./config/ManifestTransformer.js";
 import WebExtensionPlugin from "./config/WebExtensionPlugin.js";
 import HtmlWebpackPlugin from "html-webpack-plugin";
+import CssMinimizerPlugin from "css-minimizer-webpack-plugin";
+import ImageMinimizerPlugin from "image-minimizer-webpack-plugin";
 
 export default (env, argv) => {
 	const vendor = env.vendor;
@@ -42,6 +44,30 @@ export default (env, argv) => {
 			minimizer: [
 				new ESBuildMinifyPlugin({
 					target: "es2017",
+				}),
+				new CssMinimizerPlugin(),
+				new ImageMinimizerPlugin({
+					minimizer: {
+						implementation: ImageMinimizerPlugin.imageminMinify,
+						options: {
+							plugins: [
+								[
+									"svgo",
+									{
+										name: "preset-default",
+										params: {
+											overrides: {
+												addAttributesToSVGElement: {
+													attributes: [{ xmlns: "http://www.w3.org/2000/svg" }],
+												},
+												removeViewBox: false,
+											},
+										},
+									},
+								],
+							],
+						},
+					},
 				}),
 			],
 		},
