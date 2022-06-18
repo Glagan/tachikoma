@@ -47,6 +47,7 @@ function getInformations(): TitlePageInformations {
 }
 
 export default async () => {
+	Overlay.create();
 	// * Wait for required existing node
 	if (!document.querySelector('[to^="/title/"]')) {
 		console.log("Waiting for the page to load");
@@ -85,6 +86,5 @@ export default async () => {
 	updater.title.chapter += 1;
 	const report = await updater.sync();
 	TemporaryLogs.debug("sync report", { report });
-	const overlay = Overlay.create(title);
-	console.log("overlay:", overlay);
+	Overlay.setTitle(title);
 };
