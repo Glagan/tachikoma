@@ -106,7 +106,7 @@ export default (env, argv) => {
 						inject: "body",
 				  })
 				: { apply: () => {} },
-			new WebExtensionPlugin(manifest, entries, { vendor, expose: ["static/icons/*.png"] }),
+			new WebExtensionPlugin(manifest, entries, { production, vendor, expose: ["static/icons/*.png"] }),
 			production
 				? new ZipPlugin({
 						path: resolvePath(process.cwd(), "web-ext-artifacts"),

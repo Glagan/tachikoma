@@ -3,6 +3,7 @@ import { Compiler } from "webpack";
 import { Manifest, Entry } from "./ManifestTransformer";
 
 export type Options = {
+	production: boolean;
 	usePackageVersion: boolean;
 	usePackageName: boolean;
 	exposeIcons: boolean;
@@ -13,8 +14,10 @@ export default class WebExtensionPlugin {
 	manifest: Manifest;
 	entries: Entry[];
 	options: Options;
+	private exposedAssets: string[];
 
 	static defaultOptions = {
+		production: true,
 		usePackageVersion: true,
 		usePackageName: true,
 		exposeIcons: true,
@@ -42,19 +45,20 @@ export default class WebExtensionPlugin {
 	}
 
 	resetManifest() {
+		this.exposedAssets = [];
 		let staticAssets: string[] = [];
 		// * Add static assets from `icons` and `browser_action.default_icon`
 		if (this.options.exposeIcons) {
 			// * Add `icons` as assets
 			if (this.manifest.icons) {
-				staticAssets.push(...Object.values(this.manifest.icons));
+				this.exposedAssets.push(...Object.values(this.manifest.icons));
 			}
 			// * Add `browser_action.default_icon` as assets
 			if (this.manifest.browser_action?.default_icon) {
-				staticAssets.push(...Object.values(this.manifest.browser_action.default_icon));
+				this.exposedAssets.push(...Object.values(this.manifest.browser_action.default_icon));
 			}
 		}
-		// * Reset web_accessible_resources
+		// * Reset `web_accessible_resources`
 		if (!this.manifest.web_accessible_resources) {
 			if (this.manifest.manifest_version == 2) {
 				this.manifest.web_accessible_resources = [];
@@ -84,16 +88,9 @@ export default class WebExtensionPlugin {
 			for (const path of this.options.expose) {
 				const paths: string[] = glob.sync(path);
 				for (const path of paths) {
-					staticAssets.push(path);
+					this.exposedAssets.push(path);
 				}
 			}
-		}
-		// * Reset web_accessible_resources and add static assets
-		staticAssets = Array.from(new Set(staticAssets));
-		if (this.manifest.manifest_version == 2) {
-			(this.manifest.web_accessible_resources as string[]).push(...staticAssets);
-		} else {
-			this.manifest.web_accessible_resources[0].resources.push(...staticAssets);
 		}
 		// * Reset scripts file references
 		for (const entry of this.entries) {
@@ -151,7 +148,17 @@ export default class WebExtensionPlugin {
 			// Process each final chunks and get the list of files associated to each entry points
 			thisCompilation.hooks.processAssets.tap(
 				{ name: pluginName, stage: 5000 /* Compilation.PROCESS_ASSETS_STAGE_REPORT */ },
-				() => {
+				(assets) => {
+					// * Fix missing assets in production mode not being reported inside vendors chunks
+					if (options.production) {
+						for (const key in assets) {
+							const assetName = key.split("?")[0];
+							if (!key.match(/\.(js|css|html|json|zip)$/)) {
+								this.exposedAssets.push(assetName);
+							}
+						}
+					}
+					// * Process chunks to find scripts to be added in the manifest
 					const chunks = thisCompilation.chunks;
 					const rChunks = Array.from(chunks).reverse();
 					for (const chunk of rChunks) {
@@ -208,6 +215,14 @@ export default class WebExtensionPlugin {
 								this.manifest.web_accessible_resources[0].resources.push(...cleanAssets);
 							}
 						}
+					}
+
+					// * Add static assets
+					const staticAssets = Array.from(new Set(this.exposedAssets));
+					if (this.manifest.manifest_version == 2) {
+						(this.manifest.web_accessible_resources as string[]).push(...staticAssets);
+					} else {
+						this.manifest.web_accessible_resources![0].resources.push(...staticAssets);
 					}
 
 					// * Add the final manifest.json to the output
