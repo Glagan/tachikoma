@@ -21,6 +21,7 @@
 	let cardClasses = "service-card";
 	let cardStyle = "";
 	let status: ServiceStatus = ServiceStatus.LOADING;
+	let loggedUser: string | undefined;
 	if (service) {
 		if (service.theme?.color) {
 			cardStyle = `border-color: ${service.theme.color}; color: ${service.theme.color};`;
@@ -37,9 +38,12 @@
 	// Management functions
 
 	async function loadStatus() {
+		status = ServiceStatus.LOADING;
+		loggedUser = undefined;
 		if (isActive) {
 			const serviceStatus = await service.status();
 			status = serviceStatus.status;
+			loggedUser = serviceStatus.user;
 		}
 	}
 
@@ -176,6 +180,11 @@
 				<div class="status mt-1">
 					<Badge type={statusMap.color[status]}>{statusMap.description[status]}</Badge>
 				</div>
+				{#if loggedUser}
+					<div class="mt-1 ">
+						<Badge type="info">{loggedUser}</Badge>
+					</div>
+				{/if}
 			{/if}
 		</div>
 		<div class="actions flex flex-row flex-grow-0 flex-shrink-0 items-center">

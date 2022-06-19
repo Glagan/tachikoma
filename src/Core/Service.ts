@@ -104,7 +104,7 @@ export default abstract class Service {
 
 	// Redirect URL if there is one for the service (also used for API authorizations)
 	loginRedirect?(): Promise<string>;
-	abstract status(): Promise<{ status: ServiceStatus; message?: string }>;
+	abstract status(): Promise<{ status: ServiceStatus; user?: string; message?: string }>;
 	async isLoggedIn(): Promise<boolean> {
 		const status = await this.status();
 		return status.status == ServiceStatus.LOGGED_IN;

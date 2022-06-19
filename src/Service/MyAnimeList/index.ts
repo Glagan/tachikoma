@@ -121,9 +121,11 @@ export default new (class MyAnimeList extends APIService {
 		if (!token.token) return { status: ServiceStatus.MISSING_TOKEN };
 		// MyAnimeList doesn't have an oauth check route so
 		// -- simply request a route that require authentication and expect a ok response
-		const response = await Volcano.get(this.route("users/@me"), { headers: this.headers(token.token) });
+		const response = await Volcano.get<{ id: Number; name: string }>(this.route("users/@me"), {
+			headers: this.headers(token.token),
+		});
 		if (response.ok && response.body) {
-			return { status: ServiceStatus.LOGGED_IN };
+			return { status: ServiceStatus.LOGGED_IN, user: response.body.name };
 		}
 		if (response.status == 401) {
 			return { status: ServiceStatus.INVALID_TOKEN };

@@ -37,6 +37,28 @@ type ResponseError = {
 	}[];
 };
 
+type UserResponse =
+	| {
+			result: "ok";
+			response: "entity";
+			data: {
+				id: string;
+				type: "user";
+				attributes: {
+					username: string;
+					roles: string[];
+					version: number;
+				};
+				relationships: {
+					id: string;
+					type: string;
+					related: string;
+					attributes: {};
+				}[];
+			};
+	  }
+	| ({ result: "error" } & ResponseError);
+
 /***
  * Only the `status` is currently available on MangaDex.
  */
@@ -71,16 +93,13 @@ export default new (class MangaDex extends APIService {
 	async status() {
 		const token = await this.storage.get<Token>();
 		if (!token.session) return { status: ServiceStatus.MISSING_TOKEN };
-		const response = await Volcano.get<{
-			result: string;
-			isAuthenticated: boolean;
-			roles: string[];
-			permissions: string[];
-		}>(this.route("auth/check"), { headers: this.headers(token.session) });
-		if (response.ok && response.body?.isAuthenticated) {
-			return { status: ServiceStatus.LOGGED_IN };
+		const response = await Volcano.get<UserResponse>(this.route("user/me"), {
+			headers: this.headers(token.session),
+		});
+		if (response.ok && response.body?.result == "ok") {
+			return { status: ServiceStatus.LOGGED_IN, user: response.body.data.attributes.username };
 		}
-		if (response.status == 401 || response.body?.isAuthenticated === false) {
+		if (response.status == 401 || response.body?.result === "error") {
 			return { status: ServiceStatus.INVALID_TOKEN };
 		} else if (response.status >= 400 && response.status < 500) {
 			return { status: ServiceStatus.TACHIKOMA_ERROR };
