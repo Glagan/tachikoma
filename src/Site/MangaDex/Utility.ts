@@ -1,4 +1,5 @@
 import MyAnimeList from "@Service/MyAnimeList";
+import type { Links } from "./API";
 
 /**
  * Find the ID of a MangaDex title OR chapter by looking at it's URL.
@@ -66,36 +67,14 @@ export function fullChapterFromString(raw: string): Progress {
 /**
  * Convert a list of services from their full names and the resource URL to a corresponding
  * tachikoma service and it's TitleIdentifier for the service.
- * @param service List of Service fullnames and their URL as stored in MangaDex
+ * @param services List of Service fullnames and their URL as stored in MangaDex
  * @returns List of services formatted for tachikoma
  */
-export function mangadexServiceToTachikoma(
-	service: MangaDexServiceLink
-): { service: string; id: TitleIdentifier } | undefined {
-	// https://myanimelist.net/manga/{id}
-	if (service.name === "MyAnimeList") {
-		const result = /\/manga\/(\d+)(\/|\/.+)?$/.exec(service.url);
-		if (result) {
-			return { service: MyAnimeList.key, id: { id: parseInt(result[1]) } };
-		}
-	}
-	// 	https://anilist.co/manga/{id}
-	// else if (service.name === "AniList") {
-	// https://kitsu.io/api/edge/manga/{id}
-	// https://kitsu.io/api/edge/manga?filter[slug]={slug}
-	// } else if (service.name === "Kitsu") {
-	// https://www.mangaupdates.com/series.html?id={id}
-	// } else if (service.name === "MangaUpdates") {
-	// https://www.anime-planet.com/manga/{slug}
-	// } else if (service.name === "Anime-Planet") {}
-	return undefined;
-}
-
-export function convertServices(services: MangaDexServiceLink[]): ServiceList {
-	const converted: ServiceList = {};
-	for (const potentialService of services) {
-		const result = mangadexServiceToTachikoma(potentialService);
-		if (result) converted[result.service] = result.id;
-	}
+export function convertServices(services: Links): { [key: string]: TitleIdentifier } {
+	let converted: { [key: string]: TitleIdentifier } = {};
+	if (services.mal) {
+		converted[MyAnimeList.key] = { id: parseInt(services.mal) };
+	} /* else if (services.al) {
+	} */
 	return converted;
 }

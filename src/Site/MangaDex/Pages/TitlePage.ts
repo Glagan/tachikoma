@@ -1,48 +1,15 @@
 import Tachikoma from "@Core/Tachikoma";
 import TemporaryLogs from "@Core/TemporaryLogs";
 import Title from "@Core/Title";
-import MangaDex from "@Service/MangaDex";
+import MangaDexAPI from "../API";
 import { convertServices, IDFromLink } from "../Utility";
 
-type TitlePageInformations = {
-	mangadexId: { id: string };
-	name?: string;
-	cover?: string;
-	publicationStatus?: PublicationStatus;
-	services: ServiceList;
-};
-
-function getInformations(): TitlePageInformations {
-	const titleLink = document.querySelector<HTMLAnchorElement>('[to^="/title/"]')!;
-	const mangadexId = { id: IDFromLink(titleLink.getAttribute("to")!, "title") };
-	const coverImg = titleLink.querySelector<HTMLImageElement>("img.max-h-full");
-	const cover = coverImg?.src;
-	const titleBlock = document.querySelector("div.title > *:not(:empty)");
-	const name = titleBlock?.textContent!.trim();
-	let publicationStatus: PublicationStatus | undefined = undefined;
-	// TODO Fix status
-	/*const statusLabel = document.querySelector<HTMLElement>('[style="grid-area: stats;"] .tag.dot');
-	if (statusLabel) {
-		publicationStatus = (statusLabel.textContent ?? undefined)
-			?.trim()
-			.replace(/\s*publication:\s+/i, "")
-			.toLocaleLowerCase() as PublicationStatus;
-	}*/
-	const serviceLinks: MangaDexServiceLink[] = [];
-	const sidebar = document.getElementById(mangadexId.id);
-	if (sidebar) {
-		for (const child_ of sidebar.children) {
-			const child = child_ as HTMLElement;
-			if (child.firstElementChild && child.firstElementChild.textContent!.trim() == "Track") {
-				const allLinks = child.querySelectorAll<HTMLAnchorElement>('a[href^="http"]');
-				for (const link of allLinks) {
-					const name = link.textContent!.trim();
-					serviceLinks.push({ name, url: link.href });
-				}
-			}
-		}
-	} else console.error("No sidebar");
-	return { mangadexId, name, cover, publicationStatus, services: convertServices(serviceLinks) };
+function findMangaDexId(): string | null {
+	const titleLink = document.querySelector<HTMLAnchorElement>('[to^="/title/"]');
+	if (titleLink) {
+		return IDFromLink(titleLink.getAttribute("to")!, "title");
+	}
+	return null;
 }
 
 export default async () => {
@@ -53,7 +20,7 @@ export default async () => {
 			setTimeout(() => {
 				reject();
 			}, 5000);
-			const initObserver = new MutationObserver((mutations, observer) => {
+			const initObserver = new MutationObserver((_, observer) => {
 				if (document.querySelector('[to^="/title/"]')) {
 					resolve(true);
 					observer.disconnect();
@@ -63,25 +30,32 @@ export default async () => {
 		});
 	}
 	// * Handle page
-	const informations = getInformations();
-	// Load Title
-	TemporaryLogs.debug("found informations", { informations });
-	const title = await Title.getOrCreate("md", informations.mangadexId, {
-		name: informations.name,
-		services: { ...informations.services, [MangaDex.key]: informations.mangadexId },
-	});
-	if (title.updateServices(informations.services)) {
-		TemporaryLogs.debug("updated services", { services: title.services });
-		await title.save();
+	const mangaDexId = findMangaDexId();
+	if (mangaDexId) {
+		const informations = await MangaDexAPI.get(mangaDexId);
+		console.log("MangaDex informations", informations);
+		if (informations) {
+			const services = convertServices(informations.attributes.links);
+			const title = await Title.getOrCreate(
+				"md",
+				{ id: informations.id },
+				{ name: informations.attributes.title.en, services }
+			);
+			console.log("title", title);
+			if (title.updateServices(services)) {
+				TemporaryLogs.debug("updated services", { services: title.services });
+				await title.save();
+			}
+			TemporaryLogs.debug("found title", { title });
+			// Set the current updater
+			const updater = Tachikoma.setTitle(title);
+			const snapshots = await updater.import();
+			TemporaryLogs.debug("mergeExternal snapshots", { snapshots });
+			TemporaryLogs.debug("updater", { updater });
+			updater.title.status = Status.READING;
+			updater.title.chapter = 1;
+			const report = await updater.sync();
+			TemporaryLogs.debug("sync report", { report });
+		}
 	}
-	TemporaryLogs.debug("found title", { title });
-	// Set the current updater
-	const updater = Tachikoma.setTitle(title);
-	const snapshots = await updater.import();
-	TemporaryLogs.debug("mergeExternal snapshots", { snapshots });
-	TemporaryLogs.debug("updater", { updater });
-	updater.title.status = Status.READING;
-	updater.title.chapter += 1;
-	const report = await updater.sync();
-	TemporaryLogs.debug("sync report", { report });
 };
