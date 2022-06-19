@@ -1,7 +1,6 @@
+import Tachikoma from "@Core/Tachikoma";
 import TemporaryLogs from "@Core/TemporaryLogs";
 import Title from "@Core/Title";
-import Updater from "@Core/Updater";
-import { Overlay } from "@Overlay";
 import MangaDex from "@Service/MangaDex";
 import { convertServices, IDFromLink } from "../Utility";
 
@@ -47,7 +46,6 @@ function getInformations(): TitlePageInformations {
 }
 
 export default async () => {
-	Overlay.create();
 	// * Wait for required existing node
 	if (!document.querySelector('[to^="/title/"]')) {
 		console.log("Waiting for the page to load");
@@ -77,8 +75,8 @@ export default async () => {
 		await title.save();
 	}
 	TemporaryLogs.debug("found title", { title });
-	// Update from services and sync
-	const updater = new Updater(title);
+	// Set the current updater
+	const updater = Tachikoma.setTitle(title);
 	const snapshots = await updater.import();
 	TemporaryLogs.debug("mergeExternal snapshots", { snapshots });
 	TemporaryLogs.debug("updater", { updater });
@@ -86,5 +84,4 @@ export default async () => {
 	updater.title.chapter += 1;
 	const report = await updater.sync();
 	TemporaryLogs.debug("sync report", { report });
-	Overlay.setTitle(title);
 };
