@@ -11,7 +11,7 @@ import {
 	DeleteStatus,
 } from "@Core/Service";
 import { Volcano } from "@Core/Volcano";
-import Title from "@Core/Title";
+import Title, { Status, TitleInterface } from "@Core/Title";
 
 type Token = {
 	session: string;

@@ -12,7 +12,7 @@ import {
 } from "@Core/Service";
 import { Volcano } from "@Core/Volcano";
 import { pkce } from "@Core/Utility";
-import Title from "@Core/Title";
+import Title, { Status, TitleInterface } from "@Core/Title";
 import { Score } from "@Core/Score";
 
 const CLIENT_ID = "aaead2491067691606c70a480a0ebb02" as const;
@@ -296,14 +296,6 @@ export default new (class MyAnimeList extends APIService {
 		if (!id.id) return { status: SaveStatus.ACCOUNT_ERROR };
 		const token = await this.storage.get<Token>();
 		if (!token.token) return { status: SaveStatus.ACCOUNT_ERROR };
-
-		if (title.status === Status.NONE) {
-			const deleteResult = await this.delete(id);
-			if (deleteResult.status <= DeleteStatus.SUCCESS) {
-				return { status: deleteResult.status as unknown as SaveStatus };
-			}
-			return { status: SaveStatus.DELETED };
-		}
 
 		const created = title.status === Status.NONE;
 		const response = await Volcano.patch(this.route(`manga/${id.id}/my_list_status`), {

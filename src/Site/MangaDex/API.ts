@@ -59,7 +59,7 @@ type Related =
 	| "alternate_story"
 	| "alternate_version";
 
-type MangaDexManga = {
+export type MangaDexManga = {
 	id: string;
 	type: "manga";
 	attributes: {
@@ -96,11 +96,22 @@ type MangaDexManga = {
 		createdAt: string;
 		updatedAt: string;
 	};
-	relationships: {
+	relationships: ({
 		id: string;
 		type: MangaRelationship;
-		related: Related;
-	}[];
+		// related: Related;
+	} & {
+		type: "cover_art";
+		attributes: {
+			description: string;
+			volume: string;
+			fileName: string;
+			locale: string;
+			createdAt: string;
+			updatedAt: string;
+			version: number;
+		};
+	})[];
 };
 
 type MangaDexMangaResponse =
@@ -119,7 +130,7 @@ export default class MangaDexAPI {
 			this.cache[id].time = DateTime.now();
 			return this.cache[id].manga;
 		}
-		const url = `https://api.mangadex.org/manga/${id}`;
+		const url = `https://api.mangadex.org/manga/${id}?includes[]=cover_art`;
 		const response = await Volcano.get<MangaDexMangaResponse>(url);
 		if (response.body?.result == "ok") {
 			this.cache[id] = {

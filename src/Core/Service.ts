@@ -1,5 +1,6 @@
 import { Shelf } from "./Shelf";
 import type Title from "./Title";
+import type { TitleInterface } from "./Title";
 
 export enum ServiceStatus {
 	MISSING_TOKEN, // Missing tokens in API services

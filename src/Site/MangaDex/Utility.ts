@@ -1,5 +1,5 @@
 import MyAnimeList from "@Service/MyAnimeList";
-import type { Links } from "./API";
+import type { Links, MangaDexManga } from "./API";
 
 /**
  * Find the ID of a MangaDex title OR chapter by looking at it's URL.
@@ -77,4 +77,14 @@ export function convertServices(services: Links): { [key: string]: TitleIdentifi
 	} /* else if (services.al) {
 	} */
 	return converted;
+}
+
+export function getCover(mangaDexManga: MangaDexManga, size?: "small" | "regular"): string | undefined {
+	let cover = mangaDexManga.relationships.find((relation) => relation.type == "cover_art");
+	console.log("found cover", cover);
+	if (cover) {
+		let sizePx = !size || size == "small" ? 256 : 512;
+		return `https://uploads.mangadex.org/covers/${mangaDexManga.id}/${cover.attributes.fileName}.${sizePx}.jpg`;
+	}
+	return undefined;
 }

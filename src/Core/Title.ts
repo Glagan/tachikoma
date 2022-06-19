@@ -10,6 +10,70 @@ export type ProgressResult = {
 	updatedEnd: boolean;
 };
 
+export enum Status {
+	NONE,
+	READING,
+	COMPLETED,
+	PAUSED,
+	PLAN_TO_READ,
+	DROPPED,
+	REREADING,
+	WONT_READ,
+}
+export function statusToString(status: Status): string {
+	switch (status) {
+		case Status.NONE:
+			return "Not in list";
+		case Status.READING:
+			return "Reading";
+		case Status.COMPLETED:
+			return "Completed";
+		case Status.PAUSED:
+			return "Paused";
+		case Status.PLAN_TO_READ:
+			return "Plan to read";
+		case Status.DROPPED:
+			return "Dropped";
+		case Status.REREADING:
+			return "Re-reading";
+		case Status.WONT_READ:
+			return "Won't read";
+	}
+}
+
+export type TitleInterface = {
+	// Local **tachikoma** id
+	id?: number;
+	// Favorite name for the title
+	name?: string;
+
+	// Last read chapter
+	chapter: number;
+	// Volume of the current chapter
+	volume?: number;
+	// Stauts of the title
+	status: Status;
+
+	// Score from any given range
+	score?: Score;
+
+	// Start time (automatically updated)
+	startDate?: DateTime;
+	// End time (automatically updated)
+	endDate?: DateTime;
+
+	// List of locked Service keys
+	lockedServices?: string[];
+	// List of {Service.key}
+	services: ServiceList;
+	// Creation time
+	creation?: DateTime;
+	// Last update time
+	lastUpdate?: DateTime;
+	// Last access time (update in all pages)
+	lastAccess?: DateTime;
+};
+
 function serviceIdentifierToToken(id: TitleIdentifier): string {
 	return Object.keys(id)
 		.sort()

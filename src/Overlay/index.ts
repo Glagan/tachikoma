@@ -3,6 +3,11 @@ import "light-icons/dist/light-icon.css";
 import "../Core/tailwind.css";
 import type Title from "@Core/Title";
 
+export const icons = {
+	loading: "https://tachikoma.app/loading_64.png",
+	inactive: "https://tachikoma.app/sleepy_64.png",
+};
+
 export default class Overlay {
 	overlay: FloatingOverlay;
 
@@ -21,5 +26,9 @@ export default class Overlay {
 
 	setTitle(title: Title) {
 		this.overlay.$set({ title });
+	}
+
+	setCover(cover?: string) {
+		this.overlay.$set({ cover });
 	}
 }
