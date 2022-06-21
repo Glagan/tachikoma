@@ -46,7 +46,6 @@ export default class WebExtensionPlugin {
 
 	resetManifest() {
 		this.exposedAssets = [];
-		let staticAssets: string[] = [];
 		// * Add static assets from `icons` and `browser_action.default_icon`
 		if (this.options.exposeIcons) {
 			// * Add `icons` as assets
@@ -70,18 +69,17 @@ export default class WebExtensionPlugin {
 					},
 				];
 			}
-		}
-		if (
-			this.manifest.manifest_version == 3 &&
-			Array.isArray(this.manifest.web_accessible_resources) &&
-			this.manifest.web_accessible_resources.length == 0
-		) {
-			this.manifest.web_accessible_resources = [
-				{
-					resources: [],
-					matches: ["<all_urls>"],
-				},
-			];
+		} else {
+			if (this.manifest.manifest_version == 3) {
+				this.manifest.web_accessible_resources = [
+					{
+						resources: [],
+						matches: ["<all_urls>"],
+					},
+				];
+			} else {
+				this.manifest.web_accessible_resources = [];
+			}
 		}
 		// * Add manually added path from the `expose` option
 		if (this.options.expose.length > 0) {
