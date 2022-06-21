@@ -1,6 +1,7 @@
 import Tachikoma from "@Core/Tachikoma";
 import TemporaryLogs from "@Core/TemporaryLogs";
-import Title from "@Core/Title";
+import Title, { Status } from "@Core/Title";
+import MangaDex from "@Service/MangaDex";
 import MangaDexAPI from "../API";
 import { convertServices, getCover, IDFromLink } from "../Utility";
 
@@ -36,8 +37,9 @@ export default async () => {
 		console.log("MangaDex informations", informations);
 		if (informations) {
 			const services = convertServices(informations.attributes.links);
+			services[MangaDex.key] = { id: informations.id };
 			const title = await Title.getOrCreate(
-				"md",
+				MangaDex.key,
 				{ id: informations.id },
 				{ name: informations.attributes.title.en, services }
 			);
@@ -49,13 +51,12 @@ export default async () => {
 			console.log("found title", { title });
 			// Set the current updater
 			const updater = Tachikoma.setTitle(title, getCover(informations, "small"));
-			// const snapshots = await updater.import();
-			// console.log("mergeExternal snapshots", { snapshots });
-			// console.log("updater", { updater });
-			// updater.title.status = Status.READING;
-			// updater.title.chapter = 1;
-			// const report = await updater.sync();
-			// console.log("sync report", { report });
+			const snapshots = await Tachikoma.import();
+			console.log("mergeExternal snapshots", { snapshots });
+			updater.title.status = Status.READING;
+			updater.title.chapter = 1;
+			const report = await Tachikoma.sync();
+			console.log("sync report", { report });
 		}
 	}
 };

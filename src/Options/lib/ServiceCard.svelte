@@ -188,7 +188,7 @@
 			{/if}
 		</div>
 		<div class="actions flex flex-row flex-grow-0 flex-shrink-0 items-center">
-			<div class="main-action">
+			<div class="main-action flex items-center">
 				{#if !isActive}
 					<Button type="success" disabled={loading} on:click={activateServiceAndSave}>Activate</Button>
 				{:else if status != ServiceStatus.LOADING}
@@ -264,14 +264,20 @@
 					{/if}
 					{#if canLogout}
 						<Button type="info" class="ml-2" on:click={logout}>
-							<span>Logout</span>
-							<i class="light-icon-logout text-lg ml-2" />
+							<span>Reset</span>
+							<i class="light-icon-rotate-2 text-lg ml-2" />
 						</Button>
 					{/if}
 				{/if}
 				{#if isActive}
-					<Button type="error" class="ml-2" disabled={loading} on:click={deactivateServiceAndSave}>
-						Deactivate
+					<Button
+						title="Deactivate"
+						type="error"
+						class="ml-2"
+						disabled={loading}
+						on:click={deactivateServiceAndSave}
+					>
+						<i class="light-icon-trash text-lg" />
 					</Button>
 				{/if}
 			</div>

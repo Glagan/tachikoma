@@ -3,9 +3,10 @@
 	export { className as class };
 
 	export let type: "loading" | "success" | "error" | "warning" | "info" = "info";
-	export let size: "sm" | "md" | "lg" | undefined = "md";
+	export let size: "xs" | "sm" | "md" | "lg" | undefined = "md";
 	export let disabled: boolean | undefined = false;
 	export let block: boolean | undefined = false;
+	export let title: string | undefined = undefined;
 	// Convert the button to a link
 	export let href: string | undefined = undefined;
 	export let target: "_blank" | undefined = undefined;
@@ -14,7 +15,7 @@
 	let classes = `${className} button ${type} ${size ? size : ""} ${block ? "block" : ""}`;
 </script>
 
-<svelte:element this={href ? "a" : "button"} class={classes} {disabled} {href} {target} {rel} on:click>
+<svelte:element this={href ? "a" : "button"} class={classes} {title} {disabled} {href} {target} {rel} on:click>
 	<slot />
 </svelte:element>
 
@@ -34,6 +35,9 @@
 	}
 	.button.lg {
 		@apply px-7 py-3 font-normal text-base;
+	}
+	.button.xs {
+		@apply px-2 py-0.5 font-medium text-sm;
 	}
 
 	.button.loading {

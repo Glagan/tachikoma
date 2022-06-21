@@ -31,4 +31,8 @@ export default class Overlay {
 	setCover(cover?: string) {
 		this.overlay.$set({ cover });
 	}
+
+	setLoading(loading: boolean) {
+		this.overlay.$set({ loading });
+	}
 }

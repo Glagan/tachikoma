@@ -9,12 +9,12 @@ type TitleUpdateResult = {
 	// diff: any; // TODO
 };
 
-type SyncReport = {
+export type SyncReport = {
 	perServices: { [key: string]: TitleUpdateResult };
 	snapshot: Snapshots;
 };
 
-type Snapshots = { [key: string]: TitleStorageInterface };
+export type Snapshots = { [key: string]: TitleStorageInterface };
 
 export default class Updater {
 	title: Title;
@@ -79,6 +79,7 @@ export default class Updater {
 				this.title.merge(externalTitle);
 			}
 		}
+		await this.title.save();
 		return snapshots;
 	}
 
@@ -130,7 +131,7 @@ export default class Updater {
 				);
 			}
 		}
-		await Promise.all(updates);
+		await Promise.all([await this.title.save(), Promise.all(updates)]);
 		return report;
 	}
 }
