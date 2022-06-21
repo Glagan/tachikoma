@@ -5,13 +5,13 @@ import TsconfigPathsPlugin from "tsconfig-paths-webpack-plugin";
 import CaseSensitivePathsPlugin from "case-sensitive-paths-webpack-plugin";
 import CopyWebpackPlugin from "copy-webpack-plugin";
 import ZipPlugin from "zip-webpack-plugin";
-import { ESBuildMinifyPlugin } from "esbuild-loader";
 import preprocess from "svelte-preprocess";
 import { getBrowserAction, getEntries, readAndTransformManifest } from "./config/ManifestTransformer.js";
 import WebExtensionPlugin from "./config/WebExtensionPlugin.js";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import CssMinimizerPlugin from "css-minimizer-webpack-plugin";
 import ImageMinimizerPlugin from "image-minimizer-webpack-plugin";
+import TerserPlugin from "terser-webpack-plugin";
 
 export default (env, argv) => {
 	const vendor = env.vendor;
@@ -41,9 +41,10 @@ export default (env, argv) => {
 			splitChunks: {
 				chunks: "all",
 			},
+			minimize: true,
 			minimizer: [
-				new ESBuildMinifyPlugin({
-					target: "es2017",
+				new TerserPlugin({
+					minify: TerserPlugin.esbuildMinify,
 				}),
 				new CssMinimizerPlugin(),
 				new ImageMinimizerPlugin({
