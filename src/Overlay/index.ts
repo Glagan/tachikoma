@@ -24,7 +24,7 @@ export default class Overlay {
 		this.overlay = new FloatingOverlay({ target: container });
 	}
 
-	setTitle(title: Title) {
+	setTitle(title?: Title) {
 		this.overlay.$set({ title });
 	}
 

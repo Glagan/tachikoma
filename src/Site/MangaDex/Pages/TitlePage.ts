@@ -1,19 +1,34 @@
 import Tachikoma from "@Core/Tachikoma";
-import TemporaryLogs from "@Core/TemporaryLogs";
 import Title, { Status } from "@Core/Title";
 import MangaDex from "@Service/MangaDex";
 import MangaDexAPI from "../API";
 import { convertServices, getCover, IDFromLink } from "../Utility";
 
-function findMangaDexId(): string | null {
+function findMangaDexId(): string | undefined {
 	const titleLink = document.querySelector<HTMLAnchorElement>('[to^="/title/"]');
 	if (titleLink) {
 		return IDFromLink(titleLink.getAttribute("to")!, "title");
 	}
-	return null;
+	return undefined;
 }
 
-export default async () => {
+async function run(routeMatches?: string[]) {
+	// * Handle random page
+	if (routeMatches && routeMatches.find((route) => route.match("/random"))) {
+		let lastId: string | undefined;
+		const randomObserver = new MutationObserver((_, observer) => {
+			if (document.querySelector('[to^="/title/"]')) {
+				const currentId = findMangaDexId();
+				if (!lastId) lastId = currentId;
+				else if (lastId != currentId) {
+					lastId = currentId;
+					Tachikoma.clearTitle();
+					run();
+				}
+			}
+		});
+		randomObserver.observe(document.body, { childList: true, subtree: true });
+	}
 	// * Wait for required existing node
 	if (!document.querySelector('[to^="/title/"]')) {
 		console.log("Waiting for the page to load");
@@ -53,10 +68,10 @@ export default async () => {
 			const updater = Tachikoma.setTitle(title, getCover(informations, "small"));
 			const snapshots = await Tachikoma.import();
 			console.log("mergeExternal snapshots", { snapshots });
-			updater.title.status = Status.READING;
-			updater.title.chapter = 1;
 			const report = await Tachikoma.sync();
 			console.log("sync report", { report });
 		}
 	}
-};
+}
+
+export default run;

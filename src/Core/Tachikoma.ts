@@ -8,6 +8,13 @@ export class TachikomaClass {
 	currentUpdater?: Updater;
 	overlay: Overlay = new Overlay();
 
+	clearTitle() {
+		this.currentUpdater = undefined;
+		this.overlay.setTitle(undefined);
+		this.overlay.setCover(undefined);
+		this.overlay.setLoading(false);
+	}
+
 	setTitle(title: Title, cover?: string): Updater {
 		if (!title.id) {
 			throw new Error("Missing id for Title");

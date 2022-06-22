@@ -1,10 +1,9 @@
 import { Options } from "@Core/Options";
 import Router from "@Core/Router";
+import Tachikoma from "@Core/Tachikoma";
 import { injectScript } from "@Core/Utility";
 import ChapterPage from "./Pages/ChapterPage";
 import TitlePage from "./Pages/TitlePage";
-
-type window = Window & { $nuxt: any };
 
 const router = new Router();
 // router.add(
@@ -36,12 +35,19 @@ router.add([/^\/chapter\/(\d+|[-A-Za-z0-9]{36})\/(\d+)\/?/], ChapterPage);
 // 	}
 // );
 router.add([/^\/manga\/(\d+)\/?/, /^\/title\/([-A-Za-z0-9]{36})\/?/], TitlePage);
+router.add([/^\/(title|manga)(\/random)\/?/], TitlePage, undefined);
 // router.add([/\/updates(\/?$|\/\d+\/?)$/], async () => {
 // 	console.log("UpdatesPage");
 // });
 // router.add([/\/history$/], async () => {
 // 	console.log("HistoryPage");
 // });
+
+// * Clear Overlay title between routes
+
+router.onBeforeRoute((_, __) => {
+	Tachikoma.clearTitle();
+});
 
 // * Wait until MangaDex loaded to do anything
 

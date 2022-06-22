@@ -22,7 +22,7 @@ const OAUTH2_TOKEN = "https://myanimelist.net/v1/oauth2/token" as const;
 type Token = {
 	token: string;
 	refresh: string;
-	expires: string;
+	expires: number;
 };
 
 const enum ListStatus {
@@ -120,7 +120,7 @@ export default new (class MyAnimeList extends APIService {
 	async validToken(): Promise<Partial<Token> | false> {
 		const token = await this.storage.get<Token>();
 		if (!token) return false;
-		if (token.expires && DateTime.fromISO(token.expires) >= DateTime.now()) {
+		if (token.expires && DateTime.fromMillis(token.expires) >= DateTime.now()) {
 			return token;
 		}
 		if (!token.refresh) return false;
@@ -142,7 +142,7 @@ export default new (class MyAnimeList extends APIService {
 		const refreshedToken: Token = {
 			token: response.body.access_token,
 			refresh: response.body.refresh_token,
-			expires: DateTime.now().plus({ milliseconds: response.body.expires_in }).toISO(),
+			expires: DateTime.now().plus({ milliseconds: response.body.expires_in }).toMillis(),
 		};
 		await this.storage.set<Token>(refreshedToken);
 		return refreshedToken;
@@ -221,7 +221,7 @@ export default new (class MyAnimeList extends APIService {
 		await this.storage.set<Token>({
 			token: response.body.access_token,
 			refresh: response.body.refresh_token,
-			expires: DateTime.now().plus({ milliseconds: response.body.expires_in }).toISO(),
+			expires: DateTime.now().plus({ milliseconds: response.body.expires_in }).toMillis(),
 		});
 		return { status: ServiceLogin.SUCCESS };
 	}

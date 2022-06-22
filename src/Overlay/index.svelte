@@ -42,7 +42,13 @@
 			{/if}
 			<div class="overlay title">
 				{#if cover}
-					<img src={cover} alt={`${title.name} cover`} style="max-height: 150px;" />
+					<img
+						src={cover}
+						alt={`${title.name} cover`}
+						height="150"
+						width="112"
+						style="max-height: 150px;max-width: 112px;"
+					/>
 				{/if}
 				<div class="p-1 flex-grow flex-shrink overflow-hidden">
 					<div class="truncate overflow-hidden" title={title.name}>{title.name}</div>
@@ -50,24 +56,24 @@
 					<div>
 						<p class="flex items-center">
 							{#if title.chapter}
-								<i class="light-icon-bookmark" /> Chapter {title.chapter}
+								<i class="light-icon-bookmark mr-2" /> Chapter {title.chapter}
 							{:else}
 								No chapter
 							{/if}
 						</p>
 						{#if title.volume}
 							<p class="flex items-center">
-								<i class="light-icon-notebook" /> Volume {title.volume}
+								<i class="light-icon-notebook mr-2" /> Volume {title.volume}
 							</p>
 						{/if}
 						{#if title.startDate}
 							<p class="flex items-center">
-								<i class="light-icon-calendar-plus" /> Start Date {title.startDate.toLocaleString()}
+								<i class="light-icon-calendar-plus mr-2" /> Start Date {title.startDate.toLocaleString()}
 							</p>
 						{/if}
 						{#if title.endDate}
 							<p class="flex items-center">
-								<i class="light-icon-calendar-event" /> End Date {title.endDate.toLocaleString()}
+								<i class="light-icon-calendar-event mr-2" /> End Date {title.endDate.toLocaleString()}
 							</p>
 						{/if}
 					</div>

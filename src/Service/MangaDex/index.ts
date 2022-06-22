@@ -17,7 +17,7 @@ import Title, { Status, TitleInterface } from "@Core/Title";
 type Token = {
 	session: string;
 	refresh: string;
-	expires: string;
+	expires: number;
 };
 
 const enum ListStatus {
@@ -95,7 +95,7 @@ export default new (class MangaDex extends APIService {
 	async validToken(): Promise<Partial<Token> | false> {
 		const token = await this.storage.get<Token>();
 		if (!token || !token.refresh) return false;
-		if (token.expires && DateTime.fromISO(token.expires) >= DateTime.now()) {
+		if (token.expires && DateTime.fromMillis(token.expires) >= DateTime.now()) {
 			return token;
 		}
 		console.log("Refreshing MangaDex token at", DateTime.now().toString());
@@ -114,7 +114,7 @@ export default new (class MangaDex extends APIService {
 		const refreshedToken: Token = {
 			session: response.body.token.session,
 			refresh: response.body.token.refresh,
-			expires: DateTime.now().plus({ minutes: 14 }).toISO(),
+			expires: DateTime.now().plus({ minutes: 14 }).toMillis(),
 		};
 		await this.storage.set<Token>(refreshedToken);
 		return refreshedToken;
@@ -169,7 +169,7 @@ export default new (class MangaDex extends APIService {
 		await this.storage.set<Token>({
 			session: response.body.token.session,
 			refresh: response.body.token.refresh,
-			expires: DateTime.now().plus({ minutes: 14 }).toISO(),
+			expires: DateTime.now().plus({ minutes: 14 }).toMillis(),
 		});
 		return { status: ServiceLogin.SUCCESS };
 	}

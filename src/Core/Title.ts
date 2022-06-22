@@ -174,7 +174,7 @@ export default class Title implements TitleInterface {
 			s: title.status,
 			r: title.score ? [title.score.value, ...title.score.range] : undefined,
 			t: title.startDate ? title.startDate.toMillis() : undefined,
-			e: title.startDate ? title.startDate.toMillis() : undefined,
+			e: title.endDate ? title.endDate.toMillis() : undefined,
 			l: title.lockedServices ? title.lockedServices : undefined,
 			$: Object.keys(title.services).length > 0 ? title.services : undefined,
 			o: title.creation ? title.creation.toMillis() : undefined,
@@ -429,6 +429,7 @@ export default class Title implements TitleInterface {
 	}
 
 	clone(): Title {
-		return new Title(JSON.parse(JSON.stringify(this)));
+		// Use serialization to keep DateTime objects
+		return new Title(Title.unserialize(Title.serialize(this)));
 	}
 }
