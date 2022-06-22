@@ -187,12 +187,9 @@ export default new (class MangaDex extends APIService {
 		return true;
 	}
 
-	areDifferent(title: TitleInterface, other: TitleInterface): boolean {
-		// Only the status is currently saved in MangaDex
-		if (title.status != other.status) {
-			return true;
-		}
-		return false;
+	// Only the status is currently saved in MangaDex
+	needUpdate(title: TitleInterface, other: TitleInterface): boolean {
+		return this.fieldsNeedUpdate(title, other, ["status"]);
 	}
 
 	toStatus(status: ListStatus | null): Status {

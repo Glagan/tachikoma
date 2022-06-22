@@ -232,9 +232,8 @@ export default new (class MyAnimeList extends APIService {
 		return true;
 	}
 
-	areDifferent(title: TitleInterface, other: TitleInterface): boolean {
-		// TODO
-		return false;
+	needUpdate(title: TitleInterface, other: TitleInterface): boolean {
+		return this.fieldsNeedUpdate(title, other, ["chapter", "volume", "status", "startDate", "endDate", "score"]);
 	}
 
 	toStatus(status: ListStatus): Status {

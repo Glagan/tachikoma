@@ -67,6 +67,7 @@ export enum SaveStatus {
 	SERVICE_ERROR, // 500+
 	TACHIKOMA_ERROR, // 400-499
 	SUCCESS,
+	ALREADY_SYNCED,
 	DELETED, // Status.NONE
 	CREATED, // 201 -- or create
 	LOADING,
@@ -95,6 +96,8 @@ export type DeleteResult = {
 export type AnyService = APIService | CookieService;
 export type LoginField = { type: "text" | "email" | "password"; name: string; label: string; required?: boolean };
 
+export type ComparableFields = "chapter" | "volume" | "status" | "score" | "startDate" | "endDate";
+
 export default abstract class Service {
 	abstract name: string;
 	abstract key: string;
@@ -111,7 +114,16 @@ export default abstract class Service {
 		return status.status == ServiceStatus.LOGGED_IN;
 	}
 
-	abstract areDifferent(title: TitleInterface, other: TitleInterface): boolean;
+	// Check if any of the given fields is different between the titles with a generic comparison
+	protected fieldsNeedUpdate(title: TitleInterface, other: TitleInterface, fields: ComparableFields[]): boolean {
+		for (const field of fields) {
+			if (title[field] != other[field]) {
+				return true;
+			}
+		}
+		return false;
+	}
+	abstract needUpdate(title: TitleInterface, other: TitleInterface): boolean;
 
 	abstract get(id: TitleIdentifier): Promise<Title | TitleFetchFailure>;
 	abstract save(id: TitleIdentifier, title: Title): Promise<SaveResult>;

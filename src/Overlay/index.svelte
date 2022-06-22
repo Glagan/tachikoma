@@ -8,8 +8,8 @@
 	import Badge from "@Components/Badge.svelte";
 
 	export let loading: boolean = false;
-	export let title: Title | undefined;
-	export let cover: string | undefined;
+	export let title: Title | undefined = undefined;
+	export let cover: string | undefined = undefined;
 	let hovered = false;
 
 	let hoverTimeout = 0;
@@ -73,10 +73,10 @@
 					</div>
 				</div>
 				<div class="p-1 flex  flex-col justify-between flex-shrink-0">
-					<Button type="info" size="xs">
+					<Button type="info" size="xs" disabled>
 						<i class="light-icon-edit text-lg" />
 					</Button>
-					<Button type="info" size="xs">
+					<Button type="info" size="xs" disabled>
 						<i class="light-icon-refresh text-lg" />
 					</Button>
 				</div>
