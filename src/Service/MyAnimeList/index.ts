@@ -22,6 +22,7 @@ const OAUTH2_TOKEN = "https://myanimelist.net/v1/oauth2/token" as const;
 type Token = {
 	token: string;
 	refresh: string;
+	expires: string;
 };
 
 const enum ListStatus {
@@ -116,27 +117,12 @@ export default new (class MyAnimeList extends APIService {
 		return { Authorization: `Bearer ${token}` };
 	}
 
-	async status() {
+	async validToken(): Promise<Partial<Token> | false> {
 		const token = await this.storage.get<Token>();
-		if (!token.token) return { status: ServiceStatus.MISSING_TOKEN };
-		// MyAnimeList doesn't have an oauth check route so
-		// -- simply request a route that require authentication and expect a ok response
-		const response = await Volcano.get<{ id: Number; name: string }>(this.route("users/@me"), {
-			headers: this.headers(token.token),
-		});
-		if (response.ok && response.body) {
-			return { status: ServiceStatus.LOGGED_IN, user: response.body.name };
+		if (!token) return false;
+		if (token.expires && DateTime.fromISO(token.expires) >= DateTime.now()) {
+			return token;
 		}
-		if (response.status == 401) {
-			return { status: ServiceStatus.INVALID_TOKEN };
-		} else if (response.status >= 400 && response.status < 500) {
-			return { status: ServiceStatus.TACHIKOMA_ERROR };
-		}
-		return { status: ServiceStatus.SERVICE_ERROR };
-	}
-
-	async refreshToken(): Promise<boolean> {
-		const token = await this.storage.get<Token>();
 		if (!token.refresh) return false;
 		const response = await Volcano.post<{
 			token_type: string;
@@ -153,11 +139,39 @@ export default new (class MyAnimeList extends APIService {
 		if (!response.ok || !response.body) {
 			return false;
 		}
-		await this.storage.set<Token>({
+		const refreshedToken: Token = {
 			token: response.body.access_token,
 			refresh: response.body.refresh_token,
+			expires: DateTime.now().plus({ milliseconds: response.body.expires_in }).toISO(),
+		};
+		await this.storage.set<Token>(refreshedToken);
+		return refreshedToken;
+	}
+
+	async status() {
+		const token = await this.validToken();
+		if (!token) {
+			return {
+				status: ServiceStatus.INVALID_TOKEN,
+				message: "Failed to refresh token",
+			};
+		}
+		if (!token.token) return { status: ServiceStatus.MISSING_TOKEN };
+
+		// MyAnimeList doesn't have an oauth check route so
+		// -- simply request a route that require authentication and expect a ok response
+		const response = await Volcano.get<{ id: Number; name: string }>(this.route("users/@me"), {
+			headers: this.headers(token.token),
 		});
-		return true;
+		if (response.ok && response.body) {
+			return { status: ServiceStatus.LOGGED_IN, user: response.body.name };
+		}
+		if (response.status == 401) {
+			return { status: ServiceStatus.INVALID_TOKEN };
+		} else if (response.status >= 400 && response.status < 500) {
+			return { status: ServiceStatus.TACHIKOMA_ERROR };
+		}
+		return { status: ServiceStatus.SERVICE_ERROR };
 	}
 
 	/**
@@ -207,6 +221,7 @@ export default new (class MyAnimeList extends APIService {
 		await this.storage.set<Token>({
 			token: response.body.access_token,
 			refresh: response.body.refresh_token,
+			expires: DateTime.now().plus({ milliseconds: response.body.expires_in }).toISO(),
 		});
 		return { status: ServiceLogin.SUCCESS };
 	}
@@ -261,7 +276,14 @@ export default new (class MyAnimeList extends APIService {
 
 	async get(id: TitleIdentifier): Promise<Title | TitleFetchFailure> {
 		if (!id.id) return { status: ExternalStatus.ID_ERROR };
-		const token = await this.storage.get<Token>();
+		const token = await this.validToken();
+		if (!token) {
+			return {
+				status: ExternalStatus.ACCOUNT_ERROR,
+				service: ServiceStatus.INVALID_TOKEN,
+				message: "Failed to refresh token",
+			};
+		}
 		if (!token.token) return { status: ExternalStatus.ACCOUNT_ERROR };
 
 		const response = await Volcano.get<MangaDetails>(this.route(`manga/${id.id}?fields=my_list_status`), {
@@ -294,7 +316,13 @@ export default new (class MyAnimeList extends APIService {
 
 	async save(id: TitleIdentifier, title: Title): Promise<SaveResult> {
 		if (!id.id) return { status: SaveStatus.ACCOUNT_ERROR };
-		const token = await this.storage.get<Token>();
+		const token = await this.validToken();
+		if (!token) {
+			return {
+				status: SaveStatus.ACCOUNT_ERROR,
+				message: "Failed to refresh token",
+			};
+		}
 		if (!token.token) return { status: SaveStatus.ACCOUNT_ERROR };
 
 		const created = title.status === Status.NONE;
@@ -324,10 +352,16 @@ export default new (class MyAnimeList extends APIService {
 
 	async delete(id: TitleIdentifier): Promise<DeleteResult> {
 		if (!id.id) return { status: DeleteStatus.ACCOUNT_ERROR };
-		const token = await this.storage.get<Token>();
+		const token = await this.validToken();
+		if (!token) {
+			return {
+				status: DeleteStatus.ACCOUNT_ERROR,
+				message: "Failed to refresh token",
+			};
+		}
 		if (!token.token) return { status: DeleteStatus.ACCOUNT_ERROR };
 
-		const response = await Volcano.deleteRequest(this.route(`manga/${id.id}/my_list_status`), {
+		await Volcano.deleteRequest(this.route(`manga/${id.id}/my_list_status`), {
 			headers: this.headers(token.token),
 		});
 

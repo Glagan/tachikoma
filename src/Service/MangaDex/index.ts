@@ -1,3 +1,4 @@
+import { DateTime } from "luxon";
 import {
 	APIService,
 	LoginField,
@@ -16,6 +17,7 @@ import Title, { Status, TitleInterface } from "@Core/Title";
 type Token = {
 	session: string;
 	refresh: string;
+	expires: string;
 };
 
 const enum ListStatus {
@@ -90,9 +92,44 @@ export default new (class MangaDex extends APIService {
 		return { Authorization: `Bearer ${token}` };
 	}
 
-	async status() {
+	async validToken(): Promise<Partial<Token> | false> {
 		const token = await this.storage.get<Token>();
+		if (!token || !token.refresh) return false;
+		if (token.expires && DateTime.fromISO(token.expires) >= DateTime.now()) {
+			return token;
+		}
+		console.log("Refreshing MangaDex token at", DateTime.now().toString());
+		const response = await Volcano.post<{
+			result: string;
+			token: {
+				session: string;
+				refresh: string;
+			};
+		}>(this.route("auth/refresh"), {
+			body: { token: token.refresh },
+		});
+		if (response.status >= 400 || !response.body) {
+			return false;
+		}
+		const refreshedToken: Token = {
+			session: response.body.token.session,
+			refresh: response.body.token.refresh,
+			expires: DateTime.now().plus({ minutes: 14 }).toISO(),
+		};
+		await this.storage.set<Token>(refreshedToken);
+		return refreshedToken;
+	}
+
+	async status() {
+		const token = await this.validToken();
+		if (!token) {
+			return {
+				status: ServiceStatus.INVALID_TOKEN,
+				message: "Failed to refresh token",
+			};
+		}
 		if (!token.session) return { status: ServiceStatus.MISSING_TOKEN };
+
 		const response = await Volcano.get<UserResponse>(this.route("user/me"), {
 			headers: this.headers(token.session),
 		});
@@ -105,31 +142,6 @@ export default new (class MangaDex extends APIService {
 			return { status: ServiceStatus.TACHIKOMA_ERROR };
 		}
 		return { status: ServiceStatus.SERVICE_ERROR };
-	}
-
-	async refreshToken(): Promise<boolean> {
-		const token = await this.storage.get<Token>();
-		if (!token.refresh) return false;
-		const response = await Volcano.post<{
-			result: string;
-			token: {
-				session: string;
-				refresh: string;
-			};
-		}>(this.route("auth/refresh"), {
-			body: { token: token.refresh },
-		});
-		if (response.status >= 401 || response.status <= 403) {
-			return false;
-		}
-		if (!response.body) {
-			return false;
-		}
-		await this.storage.set<Token>({
-			session: response.body.token.session,
-			refresh: response.body.token.refresh,
-		});
-		return true;
 	}
 
 	async login(informations: ServiceLoginInformations): Promise<{ status: ServiceLogin }> {
@@ -157,6 +169,7 @@ export default new (class MangaDex extends APIService {
 		await this.storage.set<Token>({
 			session: response.body.token.session,
 			refresh: response.body.token.refresh,
+			expires: DateTime.now().plus({ minutes: 14 }).toISO(),
 		});
 		return { status: ServiceLogin.SUCCESS };
 	}
@@ -223,7 +236,14 @@ export default new (class MangaDex extends APIService {
 
 	async get(id: TitleIdentifier): Promise<Title | TitleFetchFailure> {
 		if (!id.id) return { status: ExternalStatus.ACCOUNT_ERROR };
-		const token = await this.storage.get<Token>();
+		const token = await this.validToken();
+		if (!token) {
+			return {
+				status: ExternalStatus.ACCOUNT_ERROR,
+				service: ServiceStatus.INVALID_TOKEN,
+				message: "Failed to refresh token",
+			};
+		}
 		if (!token || !token.session) return { status: ExternalStatus.ACCOUNT_ERROR };
 
 		const response = await Volcano.get<
@@ -254,7 +274,13 @@ export default new (class MangaDex extends APIService {
 
 	async save(id: TitleIdentifier, title: Title): Promise<SaveResult> {
 		if (!id.id) return { status: SaveStatus.ACCOUNT_ERROR };
-		const token = await this.storage.get<Token>();
+		const token = await this.validToken();
+		if (!token) {
+			return {
+				status: SaveStatus.ACCOUNT_ERROR,
+				message: "Failed to refresh token",
+			};
+		}
 		if (!token || !token.session) return { status: SaveStatus.ACCOUNT_ERROR };
 
 		const created = title.status === Status.NONE;
@@ -268,12 +294,18 @@ export default new (class MangaDex extends APIService {
 
 	async delete(id: TitleIdentifier): Promise<DeleteResult> {
 		if (!id.id) return { status: DeleteStatus.ACCOUNT_ERROR };
-		const token = await this.storage.get<Token>();
+		const token = await this.validToken();
+		if (!token) {
+			return {
+				status: DeleteStatus.ACCOUNT_ERROR,
+				message: "Failed to refresh token",
+			};
+		}
 		if (!token || !token.session) return { status: DeleteStatus.ACCOUNT_ERROR };
 
 		// Only the status is currently available on MangaDex
 		// So "deleting" the title only means setting it's status to null
-		const response = await Volcano.post<{ result: "ok" }, ResponseError>(this.route(`manga/${id.id}/status`), {
+		await Volcano.post<{ result: "ok" }, ResponseError>(this.route(`manga/${id.id}/status`), {
 			headers: this.headers(token.session),
 			body: { status: null },
 		});

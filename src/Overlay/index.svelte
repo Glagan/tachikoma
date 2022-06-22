@@ -35,7 +35,7 @@
 </script>
 
 <div id="tkma" on:mouseenter={onMouseEnter} on:mouseleave={onMouseLeave}>
-	{#if title}
+	{#if title && hovered}
 		<div class="overlay-wrapper" in:send={{ key }} out:receive={{ key }}>
 			{#if loading}
 				<div class="loader" in:fade />

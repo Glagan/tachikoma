@@ -7,7 +7,7 @@ export namespace Magma {
 	const lastRequest: Record<string, number> = {};
 
 	function findDomain(url: string): string {
-		// Simple domain search - not the best but simple
+		// Domain search - not the best but simple
 		const res = /https?:\/\/(?:.+\.)?([-\w\d]+\.(?:\w{2,5}))(?:$|\/)/i.exec(url);
 		if (res !== null) {
 			return res[1];
