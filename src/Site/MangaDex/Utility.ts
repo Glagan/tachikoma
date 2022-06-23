@@ -88,3 +88,23 @@ export function getCover(mangaDexManga: MangaDexManga, size?: "small" | "regular
 	}
 	return undefined;
 }
+
+export function waitForSelector(selector: string, timeout: number = 5000): Promise<boolean> {
+	if (!document.querySelector(selector)) {
+		console.log("Waiting for the page to load");
+		return new Promise((resolve, reject) => {
+			let timer = setTimeout(() => {
+				reject();
+			}, timeout);
+			const initObserver = new MutationObserver((_, observer) => {
+				if (document.querySelector(selector)) {
+					clearTimeout(timer);
+					resolve(true);
+					observer.disconnect();
+				}
+			});
+			initObserver.observe(document.body, { childList: true, subtree: true });
+		});
+	}
+	return new Promise((resolve) => resolve(true));
+}

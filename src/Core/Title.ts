@@ -159,8 +159,8 @@ export default class Title implements TitleInterface {
 			(this.score === undefined && other.score !== undefined) ||
 			(this.score !== undefined && other.score === undefined) ||
 			(this.score !== undefined && other.score !== undefined && !this.score.equal(other.score)) ||
-			this.startDate !== other.startDate ||
-			this.endDate !== other.endDate ||
+			this.startDate?.toMillis() !== other.startDate?.toMillis() ||
+			this.endDate?.toMillis() !== other.endDate?.toMillis() ||
 			this.name !== other.name
 		);
 	}
@@ -309,7 +309,7 @@ export default class Title implements TitleInterface {
 		if (this.status === Status.NONE || this.status === Status.PLAN_TO_READ) {
 			this.status = Status.READING;
 			result.started = true;
-			if (this.startDate) {
+			if (!this.startDate) {
 				this.startDate = DateTime.now();
 				result.updatedStart = true;
 			}

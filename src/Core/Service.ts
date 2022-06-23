@@ -117,7 +117,11 @@ export default abstract class Service {
 	// Check if any of the given fields is different between the titles with a generic comparison
 	protected fieldsNeedUpdate(title: TitleInterface, other: TitleInterface, fields: ComparableFields[]): boolean {
 		for (const field of fields) {
-			if (title[field] != other[field]) {
+			if (field === "startDate" || field === "endDate") {
+				if (title[field]?.toMillis() !== other[field]?.toMillis()) {
+					return true;
+				}
+			} else if (title[field] != other[field]) {
 				return true;
 			}
 		}

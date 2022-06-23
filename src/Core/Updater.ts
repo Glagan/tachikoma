@@ -115,7 +115,7 @@ export default class Updater {
 	async sync(): Promise<SyncReport> {
 		const report: SyncReport = {
 			perServices: {},
-			snapshot: await this.export(),
+			snapshot: {},
 		};
 		const titleServices = Object.keys(this.title.services);
 		const services = Options.services(true).filter((service) => titleServices.indexOf(service) >= 0);
@@ -127,6 +127,7 @@ export default class Updater {
 				const externalTitle = this.state[serviceKey] as Title;
 				// Check if the title needs to be updated on the service
 				if (service.needUpdate(externalTitle, this.title)) {
+					report.snapshot[serviceKey] = Title.serialize(externalTitle);
 					updates.push(
 						service.save(id, externalTitle).then((result) => {
 							report.perServices[serviceKey] = { service: result, title: externalTitle };
@@ -145,9 +146,14 @@ export default class Updater {
 						Title.serialize(this.title)
 					);
 				}
+				// The externalTitle is still always updated to avoid and ignore
+				// -- unnecessary difference cheks in other functions
+				externalTitle.update(this.title);
 			}
 		}
 		await Promise.all([await this.title.save(), Promise.all(updates)]);
 		return report;
 	}
+
+	// TODO [Feature] async restore(snapshots)
 }

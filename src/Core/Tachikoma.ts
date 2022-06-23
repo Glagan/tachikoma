@@ -1,7 +1,7 @@
 import { DateTime, Duration } from "luxon";
 import Overlay from "@Overlay";
 import Updater, { Snapshots, SyncReport } from "./Updater";
-import type Title from "./Title";
+import Title from "./Title";
 
 export class TachikomaClass {
 	updaters: { [key: number]: { updater: Updater; cover?: string; time: DateTime } } = {};
@@ -51,6 +51,22 @@ export class TachikomaClass {
 			this.overlay.setLoading(true);
 		}
 		let result = await this.currentUpdater.import();
+		if (this.overlay) {
+			this.overlay.setLoading(false);
+		}
+		return result;
+	}
+
+	async setProgress(progress: Progress) {
+		if (!this.currentUpdater) {
+			throw new Error("Missing current Title in Tachikoma.setProgress call");
+		}
+		if (this.overlay) {
+			this.overlay.setLoading(true);
+		}
+		const _ /* localSnapshot */ = Title.serialize(this.currentUpdater.title);
+		this.currentUpdater.title.setProgress(progress);
+		let result = await this.currentUpdater.sync();
 		if (this.overlay) {
 			this.overlay.setLoading(false);
 		}
