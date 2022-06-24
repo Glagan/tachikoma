@@ -1,4 +1,5 @@
 import { runtime } from "webextension-polyfill";
+import { debug } from "./Logger";
 
 export namespace Message {
 	function sender<K extends keyof MessageDescriptions>() {
@@ -18,7 +19,7 @@ export namespace Message {
 	export function send<K extends keyof MessageDescriptions>(
 		...params: MessageParams<K>
 	): Promise<MessageResponse<K>> {
-		console.log("sending runtime message", ...params);
+		debug("sending runtime message", ...params);
 		if (params.length == 2) {
 			// payload: params[1] is always an object if present
 			return sender<K>()({ ...(params[1] as any), action: params[0] });

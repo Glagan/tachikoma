@@ -13,6 +13,7 @@ import {
 } from "@Core/Service";
 import { Volcano } from "@Core/Volcano";
 import Title, { Status, TitleInterface } from "@Core/Title";
+import { info } from "@Core/Logger";
 
 type Token = {
 	session: string;
@@ -98,7 +99,7 @@ export default new (class MangaDex extends APIService {
 		if (token.expires && DateTime.fromMillis(token.expires) >= DateTime.now()) {
 			return token;
 		}
-		console.log("Refreshing MangaDex token at", DateTime.now().toString());
+		info("Refreshing MangaDex token at", DateTime.now().toString());
 		const response = await Volcano.post<{
 			result: string;
 			token: {

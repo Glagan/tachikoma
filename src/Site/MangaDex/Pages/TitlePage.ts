@@ -1,3 +1,4 @@
+import { debug, info } from "@Core/Logger";
 import Tachikoma from "@Core/Tachikoma";
 import Title, { Status } from "@Core/Title";
 import MangaDex from "@Service/MangaDex";
@@ -14,10 +15,7 @@ function findMangaDexId(): string | undefined {
 
 let randomObserver: MutationObserver | undefined;
 async function run() {
-	console.log(
-		"%c[tachikoma] Title page",
-		["color: #000", "background-color: cyan", "padding: 4px", "border-radius: 2px"].join(";")
-	);
+	info("Title page");
 	if (randomObserver) {
 		randomObserver.disconnect();
 		randomObserver = undefined;
@@ -30,7 +28,7 @@ async function run() {
 		return;
 	}
 	const informations = await MangaDexAPI.get(mangaDexId);
-	console.log("MangaDex informations", informations);
+	debug("MangaDex informations", informations);
 	if (!informations) {
 		return;
 	}
@@ -41,18 +39,18 @@ async function run() {
 		{ id: informations.id },
 		{ name: informations.attributes.title.en, services }
 	);
-	console.log("title", title);
+	debug("title", title);
 	if (title.updateServices(services)) {
-		console.log("updated services", { services: title.services });
+		debug("updated services", { services: title.services });
 		await title.save();
 	}
 	Tachikoma.setTitle(title, getCover(informations));
-	console.log("found title", { title });
+	debug("found title", { title });
 	// * Initial merge sync for all services
 	const snapshots = await Tachikoma.import();
-	console.log("mergeExternal snapshots", { snapshots });
+	debug("mergeExternal snapshots", { snapshots });
 	const report = await Tachikoma.sync();
-	console.log("sync report", { report });
+	debug("sync report", { report });
 	// * Handle title page change
 	let lastId: string | undefined;
 	randomObserver = new MutationObserver((_, observer) => {

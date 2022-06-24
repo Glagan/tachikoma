@@ -1,4 +1,5 @@
 import { Lake } from "./Lake";
+import { debug } from "./Logger";
 import { Options } from "./Options";
 import { ExternalStatus, SaveResult, SaveStatus, TitleFetchFailure } from "./Service";
 import Title, { Status } from "./Title";
@@ -151,7 +152,7 @@ export default class Updater {
 							service: { status: SaveStatus.ALREADY_SYNCED },
 							title: externalTitle,
 						};
-						console.debug(
+						debug(
 							"Update skipped on",
 							serviceKey,
 							"for",
@@ -164,7 +165,7 @@ export default class Updater {
 					// -- unnecessary difference cheks in other functions
 					externalTitle.update(this.title);
 				} else {
-					console.debug("Created missing title on", serviceKey);
+					debug("Created missing title on", serviceKey);
 					// `null` snapshot mean it didn't exist previously
 					report.snapshot[serviceKey] = null;
 					const externalTitle = this.title.clone();

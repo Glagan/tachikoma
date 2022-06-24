@@ -1,3 +1,4 @@
+import { debug, info } from "@Core/Logger";
 import Tachikoma from "@Core/Tachikoma";
 import Title from "@Core/Title";
 import MangaDex from "@Service/MangaDex";
@@ -52,22 +53,19 @@ async function checkAndUpdate(container: HTMLElement) {
 
 	const chapter = chapterState();
 	const readingProgress = readingState(container);
-	console.log("progress updated", readingProgress);
+	debug("progress updated", readingProgress);
 
 	if (chapter && (!lastChapter || lastChapter !== chapter.id)) {
 		lastChapter = chapter.id;
 		const report = await Tachikoma.setProgress(chapter.progress);
-		console.log("Tachikoma.setProgress report", report, "for", chapter.progress);
+		debug("Tachikoma.setProgress report", report, "for", chapter.progress);
 	}
 }
 
 let progressObserver: MutationObserver | undefined;
 let initialized = false;
 export default async () => {
-	console.log(
-		"%c[tachikoma] Chapter page",
-		["color: #000", "background-color: cyan", "padding: 4px", "border-radius: 2px"].join(";")
-	);
+	info("Chapter page");
 	if (progressObserver) {
 		progressObserver.disconnect();
 		progressObserver = undefined;
@@ -80,7 +78,7 @@ export default async () => {
 	}
 	// * Get Title informations
 	const informations = await MangaDexAPI.get(mangaDexId);
-	console.log("MangaDex informations", informations);
+	debug("MangaDex informations", informations);
 	if (!informations) {
 		return;
 	}
@@ -92,28 +90,28 @@ export default async () => {
 		{ name: informations.attributes.title.en, services }
 	);
 	if (!initialized) {
-		console.log("title", title);
+		debug("title", title);
 		if (title.updateServices(services)) {
-			console.log("updated services", { services: title.services });
+			debug("updated services", { services: title.services });
 			await title.save();
 		}
 	}
 	Tachikoma.setTitle(title, getCover(informations));
-	console.log("found title", { title });
+	debug("found title", { title });
 	// * Initial merge sync for all services
 	if (!initialized) {
 		const snapshots = await Tachikoma.import();
-		console.log("mergeExternal snapshots", { snapshots });
+		debug("mergeExternal snapshots", { snapshots });
 		const report = await Tachikoma.sync();
-		console.log("sync report", { report });
+		debug("sync report", { report });
 	}
 	// * Check chapter state
 	const chapter = chapterState();
 	if (!chapter) {
-		console.log("no chapter state");
+		debug("no chapter state");
 		return;
 	}
-	console.log("chapter state", chapter);
+	debug("chapter state", chapter);
 	// * Handle page change
 	const container = findProgressContainer();
 	if (container) {

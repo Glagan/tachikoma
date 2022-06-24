@@ -1,3 +1,4 @@
+import { debug } from "@Core/Logger";
 import MyAnimeList from "@Service/MyAnimeList";
 import type { Links, MangaDexManga } from "./API";
 
@@ -81,7 +82,7 @@ export function convertServices(services?: Links): { [key: string]: TitleIdentif
 
 export function getCover(mangaDexManga: MangaDexManga, size?: "small" | "regular"): string | undefined {
 	let cover = mangaDexManga.relationships.find((relation) => relation.type == "cover_art");
-	console.log("found cover", cover);
+	debug("found cover", cover);
 	if (cover) {
 		let sizePx = !size || size == "small" ? 256 : 512;
 		return `https://uploads.mangadex.org/covers/${mangaDexManga.id}/${cover.attributes.fileName}.${sizePx}.jpg`;
@@ -91,7 +92,7 @@ export function getCover(mangaDexManga: MangaDexManga, size?: "small" | "regular
 
 export function waitForSelector(selector: string, timeout: number = 5000): Promise<boolean> {
 	if (!document.querySelector(selector)) {
-		console.log("Waiting for the page to load");
+		debug("Waiting for the page to load");
 		return new Promise((resolve, reject) => {
 			let timer = setTimeout(() => {
 				reject();
