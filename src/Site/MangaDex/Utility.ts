@@ -70,9 +70,9 @@ export function fullChapterFromString(raw: string): Progress {
  * @param services List of Service fullnames and their URL as stored in MangaDex
  * @returns List of services formatted for tachikoma
  */
-export function convertServices(services: Links): { [key: string]: TitleIdentifier } {
+export function convertServices(services?: Links): { [key: string]: TitleIdentifier } {
 	let converted: { [key: string]: TitleIdentifier } = {};
-	if (services.mal) {
+	if (services?.mal) {
 		converted[MyAnimeList.key] = { id: parseInt(services.mal) };
 	} /* else if (services.al) {
 	} */

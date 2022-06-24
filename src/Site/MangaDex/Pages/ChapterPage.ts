@@ -106,7 +106,6 @@ export default async () => {
 		console.log("mergeExternal snapshots", { snapshots });
 		const report = await Tachikoma.sync();
 		console.log("sync report", { report });
-		initialized = true;
 	}
 	// * Check chapter state
 	const chapter = chapterState();
@@ -118,9 +117,15 @@ export default async () => {
 	// * Handle page change
 	const container = findProgressContainer();
 	if (container) {
+		if (!initialized) {
+			initialized = true;
+			checkAndUpdate(container);
+		}
 		progressObserver = new MutationObserver((mutations, observer) => {
 			checkAndUpdate(container);
 		});
 		progressObserver.observe(container, { childList: true, subtree: true, attributeFilter: ["class"] });
+	} else {
+		initialized = true;
 	}
 };

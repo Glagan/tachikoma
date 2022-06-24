@@ -67,7 +67,7 @@ export type MangaDexManga = {
 		altTitles: { [key: string]: string }[];
 		description: { [key: string]: string };
 		isLocked: boolean;
-		links: Links;
+		links?: Links;
 		originalLanguage: string;
 		lastVolume: string;
 		lastChapter: string;

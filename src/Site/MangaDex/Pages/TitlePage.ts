@@ -13,7 +13,7 @@ function findMangaDexId(): string | undefined {
 }
 
 let randomObserver: MutationObserver | undefined;
-async function run(routeMatches?: string[]) {
+async function run() {
 	console.log(
 		"%c[tachikoma] Title page",
 		["color: #000", "background-color: cyan", "padding: 4px", "border-radius: 2px"].join(";")
@@ -24,22 +24,6 @@ async function run(routeMatches?: string[]) {
 	}
 	// * Wait for required existing node
 	await waitForSelector('[to^="/title/"]');
-	// * Handle random page
-	if (routeMatches && routeMatches.find((route) => route.match("/random"))) {
-		let lastId: string | undefined;
-		randomObserver = new MutationObserver((_, observer) => {
-			if (document.querySelector('[to^="/title/"]')) {
-				const currentId = findMangaDexId();
-				if (!lastId) lastId = currentId;
-				else if (lastId != currentId) {
-					lastId = currentId;
-					Tachikoma.clearTitle();
-					run();
-				}
-			}
-		});
-		randomObserver.observe(document.body, { childList: true, subtree: true });
-	}
 	// * Handle page
 	const mangaDexId = findMangaDexId();
 	if (!mangaDexId) {
@@ -69,6 +53,20 @@ async function run(routeMatches?: string[]) {
 	console.log("mergeExternal snapshots", { snapshots });
 	const report = await Tachikoma.sync();
 	console.log("sync report", { report });
+	// * Handle title page change
+	let lastId: string | undefined;
+	randomObserver = new MutationObserver((_, observer) => {
+		if (document.querySelector('[to^="/title/"]')) {
+			const currentId = findMangaDexId();
+			if (!lastId) lastId = currentId;
+			else if (lastId != currentId) {
+				lastId = currentId;
+				Tachikoma.clearTitle();
+				run();
+			}
+		}
+	});
+	randomObserver.observe(document.body, { childList: true, subtree: true });
 }
 
 export default run;

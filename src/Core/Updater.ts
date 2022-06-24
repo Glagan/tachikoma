@@ -1,7 +1,7 @@
 import { Lake } from "./Lake";
 import { Options } from "./Options";
 import { ExternalStatus, SaveResult, SaveStatus, TitleFetchFailure } from "./Service";
-import Title from "./Title";
+import Title, { Status } from "./Title";
 
 type TitleUpdateResult = {
 	service: SaveResult;
@@ -14,7 +14,7 @@ export type SyncReport = {
 	snapshot: Snapshots;
 };
 
-export type Snapshots = { [key: string]: TitleStorageInterface };
+export type Snapshots = { [key: string]: TitleStorageInterface | null };
 
 export default class Updater {
 	title: Title;
@@ -117,38 +117,65 @@ export default class Updater {
 			perServices: {},
 			snapshot: {},
 		};
+		if (this.title.status === Status.NONE) {
+			return report;
+		}
 		const titleServices = Object.keys(this.title.services);
 		const services = Options.services(true).filter((service) => titleServices.indexOf(service) >= 0);
 		const updates: Promise<SaveResult>[] = [];
 		for (const serviceKey of services) {
 			const id = this.title.services[serviceKey];
-			if (id && this.state[serviceKey] && this.state[serviceKey] instanceof Title) {
+			if (
+				id &&
+				this.state[serviceKey] &&
+				(this.state[serviceKey] instanceof Title ||
+					this.state[serviceKey].status === ExternalStatus.NOT_IN_LIST)
+			) {
 				const service = Lake.map[serviceKey];
-				const externalTitle = this.state[serviceKey] as Title;
+				let externalTitle = this.state[serviceKey];
+				if (!(this.state[serviceKey] instanceof Title)) {
+					this.state[serviceKey];
+				}
 				// Check if the title needs to be updated on the service
-				if (service.needUpdate(externalTitle, this.title)) {
-					report.snapshot[serviceKey] = Title.serialize(externalTitle);
+				if (externalTitle instanceof Title) {
+					if (service.needUpdate(externalTitle, this.title)) {
+						report.snapshot[serviceKey] = Title.serialize(externalTitle);
+						updates.push(
+							service.save(id, externalTitle).then((result) => {
+								report.perServices[serviceKey] = { service: result, title: externalTitle as Title };
+								return result;
+							})
+						);
+					} else {
+						report.perServices[serviceKey] = {
+							service: { status: SaveStatus.ALREADY_SYNCED },
+							title: externalTitle,
+						};
+						console.debug(
+							"Update skipped on",
+							serviceKey,
+							"for",
+							Title.serialize(externalTitle),
+							"from",
+							Title.serialize(this.title)
+						);
+					}
+					// The externalTitle is still always updated to avoid and ignore
+					// -- unnecessary difference cheks in other functions
+					externalTitle.update(this.title);
+				} else {
+					console.debug("Created missing title on", serviceKey);
+					// `null` snapshot mean it didn't exist previously
+					report.snapshot[serviceKey] = null;
+					const externalTitle = this.title.clone();
+					this.state[serviceKey] = externalTitle;
 					updates.push(
 						service.save(id, externalTitle).then((result) => {
 							report.perServices[serviceKey] = { service: result, title: externalTitle };
 							return result;
 						})
 					);
-				} else {
-					report.perServices[serviceKey] = {
-						service: { status: SaveStatus.ALREADY_SYNCED },
-						title: externalTitle,
-					};
-					console.debug(
-						"Update skipped for",
-						Title.serialize(externalTitle),
-						"from",
-						Title.serialize(this.title)
-					);
 				}
-				// The externalTitle is still always updated to avoid and ignore
-				// -- unnecessary difference cheks in other functions
-				externalTitle.update(this.title);
 			}
 		}
 		await Promise.all([await this.title.save(), Promise.all(updates)]);
