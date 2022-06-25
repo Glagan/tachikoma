@@ -55,6 +55,9 @@ export const optionsStore = (() => {
 			}
 			return set(Options.values);
 		},
+		setOption: (key: MutableOption, value: any) => {
+			console.log("set", key, "to", value);
+		},
 		save: () => {
 			if (!Options.loaded) {
 				return;

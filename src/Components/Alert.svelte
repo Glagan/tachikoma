@@ -1,4 +1,6 @@
 <script lang="ts">
+	let className: string = "";
+	export { className as class };
 	export let type: "loading" | "success" | "error" | "warning" | "info";
 
 	let icon: string = "";
@@ -21,7 +23,7 @@
 	}
 </script>
 
-<div class={`alert ${type}`} role="alert">
+<div class={`alert ${type} ${className}`} role="alert">
 	<i class={`w-6 h-6 mr-2 fill-current text-xl ${icon}`} />
 	<span><slot /></span>
 </div>

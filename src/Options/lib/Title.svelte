@@ -17,5 +17,3 @@
 <svelte:element this={titleTag} class={`p-4 border-b border-b-gray ${titleTextSize}`}>
 	<slot />
 </svelte:element>
-
-<style></style>

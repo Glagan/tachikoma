@@ -1,5 +1,6 @@
 // Colors of highlighted chapter in lists
 interface Colors {
+	enabled: boolean;
 	highlights: string[];
 	nextChapter: string;
 	higherChapter: string;
@@ -10,7 +11,6 @@ interface Colors {
 // Notifications visbility and duration
 interface Notifications {
 	enabled: boolean;
-	displaySyncStart: boolean;
 	displayProgressUpdated: boolean;
 	errorNotifications: boolean;
 	errorDuration: number;
@@ -36,37 +36,37 @@ interface Reading {
 	saveOnLastPage: boolean;
 }
 
-type OptionList = {
+type GlobalOptionlist = {
 	// Options that can override by Site options
 	highlight: boolean;
 	colors: Colors;
 	notifications: Notifications;
 	lists: ListVisibility;
 	reading: Reading;
-	// Overview
-	linkToServices: boolean;
-	overviewMainOnly: boolean;
 	// History
-	biggerHistory: boolean;
-	refreshHistory: boolean;
+	// biggerHistory: boolean;
+	// refreshHistory: boolean;
 	// Services
 	services: string[];
 	// Sync
-	checkOnStartup: boolean;
-	checkOnStartupMainOnly: boolean;
-	checkOnStartupCooldown: number;
+	// checkOnStartup: boolean;
+	// checkOnStartupMainOnly: boolean;
+	// checkOnStartupCooldown: number;
 	// Global
-	useMochi: boolean;
+	// useMochi: boolean;
 	version: number;
 	subVersion: number;
-	// Site options
-	[key: string]: {
-		colors: Colors;
-		notifications: Notifications;
-		lists: ListVisibility;
-		reading: Reading;
-	};
 };
+type SiteOption = {
+	colors: Colors;
+	notifications: Notifications;
+	lists: ListVisibility;
+	reading: Reading;
+};
+type SiteOptionList = {
+	[key: string]: SiteOption;
+};
+type OptionList = GlobalOptionlist & SiteOptionList;
 
 // * // @see https://stackoverflow.com/a/58436959/7794671
 // * // @see https://stackoverflow.com/questions/61644053
@@ -97,4 +97,14 @@ type Leaves<T, D extends number = 10> = [D] extends [never]
 
 // * //
 
-type MutableOption = Leaves<Omit<OptionList, "services" | "version" | "subVersion">>;
+type GlobalMutableOption = Leaves<SiteOptionList>;
+type SiteMutableOption = Leaves<Omit<GlobalOptionlist, "services" | "version" | "subVersion">>;
+type MutableOption = GlobalMutableOption | SiteMutableOption;
+type RootSiteMutableOption = Leaves<SiteOption>;
+
+type SiteEnabledOptions = {
+	[key: string]: {
+		key: string;
+		enabledOptions: RootSiteMutableOption[];
+	};
+};

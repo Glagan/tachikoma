@@ -264,7 +264,7 @@
 					{/if}
 					{#if canLogout}
 						<Button type="info" class="ml-2" on:click={logout}>
-							<span>Reset</span>
+							<span>Logout</span>
 							<i class="light-icon-rotate-2 text-lg ml-2" />
 						</Button>
 					{/if}

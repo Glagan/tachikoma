@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Services from "./lib/Services.svelte";
+	import Options from "./lib/Options.svelte";
 	import { loading, optionsStore } from "./stores/Options";
 
 	optionsStore.load();
@@ -13,10 +14,8 @@
 	{:else}
 		<div class="body">
 			<Services />
+			<Options />
 		</div>
 	{/if}
 	<div class="pt-4" />
 </main>
-
-<style>
-</style>

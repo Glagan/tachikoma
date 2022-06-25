@@ -17,7 +17,6 @@ export namespace Options {
 		},
 		notifications: {
 			enabled: true,
-			displaySyncStart: false,
 			displayProgressUpdated: true,
 			errorNotifications: true,
 			errorDuration: 4000,
@@ -38,20 +37,20 @@ export namespace Options {
 			updateOnlyInList: false,
 			saveOnLastPage: false,
 		},
-		// Overview
-		linkToServices: true,
-		overviewMainOnly: true,
 		// History
-		biggerHistory: true,
-		refreshHistory: false,
+		// TODO [Feature] Add reading History
+		// biggerHistory: true,
+		// refreshHistory: false,
 		// Services
 		services: [],
 		// Sync
-		checkOnStartup: false,
-		checkOnStartupMainOnly: true,
-		checkOnStartupCooldown: 30,
+		// TODO [Feature] Add Sync on startup
+		// checkOnStartup: false,
+		// checkOnStartupMainOnly: true,
+		// checkOnStartupCooldown: 30,
 		// Global
-		useMochi: false,
+		// TODO [Feature] Add mochi to find Services links
+		// useMochi: false,
 		version: parseFloat(runtime.getManifest().version),
 		subVersion: parseInt(/\.(\d+)$/.exec(runtime.getManifest().version)![1]),
 	} as unknown as OptionList; // TODO
@@ -96,7 +95,7 @@ export namespace Options {
 		return services.filter((service) => hasService(service));
 	}
 
-	export function getColors(site: keyof OptionList): Colors {
+	export function getColors(site: string): Colors {
 		const colors = Options.values.colors;
 		if (site in Options.values) {
 			const siteOptions = Options.values[site];
