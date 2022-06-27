@@ -1,7 +1,7 @@
 module.exports = {
 	mode: "jit",
 	important: "#tkma",
-	content: ["src/**/*.html", "src/**/*.ts", "src/**/*.svelte"],
+	content: ['./src/**/*.{html,js,svelte,ts}'],
 	darkMode: "class",
 	theme: {
 		extend: {
