@@ -15,7 +15,7 @@ const modeStyles: Record<Mode, string> = {
 function print(mode: Mode, ...messages: any[]) {
 	if (messages.length == 1 && typeof messages[0] !== "object" && typeof messages[0] !== "function") {
 		console.log(
-			`%c[tachikoma]%c %c${DateTime.now()}%c %c${messages[0]}`,
+			`%ctachikoma%c %c${DateTime.now()}%c %c${messages[0]}`,
 			headerStyle,
 			"",
 			timestampStyle,
@@ -23,7 +23,7 @@ function print(mode: Mode, ...messages: any[]) {
 			modeStyles[mode]
 		);
 	} else {
-		console.log(`%c[tachikoma]%c %c${DateTime.now()}`, headerStyle, "", timestampStyle, ...messages);
+		console.log(`%ctachikoma%c %c${DateTime.now()}`, headerStyle, "", timestampStyle, ...messages);
 	}
 }
 

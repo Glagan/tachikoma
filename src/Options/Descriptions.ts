@@ -259,5 +259,3 @@ descriptions.Global = {
 		// },
 	},
 };
-
-debug("Calculated descriptions", descriptions);

@@ -117,10 +117,15 @@ export namespace Options {
 	 * 	-> return the *colors* object and *nextChapter*
 	 * 	-> { colors: { nextChapter }, key: 'nextChapter' }
 	 */
-	export function get<E extends any, R extends Record<string, E> = Record<string, E>>(
+	export function getOption<E extends any, R extends Record<string, E> = Record<string, E>>(
 		key: MutableOption
 	): { ref: R; key: keyof R } {
 		return nestedKeyReference(Options.values, key);
+	}
+
+	export function setOption(key: MutableOption, value: any) {
+		const { ref, key: optionKey } = nestedKeyReference(Options.values, key);
+		ref[optionKey] = value;
 	}
 
 	export function set(options: OptionList): void {

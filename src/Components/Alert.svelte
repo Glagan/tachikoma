@@ -30,7 +30,7 @@
 
 <style lang="postcss">
 	.alert {
-		@apply rounded-lg py-5 px-6 mb-3 text-base inline-flex items-center w-full border;
+		@apply rounded-lg py-5 px-6 mb-3 text-base block border;
 	}
 
 	.alert.loading {

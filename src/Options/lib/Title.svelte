@@ -1,5 +1,6 @@
 <script lang="ts">
 	export let size: 1 | 2 | 3 | 4 | "1" | "2" | "3" | "4";
+	let classes: string = "";
 
 	let titleTag = `h${size}`;
 	let titleTextSize: string = "text-base";
@@ -12,8 +13,10 @@
 	} else {
 		titleTextSize = "text-lg";
 	}
+
+	export { classes as class };
 </script>
 
-<svelte:element this={titleTag} class={`p-4 border-b border-b-gray ${titleTextSize}`}>
+<svelte:element this={titleTag} class={`p-4 border-b border-b-gray ${titleTextSize} ${classes}`}>
 	<slot />
 </svelte:element>
