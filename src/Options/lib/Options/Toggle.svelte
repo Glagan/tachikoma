@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { fly } from "svelte/transition";
 	import { Options } from "@Core/Options";
 	import type { OptionDescription, ToggleOptionDescription } from "src/Options/Descriptions";
 	import Option from "./Option.svelte";
@@ -63,14 +64,13 @@
 		{/if}
 	</span>
 </label>
-
-{#if option.sub}
-	{#each Object.keys(option.sub) as subOptionName}
-		{@const subOption = subOptionFromString(subOptionName)}
-		<div class="ml-8">
+{#if option.sub && value}
+	<div class="sub-option ml-8" in:fly>
+		{#each Object.keys(option.sub) as subOptionName}
+			{@const subOption = subOptionFromString(subOptionName)}
 			<Option key={subOptionWithType(subOptionName)} option={subOption} />
-		</div>
-	{/each}
+		{/each}
+	</div>
 {/if}
 
 <style lang="postcss">

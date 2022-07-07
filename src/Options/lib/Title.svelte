@@ -3,20 +3,22 @@
 	let classes: string = "";
 
 	let titleTag = `h${size}`;
-	let titleTextSize: string = "text-base";
+	let titleTextSize: string = "title text-base";
 	if (size == 1) {
-		titleTextSize = "text-3xl";
+		titleTextSize = "title level-1 text-3xl border-t bg-tachikoma-900";
 	} else if (size == 2) {
-		titleTextSize = "text-2xl";
+		titleTextSize = "title level-2 text-2xl border-t bg-tachikoma-800";
 	} else if (size == 3) {
-		titleTextSize = "text-xl";
+		titleTextSize = "title level-3 text-xl";
 	} else {
-		titleTextSize = "text-lg";
+		titleTextSize = "title level-4 text-lg";
 	}
 
 	export { classes as class };
 </script>
 
-<svelte:element this={titleTag} class={`p-4 border-b border-b-gray ${titleTextSize} ${classes}`}>
+<svelte:element this={titleTag} class={`p-4 border-b border-gray ${titleTextSize} ${classes}`}>
 	<slot />
 </svelte:element>
+
+<!-- Style is located in index.css since Svelte trim unused rules -->

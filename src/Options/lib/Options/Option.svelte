@@ -11,7 +11,9 @@
 	export let option: OptionDescription;
 </script>
 
-<Title size="4">{option.name}</Title>
+<Title size="4">
+	{option.name}
+</Title>
 {#if option.type == "toggle"}
 	<Toggle {key} {option} />
 {:else if option.type == "color"}
