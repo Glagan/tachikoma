@@ -22,4 +22,4 @@ export default [
 	"reading.confirmChapter",
 	"reading.updateOnlyInList",
 	"reading.saveOnLastPage",
-] as RootSiteMutableOption[];
+] as MutableOption[];

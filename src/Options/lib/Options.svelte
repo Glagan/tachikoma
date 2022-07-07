@@ -29,9 +29,6 @@
 				<OptionIcon src={rootCategory.icon} />
 			{/if}{rootCategoryKey}
 		</Title>
-		{#if rootCategory.description}
-			<Alert type="info" class="mt-2 mx-2">{rootCategory.description}</Alert>
-		{/if}
 		{#each Object.keys(rootCategory.list) as categoryKey}
 			{@const category = rootCategory.list[categoryKey]}
 			<Title size="3">

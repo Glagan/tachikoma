@@ -57,16 +57,7 @@ type GlobalOptionlist = {
 	version: number;
 	subVersion: number;
 };
-type SiteOption = {
-	colors: Colors;
-	notifications: Notifications;
-	lists: ListVisibility;
-	reading: Reading;
-};
-type SiteOptionList = {
-	[key: string]: SiteOption;
-};
-type OptionList = GlobalOptionlist & SiteOptionList;
+type OptionList = GlobalOptionlist;
 
 // * // @see https://stackoverflow.com/a/58436959/7794671
 // * // @see https://stackoverflow.com/questions/61644053
@@ -97,14 +88,11 @@ type Leaves<T, D extends number = 10> = [D] extends [never]
 
 // * //
 
-type GlobalMutableOption = Leaves<SiteOptionList>;
-type SiteMutableOption = Leaves<Omit<GlobalOptionlist, "services" | "version" | "subVersion">>;
-type MutableOption = GlobalMutableOption | SiteMutableOption;
-type RootSiteMutableOption = Leaves<SiteOption>;
+type MutableOption = Leaves<Omit<OptionList, "services" | "version" | "subVersion">>;
 
 type SiteEnabledOptions = {
 	[key: string]: {
 		key: string;
-		enabledOptions: RootSiteMutableOption[];
+		enabledOptions: MutableOption[];
 	};
 };

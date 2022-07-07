@@ -95,22 +95,6 @@ export namespace Options {
 		return services.filter((service) => hasService(service));
 	}
 
-	export function getColors(site: string): Colors {
-		const colors = Options.values.colors;
-		if (site in Options.values) {
-			const siteOptions = Options.values[site];
-			if (typeof siteOptions === "object" && "colors" in siteOptions && typeof siteOptions.colors === "object") {
-				const siteColors = siteOptions.colors as Partial<Colors>;
-				const emptyFiltered: Partial<Colors> = {};
-				Object.keys(siteOptions.colors)
-					.filter((k) => !!siteOptions.colors[k as keyof Colors])
-					.map((k) => ((emptyFiltered as any)[k] = siteColors[k as keyof Colors]));
-				return { ...colors, ...emptyFiltered };
-			}
-		}
-		return { ...colors };
-	}
-
 	/**
 	 * Breakdown leaf (MutableOption key) to retrieve the last object containing the last key.
 	 * [site].colors.nextChapter

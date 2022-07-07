@@ -48,7 +48,7 @@ type LeafOptionList = {
 		description?: string;
 		icon?: string;
 		list: {
-			[key in RootSiteMutableOption]?: OptionDescription;
+			[key in MutableOption]?: OptionDescription;
 		};
 	};
 };
@@ -200,46 +200,6 @@ const defaultOptionsList: LeafOptionList = {
 };
 
 export const descriptions: CategorizedOptions = {};
-// Add Site specific option
-for (const siteName in SitesOptions) {
-	const siteOptions = SitesOptions[siteName];
-	const filteredSiteOptions: {
-		[key: string]: {
-			description?: string;
-			icon: string;
-			list: {
-				[key in MutableOption]?: OptionDescription;
-			};
-		};
-	} = JSON.parse(JSON.stringify(defaultOptionsList));
-	for (const category in filteredSiteOptions) {
-		for (const subOption in filteredSiteOptions[category].list) {
-			if (siteOptions.enabledOptions.indexOf(subOption as RootSiteMutableOption) >= 0) {
-				const key = `${siteOptions.key}.${subOption}` as SiteMutableOption;
-				filteredSiteOptions[category].list[key] =
-					filteredSiteOptions[category].list[subOption as RootSiteMutableOption];
-				const currentSubOption = filteredSiteOptions[category].list[key]!;
-				if ("sub" in currentSubOption) {
-					for (const toggleSubOption in currentSubOption.sub) {
-						if (siteOptions.enabledOptions.indexOf(toggleSubOption as RootSiteMutableOption) >= 0) {
-							const key = `${siteOptions.key}.${toggleSubOption}` as SiteMutableOption;
-							currentSubOption.sub[key] = currentSubOption.sub[toggleSubOption as RootSiteMutableOption];
-						}
-						delete currentSubOption.sub[toggleSubOption as RootSiteMutableOption];
-					}
-				}
-			}
-			delete filteredSiteOptions[category].list[subOption as RootSiteMutableOption];
-		}
-		if (Object.keys(filteredSiteOptions[category].list).length == 0) {
-			delete filteredSiteOptions[category];
-		}
-	}
-	descriptions[siteName] = {
-		icon: `file:/static/icons/${siteOptions.key}.png`,
-		list: filteredSiteOptions,
-	};
-}
 // Add Global last to keep the ordering
 descriptions.Global = {
 	icon: "file:/static/icons/tachikoma/16.png",
