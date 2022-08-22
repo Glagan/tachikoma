@@ -15,6 +15,7 @@
 	): OptionDescription {
 		return list[name as MutableOption]!;
 	}
+
 	function optionWithType(name: string): MutableOption {
 		return name as MutableOption;
 	}

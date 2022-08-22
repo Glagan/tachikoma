@@ -9,7 +9,7 @@
 	} else if (size == 2) {
 		titleTextSize = "title level-2 text-2xl border-t bg-tachikoma-800";
 	} else if (size == 3) {
-		titleTextSize = "title level-3 text-xl";
+		titleTextSize = "title level-3 text-xl bg-tachikoma-700";
 	} else {
 		titleTextSize = "title level-4 text-lg";
 	}
@@ -17,7 +17,7 @@
 	export { classes as class };
 </script>
 
-<svelte:element this={titleTag} class={`p-4 border-b border-gray ${titleTextSize} ${classes}`}>
+<svelte:element this={titleTag} class={`p-4 border-b border-gray ${titleTextSize} ${classes}`} {...$$restProps}>
 	<slot />
 </svelte:element>
 

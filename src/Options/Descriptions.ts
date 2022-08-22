@@ -1,6 +1,3 @@
-import { debug } from "@Core/Logger";
-import SitesOptions from "@Site/options";
-
 type SimpleOptionType = "color" | "colorList" | "string";
 type ToggleOptionType = "toggle";
 type NumberOptionType = "number";

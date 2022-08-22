@@ -11,7 +11,7 @@
 </script>
 
 <Title size="1">Services</Title>
-<Title size="2">
+<Title size="2" class="mt-2 !border-t">
 	Active <span>({activeServices.length})</span>
 </Title>
 <div>

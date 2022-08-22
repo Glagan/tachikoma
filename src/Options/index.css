@@ -36,20 +36,33 @@ body {
 }
 
 .sub-option > .title::before {
-	@apply absolute top-0 bottom-0 left-0;
+	@apply absolute top-0 bottom-0 left-0  bg-gradient-to-t from-white to-transparent;
 	content: "";
 	width: 1px;
-	background: linear-gradient(to top, rgba(255, 255, 255, 1) 25%, rgba(255, 255, 255, 0) 75%);
 }
 
-.level-1 + .level-2 {
-	@apply border-t-0;
+.sub-option > .level-4 {
+	@apply bg-gradient-to-t from-tachikoma-600 to-transparent;
 }
 
+:not(.sub-option) > .level-4 {
+	@apply bg-tachikoma-600;
+}
+
+.level-1 + .level-2,
 .level-1 + div > .level-2:first-child {
-	@apply border-t-0;
+	@apply !border-t-0;
 }
 
-:not(.level-1) + .level-2 {
+:not(.sub-option) > :not(.level-2) + .level-3,
+:not(.sub-option) > :not(.level-3) + .level-4 {
+	@apply border-t;
+}
+
+:not(.level-1) + .level-2,
+:not(.level-2) + .level-3,
+:not(.level-3) + .level-4,
+.sub-option > .level-3:first-child,
+.sub-option > .level-4:first-child {
 	@apply mt-2;
 }
