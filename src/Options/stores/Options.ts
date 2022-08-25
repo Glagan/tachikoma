@@ -1,5 +1,6 @@
 import { Options } from "@Core/Options";
 import { writable } from "svelte/store";
+import { toasts } from "./Toasts";
 
 export const loading = writable(true);
 export const optionsStore = (() => {
@@ -66,6 +67,7 @@ export const optionsStore = (() => {
 			if (!Options.loaded) {
 				return;
 			}
+			toasts.push({ type: "success", message: "Options saved" });
 			return Options.save();
 		},
 	};

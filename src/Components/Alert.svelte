@@ -24,13 +24,13 @@
 </script>
 
 <div class={`alert ${type} ${className}`} role="alert">
-	<i class={`w-6 h-6 mr-2 fill-current text-xl ${icon}`} />
+	<i class={`w-6 h-6 ml-3 mr-3 fill-current text-base ${icon}`} />
 	<span><slot /></span>
 </div>
 
 <style lang="postcss">
 	.alert {
-		@apply rounded-lg py-5 px-6 mb-3 text-base block border;
+		@apply rounded-lg px-6 pl-0 py-3 mb-3 text-base block border;
 	}
 
 	.alert.loading {

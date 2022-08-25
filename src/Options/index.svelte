@@ -2,6 +2,8 @@
 	import Services from "./lib/Services.svelte";
 	import Options from "./lib/Options.svelte";
 	import { loading, optionsStore } from "./stores/Options";
+	import { toasts } from "./stores/Toasts";
+	import Toast from "./lib/Toast.svelte";
 
 	optionsStore.load();
 </script>
@@ -18,4 +20,10 @@
 		</div>
 	{/if}
 	<div class="pt-4" />
+
+	<div class="absolute bottom-1 left-1/2 -translate-x-1/2">
+		{#each $toasts as toast (toast.id)}
+			<Toast {toast} />
+		{/each}
+	</div>
 </main>
