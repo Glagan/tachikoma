@@ -189,24 +189,26 @@ export default class WebExtensionPlugin {
 							if (entry.mode == "script") {
 								reference[key] = scripts[0];
 							} else if (entry.mode == "script_list") {
-								reference[key].push(...scripts);
+								reference[key].push(...scripts.map((path) => path.replaceAll("\\", "/")));
 							} else {
 								if (!reference[key].js) {
 									reference[key].js = [];
 								}
-								reference[key].js.push(...scripts);
+								reference[key].js.push(...scripts.map((path) => path.replaceAll("\\", "/")));
 								if (styles.length > 0) {
 									if (!reference[key].css) {
 										reference[key].css = [];
 									}
-									reference[key].css.push(...styles);
+									reference[key].css.push(...styles.map((path) => path.replaceAll("\\", "/")));
 								}
 							}
 						}
 						// Add other assets (most likely fonts) to web_accessible_resources
 						if (this.manifest.web_accessible_resources && otherAssets.length > 0) {
 							// Remove timestamp from file
-							const cleanAssets = otherAssets.map((file) => file.split("?")[0]);
+							const cleanAssets = otherAssets
+								.map((file) => file.split("?")[0])
+								.map((path) => path.replaceAll("\\", "/"));
 							if (this.manifest.manifest_version == 2) {
 								(this.manifest.web_accessible_resources as string[]).push(...cleanAssets);
 							} else {

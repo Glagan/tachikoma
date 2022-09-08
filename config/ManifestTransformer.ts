@@ -1,4 +1,4 @@
-import fs from "fs";
+import { readdirSync, readFileSync } from "fs";
 import { dirname, join, resolve } from "path";
 
 /**
@@ -62,7 +62,7 @@ const vendors = /^(firefox|chrome|edge):(.+)/;
 function readSourceManifest(path: string): Manifest {
 	let manifest: Manifest;
 	try {
-		const manifestBuffer = fs.readFileSync(path);
+		const manifestBuffer = readFileSync(path);
 		manifest = JSON.parse(manifestBuffer.toString()) as Manifest;
 	} catch (error) {
 		throw new Error(`Could not parse manifest.json: ${error}`);
@@ -142,7 +142,7 @@ function buildManifest(manifestPath: string, manifest: Manifest, vendor: string)
 		let subManifests: SubManifest[] = [];
 		const rootDir = dirname(manifestPath);
 		const collectManifests = (path) => {
-			const files = fs.readdirSync(path, { withFileTypes: true });
+			const files = readdirSync(path, { withFileTypes: true });
 			for (const file of files) {
 				if (file.isDirectory() && file.name !== "node_modules") {
 					collectManifests(`${path}/${file.name}`);
@@ -151,7 +151,7 @@ function buildManifest(manifestPath: string, manifest: Manifest, vendor: string)
 					const subManifest = {
 						namespace: path.split("/").pop(),
 						manifestPath: filePath,
-						content: JSON.parse(fs.readFileSync(filePath).toString()),
+						content: JSON.parse(readFileSync(filePath).toString()),
 					};
 					// If there is a script to build, it should be marked with a
 					// -- `content_scripts` key to know *where* to use the script
@@ -176,7 +176,7 @@ function buildManifest(manifestPath: string, manifest: Manifest, vendor: string)
 		// * Merge them with the main manifest
 		// Keys can still be prefixed with a browser vendor
 		// -- so we need to match the suffix of the object key
-		let mergeSubManifestContent = (content, keySuffix) => {
+		let mergeSubManifestContent = (content, keySuffix: string) => {
 			const matchingKeys = Object.keys(content).filter((key) => key.match(new RegExp(`:?${keySuffix}$`)));
 			for (const matchingKey of matchingKeys) {
 				if (!manifest[matchingKey]) {
