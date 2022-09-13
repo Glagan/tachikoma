@@ -12,13 +12,17 @@ type ReaderProgress = {
 
 function readingState(container: HTMLElement | null | undefined): ReaderProgress | undefined {
 	if (container) {
-		const activePages = container.querySelectorAll<HTMLElement>(".active");
-		let currentPage = 1;
-		for (const activePage of activePages) {
-			const page = parseInt(activePage.textContent!);
-			if (page > currentPage) currentPage = page;
+		let currentPage = container.querySelectorAll(".read").length + 1;
+		const progress = { current: currentPage, max: 0 };
+		let currentExpectedLastPage: Element | null = container.lastElementChild!;
+		while (currentExpectedLastPage) {
+			const lastPageProgress = parseInt(currentExpectedLastPage.textContent!);
+			if (!isNaN(lastPageProgress)) {
+				progress.max = lastPageProgress;
+				break;
+			}
+			currentExpectedLastPage = currentExpectedLastPage.previousElementSibling;
 		}
-		const progress = { current: currentPage, max: parseInt(container.lastElementChild!.textContent!) };
 		return progress;
 	}
 	return undefined;

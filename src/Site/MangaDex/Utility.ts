@@ -17,14 +17,14 @@ export function IDFromLink(link: HTMLAnchorElement | string, mode: "title" | "ch
 }
 
 /**
- * All possible formats: `Chapter\s+\d+(.\d+)?(\s+.+)?` | `Oneshot`
+ * All possible formats: `(Chapter|Episode)\s+\d+(.\d+)?(\s+.+)?` | `Oneshot`
  * @param raw
  */
 export function chapterFromString(raw: string): string {
 	if (raw.toLocaleLowerCase() == "oneshot") {
 		return "oneshot";
 	}
-	const regres = /^Chapter\s+(\d+(?:\.\d+)?)/i.exec(raw);
+	const regres = /^(chapter|episode)\s+(\d+(?:\.\d+)?)/i.exec(raw);
 	if (regres == null) return "";
 	return regres[1];
 }
@@ -56,7 +56,7 @@ export function fullChapterFromString(raw: string): Progress {
 			oneshot: true,
 		};
 	}
-	const regres = /(?:Vol(?:ume|\.)\s+(\d+),\s+)?Ch(?:apter|\.)\s+(\d+(?:\.\d+)?)/i.exec(raw);
+	const regres = /(?:Vol(?:ume|\.)\s+(\d+),\s+)?(?:Ch(?:apter|\.)|Ep(?:isode|\.))\s+(\d+(?:\.\d+)?)/i.exec(raw);
 	if (regres == null) return { chapter: 0 };
 	return {
 		chapter: parseFloat(regres[2]) || 0,
