@@ -1,11 +1,12 @@
-import FloatingOverlay from "./index.svelte";
 import "light-icons/dist/light-icon.css";
-import "../Core/tailwind.css";
+import FloatingOverlay from "./index.svelte";
 import type Title from "@Core/Title";
+import { file } from "@Core/Utility";
+import "../Core/tailwind.css";
 
 export const icons = {
-	loading: "https://tachikoma.app/loading_64.png",
-	inactive: "https://tachikoma.app/sleepy_64.png",
+	loading: file("/static/loading_64.png"),
+	inactive: file("/static/sleepy_64.png"),
 };
 
 export default class Overlay {
