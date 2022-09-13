@@ -202,10 +202,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@glagan/zap@npm:^0.3.2":
-  version: 0.3.2
-  resolution: "@glagan/zap@npm:0.3.2"
-  checksum: 7da2d79bee2a1551e1cf13e30962dd8bf16ab80a147f4d28549207be1f4ab496784bb4cbf7911d13d0c61ce506240ebb8d3671983cf45cb101bb67c4911ee4fe
+"@glagan/zap@npm:^0.3.3":
+  version: 0.3.3
+  resolution: "@glagan/zap@npm:0.3.3"
+  checksum: 04a1d9b10a6964d9dabac3cd595d6d1eebe25c013577304da192f586c2c990b58874d1d4c36d9537d3287bf57f0e24f7b0f05efa50db9bb7c6628fbb63ec96eb
   languageName: node
   linkType: hard
 
@@ -4677,7 +4677,7 @@ __metadata:
   resolution: "tachikoma@workspace:."
   dependencies:
     "@fullhuman/postcss-purgecss": ^4.1.3
-    "@glagan/zap": ^0.3.2
+    "@glagan/zap": ^0.3.3
     "@tsconfig/svelte": ^3.0.0
     "@types/luxon": ^2.3.2
     "@types/webextension-polyfill": ^0.9.0
