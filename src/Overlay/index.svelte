@@ -9,24 +9,35 @@
 	import Badge, { BadgeType } from "@Components/Badge.svelte";
 	import { file } from "@Core/Utility";
 	import { Lake } from "@Core/Lake";
+	import { Options } from "@Core/Options";
 
 	export let loading: boolean = false;
 	export let title: Title | undefined = undefined;
 	export let cover: string | undefined = undefined;
-	let hovered = false;
+	let opened = false;
 
 	let hoverTimeout: ReturnType<typeof setTimeout>;
 	function onMouseEnter() {
-		clearTimeout(hoverTimeout);
-		if (title) {
-			hovered = true;
+		if (!Options.values.overlay.openOnClick) {
+			clearTimeout(hoverTimeout);
+			if (title) {
+				opened = true;
+			}
 		}
 	}
 
 	function onMouseLeave() {
-		hoverTimeout = setTimeout(() => {
-			hovered = false;
-		}, 250);
+		if (!Options.values.overlay.openOnClick) {
+			hoverTimeout = setTimeout(() => {
+				opened = false;
+			}, 250);
+		}
+	}
+
+	function toggleOverlay() {
+		if (Options.values.overlay.openOnClick) {
+			opened = !opened;
+		}
 	}
 
 	const key = Symbol();
@@ -40,7 +51,7 @@
 </script>
 
 <div id="tkma" on:mouseenter={onMouseEnter} on:mouseleave={onMouseLeave}>
-	{#if title && hovered}
+	{#if title && opened}
 		<div class="overlay-wrapper" in:send={{ key }} out:receive={{ key }}>
 			{#if loading}
 				<div class="loader" in:fade />
@@ -49,10 +60,7 @@
 				<div class="absolute top-0 left-[4px] right-0 -translate-y-[28px]">
 					{#each activeServices as serviceKey}
 						{@const service = Lake.map[serviceKey]}
-						<div
-							class="inline-block rounded-full border border-tachikoma-50 bg-tachikoma-600 mr-2 px-1"
-							title={service.name}
-						>
+						<div class="service-quick-view" title={service.name}>
 							<img
 								class="inline-block"
 								src={file(`/static/icons/${serviceKey}.png`)}
@@ -62,7 +70,7 @@
 					{/each}
 				</div>
 			{/if}
-			<div class="overlay title">
+			<div class="overlay title" on:click={toggleOverlay}>
 				{#if cover}
 					<img
 						src={cover}
@@ -112,11 +120,11 @@
 			</div>
 		</div>
 	{:else}
-		<div class="overlay-wrapper" in:send={{ key }} out:receive={{ key }}>
+		<div class="overlay-wrapper cursor-pointer" in:send={{ key }} out:receive={{ key }}>
 			{#if loading}
 				<div class="loader" in:fade />
 			{/if}
-			<div class="overlay opener">
+			<div class="overlay opener" on:click={toggleOverlay}>
 				<img src={title ? icons.loading : icons.inactive} alt="tachikoma" />
 			</div>
 		</div>
@@ -152,5 +160,8 @@
 	}
 	.opener {
 		@apply border border-tachikoma-50 bg-tachikoma-600 text-tachikoma-100;
+	}
+	.service-quick-view {
+		@apply inline-block rounded-full border border-tachikoma-50 bg-tachikoma-600 mr-2 px-1;
 	}
 </style>

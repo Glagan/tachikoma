@@ -194,6 +194,16 @@ const defaultOptionsList: LeafOptionList = {
 			},
 		},
 	},
+	Overlay: {
+		icon: "light-icon-stack",
+		list: {
+			"overlay.openOnClick": {
+				name: "Open Overlay on click",
+				description: "Open the Overlay by clicking on it instead of hover.",
+				type: "toggle",
+			},
+		},
+	},
 };
 
 export const descriptions: CategorizedOptions = {};

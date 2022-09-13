@@ -9,6 +9,7 @@ export namespace Options {
 		// Options that can override by Site options
 		highlight: true,
 		colors: {
+			enabled: true,
 			highlights: ["rgba(82, 190, 90, 0.6)", "rgba(107, 177, 95, 0.6)", "rgba(55, 168, 61, 0.6)"],
 			nextChapter: "rgba(104, 115, 251, 0.4)",
 			higherChapter: "",
@@ -51,9 +52,12 @@ export namespace Options {
 		// Global
 		// TODO [Feature] Add mochi to find Services links
 		// useMochi: false,
+		overlay: {
+			openOnClick: false,
+		},
 		version: parseFloat(runtime.getManifest().version),
 		subVersion: parseInt(/\.(\d+)$/.exec(runtime.getManifest().version)![1]),
-	} as unknown as OptionList; // TODO
+	};
 
 	export let values: OptionList = JSON.parse(JSON.stringify(defaults)); // Avoid references
 

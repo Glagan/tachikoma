@@ -1,8 +1,7 @@
 <script lang="ts">
-	import Alert from "@Components/Alert.svelte";
 	import Title from "./Title.svelte";
 	import { descriptions } from "../Descriptions";
-	import type { OptionDescription, ToggleOptionDescription } from "../Descriptions";
+	import type { OptionDescription } from "../Descriptions";
 	import OptionIcon from "./OptionIcon.svelte";
 	import Option from "./Options/Option.svelte";
 

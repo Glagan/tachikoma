@@ -1,6 +1,6 @@
 import { debug, info } from "@Core/Logger";
 import Tachikoma from "@Core/Tachikoma";
-import Title, { Status } from "@Core/Title";
+import Title from "@Core/Title";
 import MangaDex from "@Service/MangaDex";
 import MangaDexAPI from "../API";
 import { convertServices, getCover, IDFromLink, waitForSelector } from "../Utility";

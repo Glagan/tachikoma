@@ -36,6 +36,11 @@ interface Reading {
 	saveOnLastPage: boolean;
 }
 
+// Overlay options
+interface Overlay {
+	openOnClick: boolean;
+}
+
 type GlobalOptionlist = {
 	// Options that can override by Site options
 	highlight: boolean;
@@ -52,6 +57,7 @@ type GlobalOptionlist = {
 	// checkOnStartup: boolean;
 	// checkOnStartupMainOnly: boolean;
 	// checkOnStartupCooldown: number;
+	overlay: Overlay;
 	// Global
 	// useMochi: boolean;
 	version: number;
