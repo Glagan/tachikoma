@@ -1,10 +1,10 @@
 <script lang="ts">
+	import { zapOptions, ZapContainer } from "@glagan/zap";
 	import Services from "./lib/Services.svelte";
 	import Options from "./lib/Options.svelte";
 	import { loading, optionsStore } from "./stores/Options";
-	import { toasts } from "./stores/Toasts";
-	import Toast from "./lib/Toast.svelte";
 
+	zapOptions.setDefault({ position: "bottom-center" });
 	optionsStore.load();
 </script>
 
@@ -21,9 +21,5 @@
 	{/if}
 	<div class="pt-4" />
 
-	<div class="absolute bottom-1 left-1/2 -translate-x-1/2">
-		{#each $toasts as toast (toast.id)}
-			<Toast {toast} />
-		{/each}
-	</div>
+	<ZapContainer />
 </main>
