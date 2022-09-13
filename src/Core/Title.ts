@@ -20,6 +20,7 @@ export enum Status {
 	REREADING,
 	WONT_READ,
 }
+
 export function statusToString(status: Status): string {
 	switch (status) {
 		case Status.NONE:
@@ -38,6 +39,27 @@ export function statusToString(status: Status): string {
 			return "Re-reading";
 		case Status.WONT_READ:
 			return "Won't read";
+	}
+}
+
+export function statusToColor(status: Status): string {
+	switch (status) {
+		case Status.NONE:
+			return "loading";
+		case Status.READING:
+			return "info";
+		case Status.COMPLETED:
+			return "success";
+		case Status.PAUSED:
+			return "warning";
+		case Status.PLAN_TO_READ:
+			return "loading";
+		case Status.DROPPED:
+			return "error";
+		case Status.REREADING:
+			return "info";
+		case Status.WONT_READ:
+			return "error";
 	}
 }
 

@@ -1,18 +1,19 @@
 <script lang="ts">
 	import { fade, crossfade } from "svelte/transition";
 	import { quintOut } from "svelte/easing";
+	import { ZapContainer } from "@glagan/zap";
 	import type Title from "@Core/Title";
 	import { icons } from "@Overlay";
 	import Button from "@Components/Button.svelte";
-	import { Status, statusToString } from "@Core/Title";
-	import Badge from "@Components/Badge.svelte";
+	import { statusToColor, statusToString } from "@Core/Title";
+	import Badge, { BadgeType } from "@Components/Badge.svelte";
 
 	export let loading: boolean = false;
 	export let title: Title | undefined = undefined;
 	export let cover: string | undefined = undefined;
 	let hovered = false;
 
-	let hoverTimeout = 0;
+	let hoverTimeout: ReturnType<typeof setTimeout>;
 	function onMouseEnter() {
 		clearTimeout(hoverTimeout);
 		if (title) {
@@ -21,7 +22,6 @@
 	}
 
 	function onMouseLeave() {
-		/// @ts-expect-error setTimeout type is for the browser *not* NodeJS
 		hoverTimeout = setTimeout(() => {
 			hovered = false;
 		}, 100);
@@ -32,6 +32,8 @@
 		duration: 250,
 		easing: quintOut,
 	});
+
+	$: badgeType = title ? (statusToColor(title.status) as BadgeType) : "loading";
 </script>
 
 <div id="tkma" on:mouseenter={onMouseEnter} on:mouseleave={onMouseLeave}>
@@ -47,20 +49,21 @@
 						alt={`${title.name} cover`}
 						height="150"
 						width="112"
+						class="border-r border-tachikoma-50"
 						style="max-height: 150px;max-width: 112px;"
 					/>
 				{/if}
 				<div class="p-1 flex-grow flex-shrink overflow-hidden">
-					<div class="truncate overflow-hidden" title={title.name}>{title.name}</div>
-					<div class="text-center"><Badge type="info">{statusToString(title.status)}</Badge></div>
+					<div class="truncate overflow-hidden font-bold" title={title.name}>{title.name}</div>
+					<div class="text-center my-1">
+						<Badge type={badgeType}>{statusToString(title.status)}</Badge>
+					</div>
 					<div>
-						<p class="flex items-center">
-							{#if title.chapter}
+						{#if title.chapter}
+							<p class="flex items-center">
 								<i class="light-icon-bookmark mr-2" /> Chapter {title.chapter}
-							{:else}
-								No chapter
-							{/if}
-						</p>
+							</p>
+						{/if}
 						{#if title.volume}
 							<p class="flex items-center">
 								<i class="light-icon-notebook mr-2" /> Volume {title.volume}
@@ -68,12 +71,12 @@
 						{/if}
 						{#if title.startDate}
 							<p class="flex items-center">
-								<i class="light-icon-calendar-plus mr-2" /> Start Date {title.startDate.toLocaleString()}
+								<i class="light-icon-calendar-plus mr-2" /> Started {title.startDate.toLocaleString()}
 							</p>
 						{/if}
 						{#if title.endDate}
 							<p class="flex items-center">
-								<i class="light-icon-calendar-event mr-2" /> End Date {title.endDate.toLocaleString()}
+								<i class="light-icon-calendar-event mr-2" /> Completed {title.endDate.toLocaleString()}
 							</p>
 						{/if}
 					</div>
@@ -99,6 +102,7 @@
 		</div>
 	{/if}
 </div>
+<ZapContainer />
 
 <style lang="postcss">
 	@keyframes move-background {

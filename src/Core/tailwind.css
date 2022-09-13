@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.zap-notification {
+	min-width: 15rem !important;
+}
+
+.zap-content > .zap-text img {
+	display: inline-block;
+}

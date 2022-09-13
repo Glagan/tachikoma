@@ -1,18 +1,24 @@
 import { Lake } from "./Lake";
 import { debug } from "./Logger";
 import { Options } from "./Options";
-import { ExternalStatus, SaveResult, SaveStatus, TitleFetchFailure } from "./Service";
+import { DeleteResult, ExternalStatus, SaveResult, SaveStatus, TitleFetchFailure } from "./Service";
 import Title, { Status } from "./Title";
 
-type TitleUpdateResult = {
-	service: SaveResult;
-	title: Title;
-	// diff: any; // TODO
-};
+type TitleUpdateResult =
+	| {
+			service: SaveResult;
+			title: Title | TitleFetchFailure;
+			// diff: any; // TODO
+	  }
+	| {
+			service: DeleteResult;
+			title: null;
+	  };
 
 export type SyncReport = {
 	perServices: { [key: string]: TitleUpdateResult };
-	snapshot: Snapshots;
+	localSnapshot?: TitleStorageInterface;
+	snapshots: Snapshots;
 };
 
 export type Snapshots = { [key: string]: TitleStorageInterface | null };
@@ -89,34 +95,34 @@ export default class Updater {
 	 * Save snapshots of the state for each Services and returns them.
 	 * A Service with no snapshot means it was not in the list before.
 	 */
-	async export(): Promise<Snapshots> {
-		const snapshots: Snapshots = {};
-		const titleServices = Object.keys(this.title.services);
-		const services = Options.services(true).filter((service) => titleServices.indexOf(service) >= 0);
-		for (const serviceKey of services) {
-			if (this.state[serviceKey] instanceof Title) {
-				const externalTitle = this.state[serviceKey] as Title;
-				snapshots[serviceKey] = Title.serialize(externalTitle);
-				// The externalTitle is still always updated to avoid and ignore
-				// -- unnecessary difference cheks in other functions
-				externalTitle.update(this.title);
-			} else if (this.state[serviceKey].status === ExternalStatus.NOT_IN_LIST) {
-				this.state[serviceKey] = this.title.clone();
-			}
-		}
-		return snapshots;
-	}
+	// async export(): Promise<Snapshots> {
+	// 	const snapshots: Snapshots = {};
+	// 	const titleServices = Object.keys(this.title.services);
+	// 	const services = Options.services(true).filter((service) => titleServices.indexOf(service) >= 0);
+	// 	for (const serviceKey of services) {
+	// 		if (this.state[serviceKey] instanceof Title) {
+	// 			const externalTitle = this.state[serviceKey] as Title;
+	// 			snapshots[serviceKey] = Title.serialize(externalTitle);
+	// 			// The externalTitle is still always updated to avoid and ignore
+	// 			// -- unnecessary difference cheks in other functions
+	// 			externalTitle.update(this.title);
+	// 		} else if (this.state[serviceKey].status === ExternalStatus.NOT_IN_LIST) {
+	// 			this.state[serviceKey] = this.title.clone();
+	// 		}
+	// 	}
+	// 	return snapshots;
+	// }
 
 	/**
-	 * Call Update.export and save snapshots, then call the Service.save function
-	 * on each Service that are can be updated (No account or service error).
 	 * Update all external services to sync to the current state of the Title
+	 * Save snapshots, then call the Service.save function
+	 * on each Service that are can be updated (No account or service error).
 	 * @returns Sync report
 	 */
 	async sync(): Promise<SyncReport> {
 		const report: SyncReport = {
 			perServices: {},
-			snapshot: {},
+			snapshots: {},
 		};
 		if (this.title.status === Status.NONE) {
 			return report;
@@ -140,10 +146,10 @@ export default class Updater {
 				// Check if the title needs to be updated on the service
 				if (externalTitle instanceof Title) {
 					if (service.needUpdate(externalTitle, this.title)) {
-						report.snapshot[serviceKey] = Title.serialize(externalTitle);
+						report.snapshots[serviceKey] = Title.serialize(externalTitle);
 						updates.push(
 							service.save(id, externalTitle).then((result) => {
-								report.perServices[serviceKey] = { service: result, title: externalTitle as Title };
+								report.perServices[serviceKey] = { service: result, title: externalTitle };
 								return result;
 							})
 						);
@@ -162,12 +168,12 @@ export default class Updater {
 						);
 					}
 					// The externalTitle is still always updated to avoid and ignore
-					// -- unnecessary difference cheks in other functions
+					// -- unnecessary difference checks in other functions
 					externalTitle.update(this.title);
 				} else {
 					debug("Created missing title on", serviceKey);
 					// `null` snapshot mean it didn't exist previously
-					report.snapshot[serviceKey] = null;
+					report.snapshots[serviceKey] = null;
 					const externalTitle = this.title.clone();
 					this.state[serviceKey] = externalTitle;
 					updates.push(
@@ -183,5 +189,44 @@ export default class Updater {
 		return report;
 	}
 
-	// TODO [Feature] async restore(snapshots)
+	/**
+	 * Restore each snapshots from a Snapshots set and Update all services that were restored
+	 * @returns Sync report
+	 */
+	async restore(snapshots: Snapshots, localSnapshot?: TitleStorageInterface): Promise<SyncReport> {
+		const report: SyncReport = {
+			perServices: {},
+			snapshots: {},
+		};
+		if (localSnapshot) {
+			this.title.restore(localSnapshot);
+		}
+		const snapshotServices = Object.keys(snapshots);
+		const updates: Promise<SaveResult | DeleteResult>[] = [];
+		for (const serviceKey of snapshotServices) {
+			const id = this.title.services[serviceKey];
+			if (id) {
+				const service = Lake.map[serviceKey];
+				const snapshot = snapshots[serviceKey];
+				if (snapshot !== null) {
+					const externalTitle = Title.fromStorage(snapshot);
+					updates.push(
+						service.save(id, externalTitle).then((result) => {
+							report.perServices[serviceKey] = { service: result, title: externalTitle };
+							return result;
+						})
+					);
+				} else {
+					updates.push(
+						service.delete(id).then((result) => {
+							report.perServices[serviceKey] = { service: result, title: null };
+							return result;
+						})
+					);
+				}
+			}
+		}
+		await Promise.all([await this.title.save(), Promise.all(updates)]);
+		return report;
+	}
 }

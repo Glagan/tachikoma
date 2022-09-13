@@ -62,7 +62,7 @@ export type TitleFetchFailure = {
 };
 
 export enum SaveStatus {
-	ID_ERROR, // Invalid given ID format
+	ID_ERROR = 0x00, // Invalid given ID format
 	ACCOUNT_ERROR, // Any Token, Cookies or expired tokens error
 	SERVICE_ERROR, // 500+
 	TACHIKOMA_ERROR, // 400-499
@@ -73,13 +73,25 @@ export enum SaveStatus {
 	LOADING,
 }
 
+export const saveStatusDescription: Record<SaveStatus, string> = {
+	[SaveStatus.ID_ERROR]: "Invalid Service ID", // Invalid given ID format
+	[SaveStatus.ACCOUNT_ERROR]: "Service connection expired", // Any Token, Cookies or expired tokens error
+	[SaveStatus.SERVICE_ERROR]: "Service server error", // 500+
+	[SaveStatus.TACHIKOMA_ERROR]: "Tachikoma Error", // 400-499
+	[SaveStatus.SUCCESS]: "Success",
+	[SaveStatus.ALREADY_SYNCED]: "Synced",
+	[SaveStatus.DELETED]: "Deleted", // Status.NONE
+	[SaveStatus.CREATED]: "Created", // 201 -- or create
+	[SaveStatus.LOADING]: "Loading",
+};
+
 export type SaveResult = {
 	status: SaveStatus;
 	message?: string;
 };
 
 export enum DeleteStatus {
-	ID_ERROR, // Invalid given ID format
+	ID_ERROR = 0xf0, // Invalid given ID format
 	ACCOUNT_ERROR, // Any Token, Cookies or expired tokens error
 	SERVICE_ERROR, // 500+
 	TACHIKOMA_ERROR, // 400-499
@@ -87,6 +99,16 @@ export enum DeleteStatus {
 	SUCCESS,
 	LOADING,
 }
+
+export const deleteStatusDescription: Record<DeleteStatus, string> = {
+	[DeleteStatus.ID_ERROR]: "Invalid Service ID", // Invalid given ID format
+	[DeleteStatus.ACCOUNT_ERROR]: "Service connection expired", // Any Token, Cookies or expired tokens error
+	[DeleteStatus.SERVICE_ERROR]: "Service server error", // 500+
+	[DeleteStatus.NOT_IN_LIST]: "Not in list", // 404 ?
+	[DeleteStatus.TACHIKOMA_ERROR]: "Tachikoma Error", // 400-499
+	[DeleteStatus.SUCCESS]: "Success",
+	[DeleteStatus.LOADING]: "Loading",
+};
 
 export type DeleteResult = {
 	status: DeleteStatus;
