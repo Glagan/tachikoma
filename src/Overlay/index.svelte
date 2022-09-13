@@ -7,6 +7,8 @@
 	import Button from "@Components/Button.svelte";
 	import { statusToColor, statusToString } from "@Core/Title";
 	import Badge, { BadgeType } from "@Components/Badge.svelte";
+	import { file } from "@Core/Utility";
+	import { Lake } from "@Core/Lake";
 
 	export let loading: boolean = false;
 	export let title: Title | undefined = undefined;
@@ -24,7 +26,7 @@
 	function onMouseLeave() {
 		hoverTimeout = setTimeout(() => {
 			hovered = false;
-		}, 100);
+		}, 250);
 	}
 
 	const key = Symbol();
@@ -34,6 +36,7 @@
 	});
 
 	$: badgeType = title ? (statusToColor(title.status) as BadgeType) : "loading";
+	$: activeServices = title ? Object.keys(title.services) : undefined;
 </script>
 
 <div id="tkma" on:mouseenter={onMouseEnter} on:mouseleave={onMouseLeave}>
@@ -41,6 +44,23 @@
 		<div class="overlay-wrapper" in:send={{ key }} out:receive={{ key }}>
 			{#if loading}
 				<div class="loader" in:fade />
+			{/if}
+			{#if activeServices}
+				<div class="absolute top-0 left-[4px] right-0 -translate-y-[28px]">
+					{#each activeServices as serviceKey}
+						{@const service = Lake.map[serviceKey]}
+						<div
+							class="inline-block rounded-full border border-tachikoma-50 bg-tachikoma-600 mr-2 px-1"
+							title={service.name}
+						>
+							<img
+								class="inline-block"
+								src={file(`/static/icons/${serviceKey}.png`)}
+								alt={service.name}
+							/>
+						</div>
+					{/each}
+				</div>
 			{/if}
 			<div class="overlay title">
 				{#if cover}
@@ -111,11 +131,11 @@
 		}
 	}
 	.overlay-wrapper {
-		@apply fixed bottom-4 right-4 z-50 rounded-md overflow-hidden flex items-center justify-center;
+		@apply fixed bottom-4 right-4 z-50 rounded-md flex items-center justify-center;
 		padding: 2px;
 	}
 	.loader {
-		@apply w-full h-full absolute;
+		@apply w-full h-full absolute rounded-md;
 		background: rgb(255, 182, 28);
 		background: linear-gradient(90deg, rgba(255, 182, 28, 1) 0%, rgba(107, 139, 176, 1) 100%);
 		background-size: 300% 300%;
