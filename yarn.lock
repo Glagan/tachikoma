@@ -202,6 +202,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@glagan/zap@npm:^0.3.2":
+  version: 0.3.2
+  resolution: "@glagan/zap@npm:0.3.2"
+  checksum: 7da2d79bee2a1551e1cf13e30962dd8bf16ab80a147f4d28549207be1f4ab496784bb4cbf7911d13d0c61ce506240ebb8d3671983cf45cb101bb67c4911ee4fe
+  languageName: node
+  linkType: hard
+
 "@jridgewell/gen-mapping@npm:^0.3.0":
   version: 0.3.1
   resolution: "@jridgewell/gen-mapping@npm:0.3.1"
@@ -4670,6 +4677,7 @@ __metadata:
   resolution: "tachikoma@workspace:."
   dependencies:
     "@fullhuman/postcss-purgecss": ^4.1.3
+    "@glagan/zap": ^0.3.2
     "@tsconfig/svelte": ^3.0.0
     "@types/luxon": ^2.3.2
     "@types/webextension-polyfill": ^0.9.0

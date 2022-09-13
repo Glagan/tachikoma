@@ -13,6 +13,7 @@
 		"format": "prettier --write ."
 	},
 	"dependencies": {
+		"@glagan/zap": "^0.3.2",
 		"light-icons": "^1.0.10",
 		"luxon": "^2.4.0",
 		"oauth-pkce": "^0.0.6",
