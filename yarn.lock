@@ -202,10 +202,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@glagan/zap@npm:^0.3.3":
-  version: 0.3.3
-  resolution: "@glagan/zap@npm:0.3.3"
-  checksum: 04a1d9b10a6964d9dabac3cd595d6d1eebe25c013577304da192f586c2c990b58874d1d4c36d9537d3287bf57f0e24f7b0f05efa50db9bb7c6628fbb63ec96eb
+"@glagan/minimark@npm:^0.1.4":
+  version: 0.1.4
+  resolution: "@glagan/minimark@npm:0.1.4"
+  checksum: 745782a307ddae8d1fc31192785413d15b05df366fabce8469631b83e1dd4816c24cc5e8a366722a7dc82ae547c90e8ade8a797eb9faad68fb1cbac8e2a44624
+  languageName: node
+  linkType: hard
+
+"@glagan/zap@npm:^0.4.2":
+  version: 0.4.2
+  resolution: "@glagan/zap@npm:0.4.2"
+  dependencies:
+    "@glagan/minimark": ^0.1.4
+  checksum: 3aceb9bbf90eea6d40ef9439433eeb3833cafa6cb0628269f71207a67c88a589601d98f99751e84d73dadab23e51e73ae92360cb35256d387454b34a95e6d438
   languageName: node
   linkType: hard
 
@@ -4677,7 +4686,7 @@ __metadata:
   resolution: "tachikoma@workspace:."
   dependencies:
     "@fullhuman/postcss-purgecss": ^4.1.3
-    "@glagan/zap": ^0.3.3
+    "@glagan/zap": ^0.4.2
     "@tsconfig/svelte": ^3.0.0
     "@types/luxon": ^2.3.2
     "@types/webextension-polyfill": ^0.9.0
