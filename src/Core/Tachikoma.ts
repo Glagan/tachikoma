@@ -1,6 +1,6 @@
 import { DateTime, Duration } from "luxon";
 import zap from "@glagan/zap";
-import type { Button } from "@glagan/zap/types";
+import type { Button, Notification } from "@glagan/zap/types";
 import Overlay from "@Overlay";
 import Updater, { Snapshots, SyncReport } from "./Updater";
 import Title from "./Title";
@@ -8,13 +8,16 @@ import { file } from "./Utility";
 import { Lake } from "./Lake";
 import { DeleteStatus, deleteStatusDescription, SaveStatus, saveStatusDescription } from "./Service";
 
+type UpdaterWithMetadata = { updater: Updater; cover?: string; time: DateTime };
+
 export class TachikomaClass {
-	updaters: { [key: number]: { updater: Updater; cover?: string; time: DateTime } } = {};
-	currentUpdater?: Updater;
+	updaters: { [key: number]: UpdaterWithMetadata } = {};
+	current?: UpdaterWithMetadata;
 	overlay: Overlay = new Overlay();
+	syncNotification: Notification | undefined;
 
 	clearTitle() {
-		this.currentUpdater = undefined;
+		this.current = undefined;
 		this.overlay.setTitle(undefined);
 		this.overlay.setCover(undefined);
 		this.overlay.setLoading(false);
@@ -30,38 +33,45 @@ export class TachikomaClass {
 			this.updaters[title.id] &&
 			this.updaters[title.id].time.diffNow("minutes") < Duration.fromDurationLike({ minutes: 5 })
 		) {
-			this.currentUpdater = this.updaters[title.id].updater;
+			this.current = this.updaters[title.id];
 			this.updaters[title.id].time = DateTime.now();
 			if (cover) this.updaters[title.id].cover = cover;
 		} else {
-			this.currentUpdater = new Updater(title);
-			this.updaters[title.id] = { updater: this.currentUpdater, cover, time: DateTime.now() };
+			this.current = { updater: new Updater(title), cover, time: DateTime.now() };
+			this.updaters[title.id] = this.current;
 		}
 		// Update Overlay
-		this.overlay.setTitle(this.currentUpdater.title);
+		this.overlay.setTitle(this.current.updater.title);
 		this.overlay.setCover(this.updaters[title.id].cover);
 		this.overlay.setLoading(false);
-		return this.currentUpdater;
+		return this.current.updater;
 	}
 
 	async import(): Promise<Snapshots> {
-		if (!this.currentUpdater) {
+		if (!this.current) {
 			throw new Error("Missing current Title in Tachikoma.import call");
 		}
 		this.overlay.setLoading(true);
-		let result = await this.currentUpdater.import();
+		const result = await this.current.updater.import();
 		this.overlay.setLoading(false);
 		return result;
 	}
 
-	protected async cancelUpdate(report: SyncReport, updater: Updater) {
+	protected async cancelUpdate(report: SyncReport, updater: UpdaterWithMetadata) {
 		this.overlay.setLoading(true);
-		let result = await updater.restore(report.snapshots, report.localSnapshot);
+		const result = await updater.updater.restore(report.snapshots, report.localSnapshot);
 		this.displaySyncReport(result, updater, false);
 		this.overlay.setLoading(false);
 	}
 
-	protected displaySyncReport(report: SyncReport, updater: Updater, cancellable = true) {
+	protected displaySyncReport(report: SyncReport, updater: UpdaterWithMetadata, cancellable = true) {
+		// Ignore empty reports and reports with every services already synced
+		if (
+			Object.keys(report.perServices).length === 0 ||
+			Object.values(report.perServices).every((report) => report.service.status === SaveStatus.ALREADY_SYNCED)
+		) {
+			return undefined;
+		}
 		const buttons: Button[] = [
 			{
 				type: "error",
@@ -81,8 +91,8 @@ export class TachikomaClass {
 				},
 			});
 		}
-		const title = updater.title;
-		let message = [`${title.volume ? `Volume ${title.volume}` : ""} Chapter ${updater.title.chapter}`];
+		const title = updater.updater.title;
+		const message = [`${title.volume ? `Volume ${title.volume}` : ""} Chapter ${updater.updater.title.chapter}`];
 		for (const serviceKey in report.perServices) {
 			const service = Lake.map[serviceKey];
 			const result = report.perServices[serviceKey];
@@ -94,34 +104,60 @@ export class TachikomaClass {
 				`![${service.name}|${file(`/static/icons/${serviceKey}.png`)}] **${service.name}** >*>${statusMessage}<`
 			);
 		}
-		zap.success({
+		return zap.success({
 			title: "Synced",
+			image: updater.cover ? updater.cover : undefined,
 			message: message.join("\n"),
 			buttons,
 		});
 	}
 
 	async setProgress(progress: Progress) {
-		if (!this.currentUpdater) {
+		if (!this.current) {
 			throw new Error("Missing current Title in Tachikoma.setProgress call");
 		}
 		this.overlay.setLoading(true);
-		const localSnapshot = Title.serialize(this.currentUpdater.title);
-		this.currentUpdater.title.setProgress(progress);
-		let result = await this.currentUpdater.sync();
+		if (this.syncNotification) {
+			this.syncNotification.destroy();
+			this.syncNotification = undefined;
+		}
+		const localSnapshot = Title.serialize(this.current.updater.title);
+		this.current.updater.title.setProgress(progress);
+		const result = await this.current.updater.export();
 		result.localSnapshot = localSnapshot;
-		this.displaySyncReport(result, this.currentUpdater, true);
+		this.displaySyncReport(result, this.current, true);
+		this.overlay.setLoading(false);
+		return result;
+	}
+
+	async export(): Promise<SyncReport> {
+		if (!this.current) {
+			throw new Error("Missing current Title in Tachikoma.export call");
+		}
+		this.overlay.setLoading(true);
+		if (this.syncNotification) {
+			this.syncNotification.destroy();
+			this.syncNotification = undefined;
+		}
+		const result = await this.current.updater.export();
+		this.syncNotification = this.displaySyncReport(result, this.current, true);
 		this.overlay.setLoading(false);
 		return result;
 	}
 
 	async sync(): Promise<SyncReport> {
-		if (!this.currentUpdater) {
+		if (!this.current) {
 			throw new Error("Missing current Title in Tachikoma.sync call");
 		}
+		if (this.syncNotification) {
+			this.syncNotification.destroy();
+			this.syncNotification = undefined;
+		}
+		const currentUpdater = this.current;
 		this.overlay.setLoading(true);
-		let result = await this.currentUpdater.sync();
-		this.displaySyncReport(result, this.currentUpdater, true);
+		await currentUpdater.updater.import();
+		const result = await currentUpdater.updater.export();
+		this.syncNotification = this.displaySyncReport(result, currentUpdater, true);
 		this.overlay.setLoading(false);
 		return result;
 	}

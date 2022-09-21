@@ -91,35 +91,12 @@ export default class Updater {
 	}
 
 	/**
-	 * Apply the local title state to all external services.
-	 * Save snapshots of the state for each Services and returns them.
-	 * A Service with no snapshot means it was not in the list before.
-	 */
-	// async export(): Promise<Snapshots> {
-	// 	const snapshots: Snapshots = {};
-	// 	const titleServices = Object.keys(this.title.services);
-	// 	const services = Options.services(true).filter((service) => titleServices.indexOf(service) >= 0);
-	// 	for (const serviceKey of services) {
-	// 		if (this.state[serviceKey] instanceof Title) {
-	// 			const externalTitle = this.state[serviceKey] as Title;
-	// 			snapshots[serviceKey] = Title.serialize(externalTitle);
-	// 			// The externalTitle is still always updated to avoid and ignore
-	// 			// -- unnecessary difference cheks in other functions
-	// 			externalTitle.update(this.title);
-	// 		} else if (this.state[serviceKey].status === ExternalStatus.NOT_IN_LIST) {
-	// 			this.state[serviceKey] = this.title.clone();
-	// 		}
-	// 	}
-	// 	return snapshots;
-	// }
-
-	/**
 	 * Update all external services to sync to the current state of the Title
 	 * Save snapshots, then call the Service.save function
 	 * on each Service that are can be updated (No account or service error).
 	 * @returns Sync report
 	 */
-	async sync(): Promise<SyncReport> {
+	async export(): Promise<SyncReport> {
 		const report: SyncReport = {
 			perServices: {},
 			snapshots: {},

@@ -102,17 +102,19 @@ export default async () => {
 	}
 	Tachikoma.setTitle(title, getCover(informations));
 	debug("found title", { title });
-	// * Initial merge sync for all services
+	// * Initial merge import for all services
+	// * No export is done here -- the next checkAndUpdate will sync (to avoid double sync + setProgress)
 	if (!initialized) {
 		const snapshots = await Tachikoma.import();
 		debug("mergeExternal snapshots", { snapshots });
-		const report = await Tachikoma.sync();
-		debug("sync report", { report });
 	}
 	// * Check chapter state
 	const chapter = chapterState();
 	if (!chapter) {
 		debug("no chapter state");
+		// If there is no chapter state, still export the title if needed after an import
+		const report = await Tachikoma.export();
+		debug("sync report", { report });
 		return;
 	}
 	debug("chapter state", chapter);

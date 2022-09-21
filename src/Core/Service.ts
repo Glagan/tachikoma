@@ -140,7 +140,11 @@ export default abstract class Service {
 	protected fieldsNeedUpdate(title: TitleInterface, other: TitleInterface, fields: ComparableFields[]): boolean {
 		for (const field of fields) {
 			if (field === "startDate" || field === "endDate") {
-				if (title[field]?.toMillis() !== other[field]?.toMillis()) {
+				// Ignore anything below a day in Dates
+				if (
+					title[field]?.set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toMillis() !==
+					other[field]?.set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toMillis()
+				) {
 					return true;
 				}
 			} else if (title[field] != other[field]) {

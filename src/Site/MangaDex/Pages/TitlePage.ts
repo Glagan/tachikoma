@@ -46,9 +46,7 @@ async function run() {
 	}
 	Tachikoma.setTitle(title, getCover(informations));
 	debug("found title", { title });
-	// * Initial merge sync for all services
-	const snapshots = await Tachikoma.import();
-	debug("mergeExternal snapshots", { snapshots });
+	// * Initial merge import and export for all services
 	const report = await Tachikoma.sync();
 	debug("sync report", { report });
 	// * Handle title page change
