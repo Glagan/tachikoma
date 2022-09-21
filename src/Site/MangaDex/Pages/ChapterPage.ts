@@ -91,7 +91,7 @@ export default async () => {
 	const title = await Title.getOrCreate(
 		MangaDex.key,
 		{ id: informations.id },
-		{ name: informations.attributes.title.en, services }
+		{ name: informations.attributes.title.en, thumbnail: getCover(informations), services }
 	);
 	if (!initialized) {
 		debug("title", title);
@@ -100,7 +100,7 @@ export default async () => {
 			await title.save();
 		}
 	}
-	Tachikoma.setTitle(title, getCover(informations));
+	Tachikoma.setTitle(title);
 	debug("found title", { title });
 	// * Initial merge import for all services
 	// * No export is done here -- the next checkAndUpdate will sync (to avoid double sync + setProgress)

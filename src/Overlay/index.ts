@@ -26,7 +26,7 @@ export default class Overlay {
 	}
 
 	setTitle(title?: Title) {
-		this.overlay.$set({ title });
+		this.overlay.$set({ title, cover: title?.thumbnail });
 	}
 
 	setCover(cover?: string) {

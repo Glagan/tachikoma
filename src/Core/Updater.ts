@@ -162,7 +162,7 @@ export default class Updater {
 				}
 			}
 		}
-		await Promise.all([await this.title.save(), Promise.all(updates)]);
+		await Promise.all([this.title.save(), Promise.all(updates)]);
 		return report;
 	}
 
@@ -203,7 +203,7 @@ export default class Updater {
 				}
 			}
 		}
-		await Promise.all([await this.title.save(), Promise.all(updates)]);
+		await Promise.all([this.title.save(), Promise.all(updates)]);
 		return report;
 	}
 }

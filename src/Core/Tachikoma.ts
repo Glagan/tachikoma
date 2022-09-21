@@ -8,22 +8,21 @@ import { file } from "./Utility";
 import { Lake } from "./Lake";
 import { DeleteStatus, deleteStatusDescription, SaveStatus, saveStatusDescription } from "./Service";
 
-type UpdaterWithMetadata = { updater: Updater; cover?: string; time: DateTime };
+type UpdaterWithMetadata = { updater: Updater; time: DateTime };
 
 export class TachikomaClass {
 	updaters: { [key: number]: UpdaterWithMetadata } = {};
-	current?: UpdaterWithMetadata;
+	current?: Updater;
 	overlay: Overlay = new Overlay();
 	syncNotification: Notification | undefined;
 
 	clearTitle() {
 		this.current = undefined;
 		this.overlay.setTitle(undefined);
-		this.overlay.setCover(undefined);
 		this.overlay.setLoading(false);
 	}
 
-	setTitle(title: Title, cover?: string): Updater {
+	setTitle(title: Title): Updater {
 		if (!title.id) {
 			throw new Error("Missing id for Title");
 		}
@@ -33,18 +32,16 @@ export class TachikomaClass {
 			this.updaters[title.id] &&
 			this.updaters[title.id].time.diffNow("minutes") < Duration.fromDurationLike({ minutes: 5 })
 		) {
-			this.current = this.updaters[title.id];
+			this.current = this.updaters[title.id].updater;
 			this.updaters[title.id].time = DateTime.now();
-			if (cover) this.updaters[title.id].cover = cover;
 		} else {
-			this.current = { updater: new Updater(title), cover, time: DateTime.now() };
-			this.updaters[title.id] = this.current;
+			this.current = new Updater(title);
+			this.updaters[title.id] = { updater: this.current, time: DateTime.now() };
 		}
 		// Update Overlay
-		this.overlay.setTitle(this.current.updater.title);
-		this.overlay.setCover(this.updaters[title.id].cover);
+		this.overlay.setTitle(this.current.title);
 		this.overlay.setLoading(false);
-		return this.current.updater;
+		return this.current;
 	}
 
 	async import(): Promise<Snapshots> {
@@ -52,19 +49,20 @@ export class TachikomaClass {
 			throw new Error("Missing current Title in Tachikoma.import call");
 		}
 		this.overlay.setLoading(true);
-		const result = await this.current.updater.import();
+		const result = await this.current.import();
 		this.overlay.setLoading(false);
 		return result;
 	}
 
-	protected async cancelUpdate(report: SyncReport, updater: UpdaterWithMetadata) {
+	protected async cancelUpdate(report: SyncReport, updater: Updater) {
 		this.overlay.setLoading(true);
-		const result = await updater.updater.restore(report.snapshots, report.localSnapshot);
+		const result = await updater.restore(report.snapshots, report.localSnapshot);
+		this.overlay.setTitle(updater.title);
 		this.displaySyncReport(result, updater, false);
 		this.overlay.setLoading(false);
 	}
 
-	protected displaySyncReport(report: SyncReport, updater: UpdaterWithMetadata, cancellable = true) {
+	protected displaySyncReport(report: SyncReport, updater: Updater, cancellable = true) {
 		// Ignore empty reports and reports with every services already synced
 		if (
 			Object.keys(report.perServices).length === 0 ||
@@ -91,8 +89,8 @@ export class TachikomaClass {
 				},
 			});
 		}
-		const title = updater.updater.title;
-		const message = [`${title.volume ? `Volume ${title.volume}` : ""} Chapter ${updater.updater.title.chapter}`];
+		const title = updater.title;
+		const message = [`${title.volume ? `Volume ${title.volume}` : ""} Chapter ${updater.title.chapter}`];
 		for (const serviceKey in report.perServices) {
 			const service = Lake.map[serviceKey];
 			const result = report.perServices[serviceKey];
@@ -106,7 +104,7 @@ export class TachikomaClass {
 		}
 		return zap.success({
 			title: "Synced",
-			image: updater.cover ? updater.cover : undefined,
+			image: title.thumbnail,
 			message: message.join("\n"),
 			buttons,
 		});
@@ -121,9 +119,9 @@ export class TachikomaClass {
 			this.syncNotification.destroy();
 			this.syncNotification = undefined;
 		}
-		const localSnapshot = Title.serialize(this.current.updater.title);
-		this.current.updater.title.setProgress(progress);
-		const result = await this.current.updater.export();
+		const localSnapshot = Title.serialize(this.current.title);
+		this.current.title.setProgress(progress);
+		const result = await this.current.export();
 		result.localSnapshot = localSnapshot;
 		this.displaySyncReport(result, this.current, true);
 		this.overlay.setLoading(false);
@@ -139,7 +137,7 @@ export class TachikomaClass {
 			this.syncNotification.destroy();
 			this.syncNotification = undefined;
 		}
-		const result = await this.current.updater.export();
+		const result = await this.current.export();
 		this.syncNotification = this.displaySyncReport(result, this.current, true);
 		this.overlay.setLoading(false);
 		return result;
@@ -155,8 +153,8 @@ export class TachikomaClass {
 		}
 		const currentUpdater = this.current;
 		this.overlay.setLoading(true);
-		await currentUpdater.updater.import();
-		const result = await currentUpdater.updater.export();
+		await currentUpdater.import();
+		const result = await currentUpdater.export();
 		this.syncNotification = this.displaySyncReport(result, currentUpdater, true);
 		this.overlay.setLoading(false);
 		return result;

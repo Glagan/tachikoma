@@ -68,6 +68,8 @@ export type TitleInterface = {
 	id?: number;
 	// Favorite name for the title
 	name?: string;
+	// Thumbnail URL for the title
+	thumbnail?: string;
 
 	// Last read chapter
 	chapter: number;
@@ -106,6 +108,7 @@ function serviceIdentifierToToken(id: TitleIdentifier): string {
 export default class Title implements TitleInterface {
 	public id?: number;
 	public name?: string;
+	public thumbnail?: string;
 
 	public chapter: number;
 	public volume?: number;
@@ -128,6 +131,7 @@ export default class Title implements TitleInterface {
 		if (title) {
 			this.id = title.id;
 			this.name = title.name;
+			this.thumbnail = title.thumbnail;
 
 			this.chapter = title.chapter;
 			this.volume = title.volume;
@@ -164,7 +168,8 @@ export default class Title implements TitleInterface {
 			(this.score === undefined && other.score !== undefined) ||
 			(this.startDate === undefined && other.startDate !== undefined) ||
 			(this.endDate === undefined && other.endDate !== undefined) ||
-			(this.name === undefined && other.name !== undefined)
+			(this.name === undefined && other.name !== undefined) ||
+			(this.thumbnail === undefined && other.thumbnail !== undefined)
 		);
 	}
 
@@ -183,7 +188,8 @@ export default class Title implements TitleInterface {
 			(this.score !== undefined && other.score !== undefined && !this.score.equal(other.score)) ||
 			this.startDate?.toMillis() !== other.startDate?.toMillis() ||
 			this.endDate?.toMillis() !== other.endDate?.toMillis() ||
-			this.name !== other.name
+			this.name !== other.name ||
+			this.thumbnail !== other.thumbnail
 		);
 	}
 
@@ -191,6 +197,7 @@ export default class Title implements TitleInterface {
 		return {
 			i: title.id!,
 			n: title.name,
+			h: title.thumbnail,
 			c: title.chapter,
 			v: title.volume,
 			s: title.status,
@@ -217,6 +224,7 @@ export default class Title implements TitleInterface {
 		return {
 			id: title.i,
 			name: title.n,
+			thumbnail: title.h,
 			chapter: title.c,
 			volume: title.v,
 			status: title.s,
@@ -285,6 +293,14 @@ export default class Title implements TitleInterface {
 			return newTitle;
 		}
 		title.lastAccess = DateTime.now();
+		if (createValues) {
+			if (createValues.name) {
+				title.name = createValues.name;
+			}
+			if (createValues.thumbnail) {
+				title.thumbnail = createValues.thumbnail;
+			}
+		}
 		await title.save();
 		return title;
 	}

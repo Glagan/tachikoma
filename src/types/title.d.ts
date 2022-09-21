@@ -9,6 +9,7 @@ type ServiceList = { [key: string]: TitleIdentifier };
 type TitleStorageInterface = {
 	i: number; // ID
 	n?: string; // Name
+	h?: string; // Thumbnail
 	c: number; // Chapter
 	v?: number; // Volume
 	s: Status; // Status

@@ -37,14 +37,14 @@ async function run() {
 	const title = await Title.getOrCreate(
 		MangaDex.key,
 		{ id: informations.id },
-		{ name: informations.attributes.title.en, services }
+		{ name: informations.attributes.title.en, thumbnail: getCover(informations), services }
 	);
 	debug("title", title);
 	if (title.updateServices(services)) {
 		debug("updated services", { services: title.services });
 		await title.save();
 	}
-	Tachikoma.setTitle(title, getCover(informations));
+	Tachikoma.setTitle(title);
 	debug("found title", { title });
 	// * Initial merge import and export for all services
 	const report = await Tachikoma.sync();
