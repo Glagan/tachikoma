@@ -3,6 +3,7 @@ import FloatingOverlay from "./index.svelte";
 import type Title from "@Core/Title";
 import { file } from "@Core/Utility";
 import "../Core/tailwind.css";
+import "./overlay.css";
 
 export const icons = {
 	loading: file("/static/loading_64.png"),

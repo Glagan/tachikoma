@@ -205,7 +205,7 @@
 							</Button>
 							<Modal bind:this={modal}>
 								<span slot="header">Login</span>
-								<div slot="body">
+								<div slot="body" class="p-4">
 									{#if !service.loginInformations}
 										Missing login informations !
 									{:else}

@@ -1,0 +1,15 @@
+.service-toggle-locked > .toggle-content {
+	@apply mx-auto;
+}
+
+.label {
+	@apply flex items-center mt-2 mb-1;
+}
+
+.input {
+	@apply m-0 w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none;
+}
+
+.select {
+	@apply m-0 w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none;
+}

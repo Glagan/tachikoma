@@ -10,6 +10,7 @@
 	import { file } from "@Core/Utility";
 	import { Lake } from "@Core/Lake";
 	import { Options } from "@Core/Options";
+	import Editor from "./Editor.svelte";
 
 	export let loading: boolean = false;
 	export let title: Title | undefined = undefined;
@@ -48,89 +49,96 @@
 
 	$: badgeType = title ? (statusToColor(title.status) as BadgeType) : "loading";
 	$: activeServices = title ? Object.keys(title.services) : undefined;
+
+	let editor: Editor;
 </script>
 
-<div id="tkma" on:mouseenter={onMouseEnter} on:mouseleave={onMouseLeave}>
-	{#if title && opened}
-		<div class="overlay-wrapper" in:send={{ key }} out:receive={{ key }}>
-			{#if loading}
-				<div class="loader" in:fade />
-			{/if}
-			{#if activeServices}
-				<div class="absolute top-0 left-[4px] right-0 -translate-y-[28px]">
-					{#each activeServices as serviceKey}
-						{@const service = Lake.map[serviceKey]}
-						<div class="service-quick-view" title={service.name}>
-							<img
-								class="inline-block"
-								src={file(`/static/icons/${serviceKey}.png`)}
-								alt={service.name}
-							/>
-						</div>
-					{/each}
-				</div>
-			{/if}
-			<div class="overlay title" on:click={toggleOverlay}>
-				{#if cover}
-					<img
-						src={cover}
-						alt={`${title.name} cover`}
-						height="150"
-						width="112"
-						class="border-r border-tachikoma-50"
-						style="max-height: 150px;max-width: 112px;"
-					/>
+<div id="tkma">
+	<div on:mouseenter={onMouseEnter} on:mouseleave={onMouseLeave}>
+		{#if title && opened}
+			<div class="overlay-wrapper" in:send={{ key }} out:receive={{ key }}>
+				{#if loading}
+					<div class="loader" in:fade />
 				{/if}
-				<div class="p-1 flex-grow flex-shrink overflow-hidden">
-					<div class="truncate overflow-hidden font-bold" title={title.name}>{title.name}</div>
-					<div class="text-center my-1">
-						<Badge type={badgeType}>{statusToString(title.status)}</Badge>
+				{#if activeServices}
+					<div class="absolute top-0 left-[4px] right-0 -translate-y-[28px]">
+						{#each activeServices as serviceKey}
+							{@const service = Lake.map[serviceKey]}
+							<div class="service-quick-view" title={service.name}>
+								<img
+									class="inline-block"
+									src={file(`/static/icons/${serviceKey}.png`)}
+									alt={service.name}
+								/>
+							</div>
+						{/each}
 					</div>
-					<div>
-						{#if title.chapter}
-							<p class="flex items-center">
-								<i class="light-icon-bookmark mr-2" /> Chapter {title.chapter}
-							</p>
-						{/if}
-						{#if title.volume}
-							<p class="flex items-center">
-								<i class="light-icon-notebook mr-2" /> Volume {title.volume}
-							</p>
-						{/if}
-						{#if title.startDate}
-							<p class="flex items-center">
-								<i class="light-icon-calendar-plus mr-2" /> Started {title.startDate.toLocaleString()}
-							</p>
-						{/if}
-						{#if title.endDate}
-							<p class="flex items-center">
-								<i class="light-icon-calendar-event mr-2" /> Completed {title.endDate.toLocaleString()}
-							</p>
-						{/if}
+				{/if}
+				<div class="overlay title" on:click={toggleOverlay}>
+					{#if cover}
+						<img
+							src={cover}
+							alt={`${title.name} cover`}
+							height="150"
+							width="112"
+							class="border-r border-tachikoma-50"
+							style="max-height: 150px;max-width: 112px;"
+						/>
+					{/if}
+					<div class="p-1 flex-grow flex-shrink overflow-hidden">
+						<div class="truncate overflow-hidden font-bold" title={title.name}>{title.name}</div>
+						<div class="text-center my-1">
+							<Badge type={badgeType}>{statusToString(title.status)}</Badge>
+						</div>
+						<div>
+							{#if title.chapter}
+								<p class="flex items-center">
+									<i class="light-icon-bookmark mr-2" /> Chapter {title.chapter}
+								</p>
+							{/if}
+							{#if title.volume}
+								<p class="flex items-center">
+									<i class="light-icon-notebook mr-2" /> Volume {title.volume}
+								</p>
+							{/if}
+							{#if title.startDate}
+								<p class="flex items-center">
+									<i class="light-icon-calendar-plus mr-2" /> Started {title.startDate.toLocaleString()}
+								</p>
+							{/if}
+							{#if title.endDate}
+								<p class="flex items-center">
+									<i class="light-icon-calendar-event mr-2" /> Completed {title.endDate.toLocaleString()}
+								</p>
+							{/if}
+						</div>
+					</div>
+					<div class="p-1 flex  flex-col justify-between flex-shrink-0">
+						<Button type="info" size="xs" title="Open Title editor" on:click={() => editor.show()}>
+							<i class="light-icon-edit text-lg" />
+						</Button>
+						<Button type="info" size="xs" disabled>
+							<i class="light-icon-refresh text-lg" />
+						</Button>
 					</div>
 				</div>
-				<div class="p-1 flex  flex-col justify-between flex-shrink-0">
-					<Button type="info" size="xs" disabled>
-						<i class="light-icon-edit text-lg" />
-					</Button>
-					<Button type="info" size="xs" disabled>
-						<i class="light-icon-refresh text-lg" />
-					</Button>
+			</div>
+		{:else}
+			<div class="overlay-wrapper cursor-pointer" in:send={{ key }} out:receive={{ key }}>
+				{#if loading}
+					<div class="loader" in:fade />
+				{/if}
+				<div class="overlay opener" on:click={toggleOverlay}>
+					<img src={title ? icons.loading : icons.inactive} alt="tachikoma" />
 				</div>
 			</div>
-		</div>
-	{:else}
-		<div class="overlay-wrapper cursor-pointer" in:send={{ key }} out:receive={{ key }}>
-			{#if loading}
-				<div class="loader" in:fade />
-			{/if}
-			<div class="overlay opener" on:click={toggleOverlay}>
-				<img src={title ? icons.loading : icons.inactive} alt="tachikoma" />
-			</div>
-		</div>
+		{/if}
+	</div>
+	{#if title}
+		<Editor bind:this={editor} {title} />
 	{/if}
+	<ZapContainer />
 </div>
-<ZapContainer />
 
 <style lang="postcss">
 	@keyframes move-background {

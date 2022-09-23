@@ -36,7 +36,7 @@
 		<div class="modal" title="">
 			{#if $$slots.header || title}
 				<div class="header">
-					<h5 class="text-xl font-medium leading-normal">
+					<h5 class="text-2xl font-medium leading-normal">
 						<slot name="header" {show} {hide}>{title}</slot>
 					</h5>
 					<button type="button" title="Close" class="close-button" on:click={hide} />
@@ -61,7 +61,7 @@
 
 	.wrapper .modal {
 		@apply relative flex flex-col w-auto max-w-2xl min-w-[30rem] m-4 overflow-hidden rounded-md border-none bg-tachikoma-700 text-gray-200 bg-clip-padding outline-none cursor-auto;
-		max-height: calc(100vh - 4rem);
+		max-height: calc(75vh - 4rem);
 	}
 
 	.wrapper .modal .header {
@@ -75,7 +75,7 @@
 	}
 
 	.wrapper .modal .body {
-		@apply overflow-y-auto relative p-4 scroll-smooth;
+		@apply overflow-y-auto relative scroll-smooth;
 	}
 
 	.wrapper .modal .footer {

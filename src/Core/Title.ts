@@ -106,26 +106,26 @@ function serviceIdentifierToToken(id: TitleIdentifier): string {
 }
 
 export default class Title implements TitleInterface {
-	public id?: number;
-	public name?: string;
-	public thumbnail?: string;
+	id?: number;
+	name?: string;
+	thumbnail?: string;
 
-	public chapter: number;
-	public volume?: number;
-	public status: Status;
+	chapter: number;
+	volume?: number;
+	status: Status;
 
-	public score?: Score;
+	score?: Score;
 
-	public startDate?: DateTime;
-	public endDate?: DateTime;
+	startDate?: DateTime;
+	endDate?: DateTime;
 
-	public lockedServices: string[] = [];
-	public services: { [key: string]: TitleIdentifier };
+	lockedServices: string[] = [];
+	services: { [key: string]: TitleIdentifier };
 
 	// Meta
-	public creation?: DateTime;
-	public lastUpdate?: DateTime;
-	public lastAccess?: DateTime;
+	creation?: DateTime;
+	lastUpdate?: DateTime;
+	lastAccess?: DateTime;
 
 	constructor(title?: TitleInterface) {
 		if (title) {

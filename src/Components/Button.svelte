@@ -28,13 +28,13 @@
 
 	.button,
 	.button.md {
-		@apply px-6 py-2.5 font-medium;
+		@apply px-6 py-2 font-medium;
 	}
 	.button.sm {
-		@apply px-4 py-2.5 font-medium text-sm;
+		@apply px-4 py-1 font-medium text-sm;
 	}
 	.button.lg {
-		@apply px-7 py-3 font-normal text-base;
+		@apply px-7 py-3.5 font-normal text-base;
 	}
 	.button.xs {
 		@apply px-2 py-0.5 font-medium text-sm;

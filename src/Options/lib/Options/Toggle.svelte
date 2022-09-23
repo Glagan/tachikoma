@@ -4,6 +4,7 @@
 	import type { OptionDescription, ToggleOptionDescription } from "src/Options/Descriptions";
 	import Option from "./Option.svelte";
 	import { optionsStore } from "../../stores/Options";
+	import Toggle from "@Components/Toggle.svelte";
 
 	export let key: MutableOption;
 	export let option: ToggleOptionDescription;
@@ -38,32 +39,7 @@
 	/>
 </div>
 
-<label for={key} class="flex items-center cursor-pointer">
-	<input type="checkbox" id={key} class="invisible peer" bind:checked={value} on:change={onChange} />
-	<div
-		class="relative rounded-full w-11 h-5 peer-focus peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 transition-all"
-		class:bg-gray-400={!value}
-		class:bg-green-600={value}
-	>
-		<span
-			class="absolute top-1/2 -translate-y-1/2 left-[2px] rounded-full h-4 w-4 bg-gray-100 transition-all"
-			class:toggle-checked={value}
-			class:-translate-x-full={value}
-		/>
-	</div>
-	<span
-		class="ml-3 text-sm transition-colors"
-		class:font-medium={!value}
-		class:font-bold={value}
-		class:text-green-600={value}
-	>
-		{#if value}
-			Enabled
-		{:else}
-			Disabled
-		{/if}
-	</span>
-</label>
+<Toggle {key} bind:value on:change={onChange} />
 {#if option.sub && value}
 	<div class="sub-option ml-8" in:fly>
 		{#each Object.keys(option.sub) as subOptionName}
@@ -74,7 +50,4 @@
 {/if}
 
 <style lang="postcss">
-	.toggle-checked {
-		left: calc(100% - 2px) !important;
-	}
 </style>

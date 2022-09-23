@@ -4,10 +4,12 @@
 
 <script lang="ts">
 	export let type: BadgeType;
+	let classes: string | undefined = undefined;
+	export { classes as class };
 </script>
 
-<div>
-	<span class={`badge ${type}`}>
+<div on:click>
+	<span class={`badge ${type} ${classes ? classes : ""}`}>
 		<slot />
 	</span>
 </div>
