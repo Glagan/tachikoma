@@ -2,8 +2,19 @@
 	import { fade } from "svelte/transition";
 
 	export let title: string | undefined = undefined;
+	export let closable: boolean = true;
 
 	let visible = false;
+	let wrapper: HTMLElement;
+	function hideFromWrapper(event: Event) {
+		if (!closable) {
+			return;
+		}
+		if (event.target == wrapper) {
+			visible = false;
+		}
+	}
+
 	export function show() {
 		visible = true;
 	}
@@ -14,54 +25,60 @@
 </script>
 
 {#if visible}
-	<div class="modal" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }}>
-		<div class="modal-dialog">
-			<div class="modal-content">
-				<div class="modal-header">
+	<div
+		bind:this={wrapper}
+		class="wrapper"
+		class:cursor-pointer={closable}
+		title={closable ? "Click to close" : undefined}
+		transition:fade={{ duration: 250 }}
+		on:click={hideFromWrapper}
+	>
+		<div class="modal" title="">
+			{#if $$slots.header || title}
+				<div class="header">
 					<h5 class="text-xl font-medium leading-normal">
 						<slot name="header" {show} {hide}>{title}</slot>
 					</h5>
-					<button class="btn-close" on:click={hide}>
-						<i class="light-icon-x" />
-					</button>
+					<button type="button" title="Close" class="close-button" on:click={hide} />
 				</div>
-				<div class="modal-body">
-					<slot {show} {hide} />
-				</div>
-				<div class="modal-footer">
+			{/if}
+			<div class="body">
+				<slot name="body" {show} {hide} />
+			</div>
+			{#if $$slots.footer}
+				<div class="footer">
 					<slot name="footer" {show} {hide} />
 				</div>
-			</div>
+			{/if}
 		</div>
 	</div>
 {/if}
 
 <style lang="postcss">
-	.modal {
-		@apply fixed top-0 left-0 w-full h-full outline-none overflow-x-hidden overflow-y-auto bg-black bg-opacity-60 z-50;
+	.wrapper {
+		@apply fixed z-[99] h-screen w-screen top-0 right-0 bottom-0 left-0 flex items-center justify-center bg-black bg-opacity-80;
 	}
-	.modal-dialog {
-		@apply flex items-center my-7 mx-auto relative w-auto pointer-events-none;
-		max-width: 500px;
-		height: calc(100% - 3.5rem);
-		min-height: calc(100% - 3.5rem);
+
+	.wrapper .modal {
+		@apply relative flex flex-col w-auto max-w-2xl min-w-[30rem] m-4 overflow-hidden rounded-md border-none bg-tachikoma-700 text-gray-200 bg-clip-padding outline-none cursor-auto;
+		max-height: calc(100vh - 4rem);
 	}
-	.modal-content {
-		@apply shadow-lg relative flex flex-col w-full pointer-events-auto bg-clip-padding rounded-md outline-none border border-tachikoma-200 text-gray-200;
+
+	.wrapper .modal .header {
+		@apply flex flex-shrink-0 items-center justify-between p-4 border-b border-tachikoma-600 bg-tachikoma-800 rounded-t-md;
 	}
-	.modal-content {
-		@apply max-h-full overflow-hidden overflow-y-auto;
+
+	.wrapper .modal .header .close-button {
+		@apply box-content w-4 h-4 p-1 text-gray-100 border-none rounded-none opacity-50 focus:shadow-none focus:outline-none focus:opacity-100 hover:text-red-400 hover:opacity-75 hover:no-underline;
+		background: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 fill=%22%23F3F4F6%22%3E%3Cpath d=%22M.293.293a1 1 0 011.414.0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293A1 1 0 01.293 14.293L6.586 8 .293 1.707a1 1 0 010-1.414z%22/%3E%3C/svg%3E")
+			50%/1em no-repeat;
 	}
-	.btn-close {
-		@apply box-content w-6 h-6 p-1 border-none rounded-none opacity-50 focus:shadow-none focus:outline-none focus:opacity-100 text-red-200 hover:text-white hover:opacity-75 hover:no-underline;
+
+	.wrapper .modal .body {
+		@apply overflow-y-auto relative p-4 scroll-smooth;
 	}
-	.modal-header {
-		@apply flex flex-shrink-0 items-center justify-between p-4 border-b border-tachikoma-200 bg-tachikoma-700 rounded-t-md;
-	}
-	.modal-body {
-		@apply relative p-4 bg-tachikoma-600;
-	}
-	.modal-footer {
-		@apply flex flex-shrink-0 flex-wrap items-center justify-end p-4 border-t border-tachikoma-200 bg-tachikoma-700 rounded-b-md;
+
+	.wrapper .modal .footer {
+		@apply flex flex-shrink-0 flex-wrap items-center justify-end p-4 border-t border-tachikoma-600 bg-tachikoma-800 rounded-b-md;
 	}
 </style>

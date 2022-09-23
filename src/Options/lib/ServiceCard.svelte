@@ -203,9 +203,9 @@
 								<span>Login</span>
 								<i class="light-icon-login text-lg ml-2" />
 							</Button>
-							<Modal bind:this={modal} let:hide>
+							<Modal bind:this={modal}>
 								<span slot="header">Login</span>
-								<div slot="default">
+								<div slot="body">
 									{#if !service.loginInformations}
 										Missing login informations !
 									{:else}
@@ -257,7 +257,9 @@
 										<span>Login</span>
 										<i class="light-icon-login text-lg ml-2" />
 									</Button>
-									<Button type="warning" disabled={loggingIn} on:click={hide}>Close</Button>
+									<Button type="warning" disabled={loggingIn} on:click={() => modal.hide()}>
+										Close
+									</Button>
 								</div>
 							</Modal>
 						{/if}
