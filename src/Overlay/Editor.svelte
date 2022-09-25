@@ -1,14 +1,19 @@
 <script lang="ts">
+	import { DateTime } from "luxon";
 	import type Title from "@Core/Title";
 	import Modal from "@Components/Modal.svelte";
 	import Button from "@Components/Button.svelte";
 	import { Lake } from "@Core/Lake";
-	import { file } from "@Core/Utility";
-	import Toggle from "@Components/Toggle.svelte";
+	import { deepAssign } from "@Core/Utility";
 	import Badge from "@Components/Badge.svelte";
-	import { Status, statusToString } from "@Core/Title";
+	import { Status, statusToString, TitleInterface } from "@Core/Title";
+	import Toggle from "@Components/Toggle.svelte";
 	import DateSelector from "./DateSelector.svelte";
-	import { DateTime } from "luxon";
+	import ServiceEditor from "./ServiceEditor.svelte";
+	import { Score } from "@Core/Score";
+	import Tachikoma from "@Core/Tachikoma";
+	import { debug } from "@Core/Logger";
+	import type { Type } from "@glagan/zap/types";
 
 	export let title: Title;
 
@@ -23,16 +28,12 @@
 		modal.hide();
 	}
 
-	function save() {
-		// TODO
-	}
-
 	let name = title?.name;
 	let thumbnail = title?.thumbnail;
-	let chapter = title?.chapter;
-	let volume = title?.volume;
+	let chapter = title?.chapter != undefined ? `${title.chapter}` : "";
+	let volume = title?.volume != undefined ? `${title.volume}` : "";
 	let status = title?.status;
-	let score = title?.score;
+	let score = title?.score ? `${title.score.get([0, 100])}` : "";
 
 	const statusList = Object.keys(Status)
 		.map((key) => parseInt(key))
@@ -43,6 +44,51 @@
 	let startDate: DateTime | undefined = title?.startDate?.set({});
 	let endDateSelector: DateSelector;
 	let endDate: DateTime | undefined = title?.endDate?.set({});
+
+	const lockedServices = Array.from(title.lockedServices);
+	const services: typeof title.services = deepAssign({}, title.services);
+	for (const service of Lake.services) {
+		if (!services[service.key]) {
+			services[service.key] = {};
+		}
+	}
+
+	$: intChapter = parseInt(chapter);
+	$: validChapter = chapter != undefined && !isNaN(intChapter) && intChapter >= 0;
+	$: intVolume = parseInt(volume);
+	$: validVolume = volume == undefined || volume == "" || (!isNaN(intVolume) && intVolume >= 0);
+	$: intScore = parseInt(score);
+	$: validScore = score == undefined || score == "" || (!isNaN(intScore) && intScore > 0 && intScore <= 100);
+	$: valid = name != undefined && name.length > 0 && validChapter && validVolume && status != undefined && validScore;
+
+	let updateExternals = true;
+	let deletePrevious = true;
+
+	async function save() {
+		closable = false;
+		const validServices: typeof title.services = {};
+		for (const key of Object.keys(services)) {
+			if (Object.keys(services[key]).length > 0) {
+				validServices[key] = services[key];
+			}
+		}
+		const title: TitleInterface = {
+			name,
+			thumbnail,
+			chapter: intChapter,
+			volume: isNaN(intVolume) ? undefined : intVolume,
+			status,
+			score: score == undefined || score == "" || isNaN(intScore) ? undefined : new Score(intScore, [0, 100]),
+			startDate,
+			endDate,
+			lockedServices,
+			services: validServices,
+		};
+		debug("Updating title to", JSON.parse(JSON.stringify(title)));
+		await Tachikoma.update(title, deletePrevious, updateExternals);
+		closable = true;
+		hide();
+	}
 </script>
 
 <Modal bind:this={modal} bind:closable>
@@ -67,11 +113,18 @@
 				<label for="name" class="label mt-0">
 					<i class="light-icon-dots text-lg mr-2" /> Name
 				</label>
-				<input id="name" class="input" type="text" placeholder="Name" bind:value={name} />
+				<input id="name" class="input" type="text" disabled={!closable} placeholder="Name" bind:value={name} />
 				<label for="thumbnail" class="label">
 					<i class="light-icon-photo text-lg mr-2" /> Thumbnail
 				</label>
-				<input id="thumbnail" class="input" type="text" placeholder="Thumbnail" bind:value={thumbnail} />
+				<input
+					id="thumbnail"
+					class="input"
+					type="text"
+					disabled={!closable}
+					placeholder="Thumbnail"
+					bind:value={thumbnail}
+				/>
 			</div>
 		</div>
 		<div class="grid grid-cols-2 gap-4 p-4 pt-0">
@@ -80,8 +133,15 @@
 					<i class="light-icon-bookmark text-lg mr-2" /> Chapter
 				</label>
 				<div class="flex items-center">
-					<input id="chapter" class="input mr-2" type="text" placeholder="Chapter" bind:value={chapter} />
-					<span class="flex-shrink-0">/ ?</span>
+					<input
+						id="chapter"
+						class="input mr-2"
+						type="text"
+						disabled={!closable}
+						placeholder="Chapter"
+						bind:value={chapter}
+					/>
+					<span class="flex-shrink-0"> / ?</span>
 				</div>
 			</div>
 			<div>
@@ -89,15 +149,22 @@
 					<i class="light-icon-notebook text-lg mr-2" /> Volume
 				</label>
 				<div class="flex items-center">
-					<input id="volume" class="input mr-2" type="text" placeholder="Volume" bind:value={volume} />
-					<span class="flex-shrink-0">/ ?</span>
+					<input
+						id="volume"
+						class="input mr-2"
+						type="text"
+						disabled={!closable}
+						placeholder="Volume"
+						bind:value={volume}
+					/>
+					<span class="flex-shrink-0"> / ?</span>
 				</div>
 			</div>
 			<div>
 				<label for="status" class="label">
 					<i class="light-icon-cloud text-lg mr-2" /> Status
 				</label>
-				<select name="status" class="select" bind:value={status}>
+				<select name="status" class="select" disabled={!closable} bind:value={status}>
 					{#each statusList as status}
 						<option value={status}>{statusToString(status)}</option>
 					{/each}
@@ -108,8 +175,15 @@
 					<i class="light-icon-star text-lg mr-2" /> Score
 				</label>
 				<div class="flex items-center">
-					<input id="score" class="input mr-2" type="text" placeholder="Score" bind:value={score} />
-					<span class="flex-shrink-0">/ 10</span>
+					<input
+						id="score"
+						class="input mr-2"
+						type="text"
+						disabled={!closable}
+						placeholder="Score"
+						bind:value={score}
+					/>
+					<span class="flex-shrink-0"> / 100</span>
 				</div>
 			</div>
 			<div>
@@ -119,7 +193,7 @@
 						Today
 					</Badge>
 				</div>
-				<DateSelector bind:this={startDateSelector} bind:date={startDate} />
+				<DateSelector bind:this={startDateSelector} disabled={!closable} bind:date={startDate} />
 			</div>
 			<div>
 				<div class="label flex justify-between">
@@ -128,63 +202,35 @@
 						Today
 					</Badge>
 				</div>
-				<DateSelector bind:this={endDateSelector} bind:date={endDate} />
+				<DateSelector bind:this={endDateSelector} disabled={!closable} bind:date={endDate} />
 			</div>
 		</div>
 		<div class="title-separator border-y">Services</div>
 		<div class="p-4">
 			{#each Lake.services as service (service.key)}
-				<div class="mb-4 last-of-type:mb-0">
-					<div class="flex items-center">
-						<div class="icon flex-grow-0 flex-shrink-0 mr-4">
-							<img src={file(`/static/icons/${service.key}.png`)} alt={`${service.name} icon`} />
-						</div>
-						<span class="text-lg bold mr-4">{service.name}</span>
-						<Badge type={true ? "success" : "info"}>{true ? "Enabled" : "Disabled"}</Badge>
-					</div>
-					<div class="flex">
-						<div class="flex-grow-0 flex-shrink-0 mr-4">
-							<div class="flex flex-col items-center justify-start">
-								<div class="text-xs">Locked</div>
-								<Toggle
-									key={`${service.key}-locked`}
-									class="service-toggle-locked"
-									showLabel={false}
-									value={true}
-								/>
-							</div>
-							<div>
-								<Button type="error" size="xs" class="mt-2">Clear</Button>
-							</div>
-						</div>
-						<div>
-							<div class="grid grid-cols-2 gap-2">
-								<div>
-									<label for="debug" class="label mt-0">Key</label>
-									<input class="input" type="text" placeholder="Field key" />
-								</div>
-								<div>
-									<label for="debug" class="label mt-0">Value</label>
-									<input class="input" type="text" placeholder="Field value" />
-								</div>
-							</div>
-							<Button type="info" size="sm" class="mt-2">
-								<span>Add field</span>
-								<i class="light-icon-plus text-lg ml-2" />
-							</Button>
-						</div>
-					</div>
-				</div>
+				<ServiceEditor {service} {lockedServices} disabled={!closable} identifier={services[service.key]} />
 			{/each}
 		</div>
 	</div>
-	<svelte:fragment slot="footer">
-		<Button type="success" disabled={!closable} class="mr-2" on:click={save}>
-			<span>Save</span>
-			<i class="light-icon-upload text-lg ml-2" />
-		</Button>
-		<Button type="warning" disabled={!closable} on:click={() => hide()}>Close</Button>
-	</svelte:fragment>
+	<div slot="footer" class="flex justify-between w-full">
+		<div>
+			<div class="flex items-center justify-start">
+				<label for="update-external" class="text-sm cursor-pointer mr-2">Update all Services</label>
+				<Toggle key="update-external" bind:value={updateExternals} showLabel={false} />
+			</div>
+			<div class="flex items-center justify-start">
+				<label for="delete-previous" class="text-sm cursor-pointer mr-2">Delete previous services</label>
+				<Toggle key="delete-previous" bind:value={deletePrevious} showLabel={false} />
+			</div>
+		</div>
+		<div class="flex items-center">
+			<Button type="success" disabled={!closable || !valid} class="mr-2 transition-all" on:click={save}>
+				<span>Save</span>
+				<i class="light-icon-upload text-lg ml-2" />
+			</Button>
+			<Button type="warning" disabled={!closable} on:click={() => hide()}>Close</Button>
+		</div>
+	</div>
 </Modal>
 
 <style lang="postcss">

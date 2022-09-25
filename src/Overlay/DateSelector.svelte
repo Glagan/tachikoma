@@ -2,6 +2,7 @@
 	import { DateTime } from "luxon";
 
 	export let date: DateTime | undefined;
+	export let disabled: boolean = false;
 
 	let day: number | undefined = date?.get("day");
 	let month: number | undefined = date?.get("month");
@@ -53,19 +54,19 @@
 </script>
 
 <div class="flex">
-	<select name="day" class="select mr-2" bind:value={day} on:change={onChange.bind(null, "day")}>
+	<select name="day" class="select mr-2" bind:value={day} {disabled} on:change={onChange.bind(null, "day")}>
 		<option value={-1} />
 		{#each days as day}
 			<option value={day}>{day}</option>
 		{/each}
 	</select>
-	<select name="month" class="select mr-2" bind:value={month} on:change={onChange.bind(null, "month")}>
+	<select name="month" class="select mr-2" bind:value={month} {disabled} on:change={onChange.bind(null, "month")}>
 		<option value={-1} />
 		{#each months as month, index}
 			<option value={index + 1}>{month}</option>
 		{/each}
 	</select>
-	<select name="year" class="select" bind:value={year} on:change={onChange.bind(null, "year")}>
+	<select name="year" class="select" bind:value={year} {disabled} on:change={onChange.bind(null, "year")}>
 		<option value={-1} />
 		{#each years as year}
 			<option value={year} selected={year == thisYear}>{year}</option>

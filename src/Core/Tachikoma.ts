@@ -3,7 +3,7 @@ import zap from "@glagan/zap";
 import type { Button, Notification } from "@glagan/zap/types";
 import Overlay from "@Overlay";
 import Updater, { Snapshots, SyncReport } from "./Updater";
-import Title from "./Title";
+import Title, { TitleInterface } from "./Title";
 import { file } from "./Utility";
 import { Lake } from "./Lake";
 import { DeleteStatus, deleteStatusDescription, SaveStatus, saveStatusDescription } from "./Service";
@@ -124,6 +124,30 @@ export class TachikomaClass {
 		const result = await this.current.export();
 		result.localSnapshot = localSnapshot;
 		this.displaySyncReport(result, this.current, true);
+		this.overlay.setLoading(false);
+		return result;
+	}
+
+	async update(title: TitleInterface, deletePrevious: boolean, updateExternals: boolean) {
+		if (!this.current) {
+			throw new Error("Missing current Title in Tachikoma.update call");
+		}
+		this.overlay.setLoading(true);
+		if (this.syncNotification) {
+			this.syncNotification.destroy();
+			this.syncNotification = undefined;
+		}
+		const localSnapshot = Title.serialize(this.current.title);
+		if (deletePrevious) {
+			// TODO [Feature] delete all services currently in the Title
+		}
+		this.current.title.update(title);
+		let result: SyncReport | undefined = undefined;
+		if (updateExternals) {
+			const result = await this.current.export();
+			result.localSnapshot = localSnapshot;
+			this.displaySyncReport(result, this.current, true);
+		}
 		this.overlay.setLoading(false);
 		return result;
 	}

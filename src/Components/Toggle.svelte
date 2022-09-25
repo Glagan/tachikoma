@@ -1,10 +1,11 @@
 <script lang="ts">
 	export let key: string;
 	export let value: boolean;
+	export let disabled: boolean = false;
 	export let showLabel: boolean = true;
 </script>
 
-<label for={key} class="toggle-wrapper flex items-center" {...$$restProps}>
+<label for={key} class="toggle-wrapper flex items-center" {disabled} {...$$restProps}>
 	<input type="checkbox" id={key} class="appearance-none hidden invisible peer" bind:checked={value} on:change />
 	<div
 		class="toggle-content relative rounded-full w-11 h-5 peer-focus peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 transition-all cursor-pointer"

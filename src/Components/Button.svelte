@@ -4,7 +4,7 @@
 
 	export let type: "loading" | "success" | "error" | "warning" | "info" = "info";
 	export let size: "xs" | "sm" | "md" | "lg" | undefined = "md";
-	export let disabled: boolean | undefined = false;
+	export let disabled: boolean = false;
 	export let block: boolean | undefined = false;
 	export let title: string | undefined = undefined;
 	// Convert the button to a link

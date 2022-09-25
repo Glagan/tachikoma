@@ -366,10 +366,12 @@ export default class Title implements TitleInterface {
 
 	/**
 	 * Update a title values without any effects, and without checking if they are "higher".
-	 * TODO Set *all* values (this function is used in snapshot restore + direct edit)
+	 * Set *all* values without any check (used in snapshot restore and direct edit)
 	 * @param title New values
 	 */
 	update(title: TitleInterface) {
+		this.name = title.name;
+		this.thumbnail = title.thumbnail;
 		this.chapter = title.chapter;
 		this.volume = title.volume;
 		this.status = title.status;
@@ -384,6 +386,8 @@ export default class Title implements TitleInterface {
 		}
 		this.startDate = title.startDate;
 		this.endDate = title.endDate;
+		this.lockedServices = title.lockedServices ?? [];
+		this.services = title.services;
 	}
 
 	/**

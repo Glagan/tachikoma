@@ -52,7 +52,6 @@ function findProgressContainer() {
 
 let lastChapter: string | undefined;
 async function checkAndUpdate(container: HTMLElement) {
-	// TODO [Option] saveOnLastpage, saveOnlyNext, saveOnlyHigher, updateOnlyInList, confirmChapter
 	// TODO [Feature] Check if double pages are handled correctly
 
 	const chapter = chapterState();
@@ -61,6 +60,7 @@ async function checkAndUpdate(container: HTMLElement) {
 
 	if (chapter && (!lastChapter || lastChapter !== chapter.id)) {
 		lastChapter = chapter.id;
+		// TODO [Option] saveOnLastpage, saveOnlyNext, saveOnlyHigher, updateOnlyInList, confirmChapter
 		const report = await Tachikoma.setProgress(chapter.progress);
 		debug("Tachikoma.setProgress report", report, "for", chapter.progress);
 	}
