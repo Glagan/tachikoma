@@ -1,0 +1,9 @@
+.chapter-row {
+	transition: background-color 250ms ease-in-out;
+}
+
+.chapter-row > div > a[title]:first-child:hover,
+.chapter-row > div:nth-child(2) > a[title]:hover {
+	background-color: rgba(0, 0, 0, 0.2);
+	transition: background-color 250ms ease-in-out;
+}

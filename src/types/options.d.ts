@@ -43,7 +43,6 @@ interface Overlay {
 
 type GlobalOptionlist = {
 	// Options that can override by Site options
-	highlight: boolean;
 	colors: Colors;
 	notifications: Notifications;
 	lists: ListVisibility;

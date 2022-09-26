@@ -4,6 +4,7 @@ import Tachikoma from "@Core/Tachikoma";
 import { injectScript } from "@Core/Utility";
 import ChapterPage from "./Pages/ChapterPage";
 import TitlePage from "./Pages/TitlePage";
+import "./index.css";
 
 const router = new Router();
 // router.add(

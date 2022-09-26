@@ -13,7 +13,7 @@
 	import { Score } from "@Core/Score";
 	import Tachikoma from "@Core/Tachikoma";
 	import { debug } from "@Core/Logger";
-	import type { Type } from "@glagan/zap/types";
+	import { createEventDispatcher } from "svelte";
 
 	export let title: Title;
 
@@ -24,8 +24,11 @@
 		modal.show();
 	}
 
+	const dispatch = createEventDispatcher<{ hide: void }>();
+
 	export function hide() {
 		modal.hide();
+		dispatch("hide");
 	}
 
 	let name = title?.name;
@@ -228,7 +231,7 @@
 				<span>Save</span>
 				<i class="light-icon-upload text-lg ml-2" />
 			</Button>
-			<Button type="warning" disabled={!closable} on:click={() => hide()}>Close</Button>
+			<Button type="warning" disabled={!closable} on:click={hide}>Close</Button>
 		</div>
 	</div>
 </Modal>

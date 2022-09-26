@@ -11,6 +11,7 @@
 	import { Lake } from "@Core/Lake";
 	import { Options } from "@Core/Options";
 	import Editor from "./Editor.svelte";
+	import { tick } from "svelte";
 
 	export let loading: boolean = false;
 	export let title: Title | undefined = undefined;
@@ -48,9 +49,17 @@
 	});
 
 	$: badgeType = title ? (statusToColor(title.status) as BadgeType) : "loading";
-	$: activeServices = title ? Object.keys(title.services) : undefined;
+	$: activeServices = title ? Object.keys(title.services).filter((key) => Options.hasService(key)) : undefined;
 
 	let editor: Editor;
+	let editorVisible = false;
+
+	function showEditor() {
+		editorVisible = true;
+		tick().then(() => {
+			editor?.show();
+		});
+	}
 </script>
 
 <div id="tkma">
@@ -114,7 +123,7 @@
 						</div>
 					</div>
 					<div class="p-1 flex  flex-col justify-between flex-shrink-0">
-						<Button type="info" size="xs" title="Open Title editor" on:click={() => editor.show()}>
+						<Button type="info" size="xs" title="Open Title editor" on:click={showEditor}>
 							<i class="light-icon-edit text-lg" />
 						</Button>
 						<Button type="info" size="xs" disabled>
@@ -134,8 +143,8 @@
 			</div>
 		{/if}
 	</div>
-	{#if title}
-		<Editor bind:this={editor} {title} />
+	{#if title && editorVisible}
+		<Editor bind:this={editor} {title} on:hide={() => (editorVisible = false)} />
 	{/if}
 	<ZapContainer />
 </div>

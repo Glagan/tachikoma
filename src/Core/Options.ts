@@ -7,7 +7,6 @@ export namespace Options {
 	export let loaded = false;
 	export const defaults: OptionList = {
 		// Options that can override by Site options
-		highlight: true,
 		colors: {
 			enabled: true,
 			highlights: ["rgba(82, 190, 90, 0.6)", "rgba(107, 177, 95, 0.6)", "rgba(55, 168, 61, 0.6)"],
