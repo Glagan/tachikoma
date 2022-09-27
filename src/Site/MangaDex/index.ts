@@ -6,43 +6,25 @@ import Chapter from "./Pages/Chapter";
 import Title from "./Pages/Title";
 import ChapterList from "./Pages/ChapterList";
 import "./index.css";
+import { info } from "@Core/Logger";
 
 const router = new Router();
-// router.add(
-// 	[
-// 		/\/follows\/?$/,
-// 		/\/follows\/chapters(\/?$|\/\d+(\/\d+\/?)?)?/,
-// 		/\/group\/\d+(\/[-A-Za-z0-9_]{0,}\/?)?$/,
-// 		/\/group\/\d+\/[-A-Za-z0-9_]{0,}\/chapters(\/?|\/\d+\/?)$/,
-// 		/\/user\/\d+(\/[-A-Za-z0-9_]{0,}\/?)?$/,
-// 		/\/user\/\d+\/[-A-Za-z0-9_]{0,}\/chapters(\/?|\/\d+\/?)$/,
-// 	],
-// 	async () => {
-// 		console.log("ChapterListPage");
-// 	}
-// );
+router.add([/\/titles$/, /\/titles\/recent$/, /\/titles\/seasonal$/, /\/titles\/follows$/], async () => {
+	info("Title List Page");
+});
+router.add([/\/group\/([-A-Za-z0-9]{36})\//], async () => {
+	info("Group Page");
+});
+router.add([/\/user\/([-A-Za-z0-9]{36})\//], async () => {
+	info("User Page");
+});
 router.add([/^\/chapter\/(\d+|[-A-Za-z0-9]{36})\/(\d+)\/?/], Chapter);
-router.add(
-	[
-		/\/follows\/manga(\/?|\/\d(\/?|\/\d+(\/?|\/\d+\/?)))$/,
-		/\/group\/\d+\/[-A-Za-z0-9_]{0,}\/manga(\/?|\/\d+\/?)$/,
-		/\/user\/\d+\/[-A-Za-z0-9_]{0,}\/manga(\/?|\/\d+\/?)$/,
-		/\/(search|\?page=search.*)/,
-		/\/(titles|\?page=titles.*)/,
-		/\/genre(\/\d+)?$/,
-		/\/featured$/,
-	],
-	ChapterList,
-	undefined
-);
+router.add([/\/titles\/latest$/, /\/titles\/feed$/], ChapterList, undefined);
 router.add([/^\/manga\/(\d+)\/?/, /^\/title\/([-A-Za-z0-9]{36})\/?/], Title);
 router.add([/^\/(title|manga)(\/random)\/?/], Title, undefined);
-// router.add([/\/updates(\/?$|\/\d+\/?)$/], async () => {
-// 	console.log("UpdatesPage");
-// });
-// router.add([/\/history$/], async () => {
-// 	console.log("HistoryPage");
-// });
+router.add([/\/my\/history$/], async () => {
+	info("HistoryPage");
+});
 
 // * Clear Overlay title between routes
 

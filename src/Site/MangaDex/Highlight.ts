@@ -50,14 +50,14 @@ export function chapterProgressState(title: Title, progress: Progress): Progress
 	return ProgressState.Lower;
 }
 
+let colors = Options.values.colors.highlights;
+let currentColor = 0;
 export function highlight(rows: ChapterRow[], title: Title) {
 	debug("Highlight enabled ?", Options.values.colors.enabled);
 	if (!Options.values.colors.enabled) {
 		return;
 	}
-	let colors = Options.values.colors.highlights;
-	let currentColor = 0;
-	debug("Highlight rows", rows, "using colors", colors);
+	debug("Highlight rows", rows, "using colors", colors, "continue at", currentColor);
 	let highlightedNext = false;
 	for (const chapterRow of rows) {
 		const state = chapterProgressState(title, chapterRow.progress);
