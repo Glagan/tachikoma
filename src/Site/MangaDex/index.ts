@@ -2,8 +2,9 @@ import { Options } from "@Core/Options";
 import Router from "@Core/Router";
 import Tachikoma from "@Core/Tachikoma";
 import { injectScript } from "@Core/Utility";
-import ChapterPage from "./Pages/ChapterPage";
-import TitlePage from "./Pages/TitlePage";
+import Chapter from "./Pages/Chapter";
+import Title from "./Pages/Title";
+import ChapterList from "./Pages/ChapterList";
 import "./index.css";
 
 const router = new Router();
@@ -20,23 +21,22 @@ const router = new Router();
 // 		console.log("ChapterListPage");
 // 	}
 // );
-router.add([/^\/chapter\/(\d+|[-A-Za-z0-9]{36})\/(\d+)\/?/], ChapterPage);
-// router.add(
-// 	[
-// 		/\/follows\/manga(\/?|\/\d(\/?|\/\d+(\/?|\/\d+\/?)))$/,
-// 		/\/group\/\d+\/[-A-Za-z0-9_]{0,}\/manga(\/?|\/\d+\/?)$/,
-// 		/\/user\/\d+\/[-A-Za-z0-9_]{0,}\/manga(\/?|\/\d+\/?)$/,
-// 		/\/(search|\?page=search.*)/,
-// 		/\/(titles|\?page=titles.*)/,
-// 		/\/genre(\/\d+)?$/,
-// 		/\/featured$/,
-// 	],
-// 	async () => {
-// 		console.log("TitleListPage");
-// 	}
-// );
-router.add([/^\/manga\/(\d+)\/?/, /^\/title\/([-A-Za-z0-9]{36})\/?/], TitlePage);
-router.add([/^\/(title|manga)(\/random)\/?/], TitlePage, undefined);
+router.add([/^\/chapter\/(\d+|[-A-Za-z0-9]{36})\/(\d+)\/?/], Chapter);
+router.add(
+	[
+		/\/follows\/manga(\/?|\/\d(\/?|\/\d+(\/?|\/\d+\/?)))$/,
+		/\/group\/\d+\/[-A-Za-z0-9_]{0,}\/manga(\/?|\/\d+\/?)$/,
+		/\/user\/\d+\/[-A-Za-z0-9_]{0,}\/manga(\/?|\/\d+\/?)$/,
+		/\/(search|\?page=search.*)/,
+		/\/(titles|\?page=titles.*)/,
+		/\/genre(\/\d+)?$/,
+		/\/featured$/,
+	],
+	ChapterList,
+	undefined
+);
+router.add([/^\/manga\/(\d+)\/?/, /^\/title\/([-A-Za-z0-9]{36})\/?/], Title);
+router.add([/^\/(title|manga)(\/random)\/?/], Title, undefined);
 // router.add([/\/updates(\/?$|\/\d+\/?)$/], async () => {
 // 	console.log("UpdatesPage");
 // });
