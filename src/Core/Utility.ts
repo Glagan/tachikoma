@@ -1,20 +1,5 @@
-import getPkce from "oauth-pkce";
 import { runtime } from "webextension-polyfill";
-
-/**
- * source: https://stackoverflow.com/a/9517879
- * Inject a page script
- * Content scripts don't have access to variables, this does
- * Communicate using events: https://stackoverflow.com/a/19312198
- * @param {function} fn The function to be injected and executed
- */
-export function injectScript(fn: Function) {
-	const script = document.createElement("script");
-	script.textContent = `(${fn})();`;
-	(document.head || document.documentElement).appendChild(script);
-	script.remove();
-}
-
+import getPkce from "oauth-pkce";
 export function deepAssign(target: Record<string, any>, ...objs: Record<string, any>[]) {
 	for (let i = 0, max = objs.length; i < max; i++) {
 		for (var k in objs[i]) {

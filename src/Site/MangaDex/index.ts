@@ -1,12 +1,11 @@
 import { Options } from "@Core/Options";
 import Router from "@Core/Router";
 import Tachikoma from "@Core/Tachikoma";
-import { injectScript } from "@Core/Utility";
+import { info } from "@Core/Logger";
 import Chapter from "./Pages/Chapter";
 import Title from "./Pages/Title";
 import ChapterList from "./Pages/ChapterList";
 import "./index.css";
-import { info } from "@Core/Logger";
 
 const router = new Router();
 router.add([/\/titles$/, /\/titles\/recent$/, /\/titles\/seasonal$/, /\/titles\/follows$/], async () => {
@@ -40,14 +39,12 @@ document.addEventListener("md:ready", async () => {
 	router.watch();
 });
 
-injectScript(() => {
-	if (window.$nuxt === undefined) {
-		const initObserver = new MutationObserver((mutations, observer) => {
-			document.dispatchEvent(new CustomEvent("md:ready"));
-			observer.disconnect();
-		});
-		initObserver.observe(document.body, { childList: true, subtree: true });
-	} else {
+if (window.$nuxt === undefined) {
+	const initObserver = new MutationObserver((mutations, observer) => {
 		document.dispatchEvent(new CustomEvent("md:ready"));
-	}
-});
+		observer.disconnect();
+	});
+	initObserver.observe(document.body, { childList: true, subtree: true });
+} else {
+	document.dispatchEvent(new CustomEvent("md:ready"));
+}

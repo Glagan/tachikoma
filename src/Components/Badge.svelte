@@ -1,7 +1,3 @@
-<script context="module" lang="ts">
-	export type BadgeType = "loading" | "success" | "error" | "warning" | "info";
-</script>
-
 <script lang="ts">
 	export let type: BadgeType;
 	let classes: string | undefined = undefined;

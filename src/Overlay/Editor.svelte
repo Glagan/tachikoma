@@ -6,7 +6,7 @@
 	import { Lake } from "@Core/Lake";
 	import { deepAssign } from "@Core/Utility";
 	import Badge from "@Components/Badge.svelte";
-	import { Status, statusToString, TitleInterface } from "@Core/Title";
+	import { Status, statusToString, type TitleInterface } from "@Core/Title";
 	import Toggle from "@Components/Toggle.svelte";
 	import DateSelector from "./DateSelector.svelte";
 	import ServiceEditor from "./ServiceEditor.svelte";
