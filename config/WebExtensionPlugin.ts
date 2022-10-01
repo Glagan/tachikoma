@@ -1,3 +1,5 @@
+import { unlinkSync } from "fs";
+import { unlink } from "fs/promises";
 import { glob } from "glob";
 import { Compiler } from "webpack";
 import { Manifest, Entry } from "./ManifestTransformer";
@@ -136,10 +138,12 @@ export default class WebExtensionPlugin {
 
 		compiler.hooks.thisCompilation.tap(pluginName, (thisCompilation) => {
 			// Reset update manifest values to avoid duplicates in watch mode
+			// let filesToDelete: string[] = [];
 			thisCompilation.hooks.processAssets.tap(
 				{ name: pluginName, stage: 100 /* Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE */ },
 				() => {
 					this.resetManifest();
+					// filesToDelete = [];
 				}
 			);
 
@@ -187,7 +191,14 @@ export default class WebExtensionPlugin {
 							if (!entry) continue;
 							let [reference, key] = this.getReference(entry.path);
 							if (entry.mode == "script") {
-								reference[key] = scripts[0];
+								// Copy the path of raw js files instead of using the compiled version
+								if (entry.script.endsWith(".js")) {
+									const filename = entry.script.split("\\");
+									reference[key] = filename[filename.length - 1];
+									// filesToDelete.push(...chunk.files);
+								} else {
+									reference[key] = scripts[0];
+								}
 							} else if (entry.mode == "script_list") {
 								reference[key].push(...scripts.map((path) => path.replaceAll("\\", "/")));
 							} else {
@@ -208,6 +219,7 @@ export default class WebExtensionPlugin {
 							// Remove timestamp from file
 							const cleanAssets = otherAssets
 								.map((file) => file.split("?")[0])
+								.filter((file) => !file.endsWith(".js"))
 								.map((path) => path.replaceAll("\\", "/"));
 							if (this.manifest.manifest_version == 2) {
 								(this.manifest.web_accessible_resources as string[]).push(...cleanAssets);
@@ -225,11 +237,32 @@ export default class WebExtensionPlugin {
 						this.manifest.web_accessible_resources![0].resources.push(...staticAssets);
 					}
 
+					// * Merge browser_actions and page_actions in v3
+					if (
+						this.manifest.manifest_version == 3 &&
+						this.manifest.browser_action /* || this.manifest.page_action */
+					) {
+						this.manifest.action = this.manifest.browser_action;
+						delete this.manifest.browser_action;
+					}
+
 					// * Add the final manifest.json to the output
 					const manifestStr = JSON.stringify(this.manifest);
 					thisCompilation.emitAsset("manifest.json", new RawSource(manifestStr));
 				}
 			);
+
+			// compiler.hooks.done.tap("cleanUnusedAssets", (_) => {
+			// 	for (const file of filesToDelete) {
+			// 		console.log("deleting", `${compiler.outputPath}\\${file}`);
+			// 		try {
+			// 			unlinkSync(`${compiler.outputPath}\\${file}`);
+			// 		} catch (error) {
+			// 			console.error(error);
+			// 		}
+			// 	}
+			// 	return true;
+			// });
 		});
 	}
 }

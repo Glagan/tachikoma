@@ -10,6 +10,15 @@ import { dirname, join, resolve } from "path";
  * Entrypoints and resources are collected to be sent to Webpack.
  */
 
+export type Action = {
+	entry?: string;
+	template?: string;
+	browser_style: boolean;
+	default_title?: string;
+	default_popup?: string;
+	default_icon?: { [key: string]: string };
+};
+
 export type Manifest = {
 	manifest_version: 2 | 3;
 	name: string;
@@ -18,14 +27,8 @@ export type Manifest = {
 	permissions?: string[];
 	host_permissions?: string[];
 	icons?: { [key: string]: string };
-	browser_action?: {
-		entry?: string;
-		template?: string;
-		browser_style: boolean;
-		default_title?: string;
-		default_popup?: string;
-		default_icon?: { [key: string]: string };
-	};
+	action?: Action;
+	browser_action?: Action;
 	content_scripts?: {
 		entry?: string;
 		js?: string[];
@@ -223,7 +226,7 @@ export function readAndTransformManifest(manifestPath: string, vendor: string) {
 }
 
 export type Entry = {
-	name: string;
+	name?: string;
 	script: string;
 	path: string;
 	mode: "content_object" | "script_list" | "script";
@@ -243,7 +246,12 @@ export function getEntries(manifest: Manifest) {
 				if (script.entry) {
 					// Path points to an Array of objects
 					entries.push({
-						name: dirname(script.entry).split("/").pop()!.toLocaleLowerCase(),
+						name: dirname(script.entry)
+							.split("/")
+							.pop()!
+							.toLocaleLowerCase()
+							.replaceAll("\\", "_")
+							.replace("src_", ""),
 						script: script.entry,
 						path: `content_scripts.${index}`,
 						mode: "content_object",
@@ -268,7 +276,7 @@ export function getEntries(manifest: Manifest) {
 				manifest.background.scripts = [];
 			} else if ("service_worker" in manifest.background && manifest.background.service_worker) {
 				entries.push({
-					name: "background",
+					name: "service_worker",
 					script: resolve(manifest.background.service_worker),
 					path: `background.service_worker`,
 					mode: "script",

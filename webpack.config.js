@@ -76,6 +76,11 @@ export default (env, argv) => {
 		module: {
 			rules: [
 				{
+					test: /\.js$/,
+					type: "asset/resource",
+					exclude: /node_modules/,
+				},
+				{
 					test: /\.svelte$/,
 					use: {
 						loader: "svelte-loader",
@@ -109,13 +114,14 @@ export default (env, argv) => {
 			clean: true,
 			path: resolvePath(process.cwd(), `build/${env.vendor}`),
 			filename: (pathData) => {
-				return entry[pathData.chunk.name] ? "[name].js" : "[contenthash].js";
+				return entry[pathData.chunk.name] ? "[name].js" : "[id].js";
 			},
+			assetModuleFilename: "[name][ext]",
 		},
 		plugins: [
 			new MiniCssExtractPlugin({
 				filename: (pathData) => {
-					return entry[pathData.chunk.name] ? "[name].css" : "[contenthash].css";
+					return entry[pathData.chunk.name] ? "[name].css" : "[id].css";
 				},
 			}),
 			new CaseSensitivePathsPlugin(),
@@ -133,7 +139,11 @@ export default (env, argv) => {
 						inject: "body",
 				  })
 				: { apply: () => {} },
-			new WebExtensionPlugin(manifest, entries, { production, vendor, expose: ["static/icons/*.png"] }),
+			new WebExtensionPlugin(manifest, entries, {
+				production,
+				vendor,
+				expose: ["static/icons/*.png", "static/sleepy_64.png", "static/loading_64.png"],
+			}),
 			production
 				? new ZipPlugin({
 						path: resolvePath(process.cwd(), "web-ext-artifacts"),
