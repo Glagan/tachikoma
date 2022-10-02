@@ -275,13 +275,16 @@ export function getEntries(manifest: Manifest) {
 				}
 				manifest.background.scripts = [];
 			} else if ("service_worker" in manifest.background && manifest.background.service_worker) {
-				entries.push({
-					name: "service_worker",
-					script: resolve(manifest.background.service_worker),
-					path: `background.service_worker`,
-					mode: "script",
-				});
-				manifest.background.service_worker = "";
+				const script = resolve(manifest.background.service_worker);
+				if (!script.endsWith(".js")) {
+					entries.push({
+						name: dirname(manifest.background.service_worker).split("/").pop()!.toLocaleLowerCase(),
+						script,
+						path: `background.service_worker`,
+						mode: "script",
+					});
+					manifest.background.service_worker = "";
+				}
 			}
 		}
 	} catch (error) {

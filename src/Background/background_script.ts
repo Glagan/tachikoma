@@ -1,7 +1,7 @@
-import { Runtime, runtime } from "webextension-polyfill";
+import { runtime, type Runtime } from "webextension-polyfill";
 import { Magma } from "@Core/Magma";
 
-function onMessage(message: AnyMessagePayload, sender?: Runtime.MessageSender): Promise<any> {
+export default function onMessage(message: AnyMessagePayload, sender?: Runtime.MessageSender): Promise<unknown> {
 	if (message.action == "request") {
 		return Magma.send(message, sender?.tab);
 	}

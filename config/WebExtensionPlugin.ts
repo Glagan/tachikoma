@@ -1,5 +1,3 @@
-import { unlinkSync } from "fs";
-import { unlink } from "fs/promises";
 import { glob } from "glob";
 import { Compiler } from "webpack";
 import { Manifest, Entry } from "./ManifestTransformer";
@@ -138,12 +136,10 @@ export default class WebExtensionPlugin {
 
 		compiler.hooks.thisCompilation.tap(pluginName, (thisCompilation) => {
 			// Reset update manifest values to avoid duplicates in watch mode
-			// let filesToDelete: string[] = [];
 			thisCompilation.hooks.processAssets.tap(
 				{ name: pluginName, stage: 100 /* Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE */ },
 				() => {
 					this.resetManifest();
-					// filesToDelete = [];
 				}
 			);
 
@@ -191,14 +187,7 @@ export default class WebExtensionPlugin {
 							if (!entry) continue;
 							let [reference, key] = this.getReference(entry.path);
 							if (entry.mode == "script") {
-								// Copy the path of raw js files instead of using the compiled version
-								if (entry.script.endsWith(".js")) {
-									const filename = entry.script.split("\\");
-									reference[key] = filename[filename.length - 1];
-									// filesToDelete.push(...chunk.files);
-								} else {
-									reference[key] = scripts[0];
-								}
+								reference[key] = scripts[0];
 							} else if (entry.mode == "script_list") {
 								reference[key].push(...scripts.map((path) => path.replaceAll("\\", "/")));
 							} else {
@@ -251,18 +240,6 @@ export default class WebExtensionPlugin {
 					thisCompilation.emitAsset("manifest.json", new RawSource(manifestStr));
 				}
 			);
-
-			// compiler.hooks.done.tap("cleanUnusedAssets", (_) => {
-			// 	for (const file of filesToDelete) {
-			// 		console.log("deleting", `${compiler.outputPath}\\${file}`);
-			// 		try {
-			// 			unlinkSync(`${compiler.outputPath}\\${file}`);
-			// 		} catch (error) {
-			// 			console.error(error);
-			// 		}
-			// 	}
-			// 	return true;
-			// });
 		});
 	}
 }

@@ -24,10 +24,11 @@
 		}
 	},
 	"firefox:background": {
-		"scripts": ["src/Background/index.ts"]
+		"scripts": ["src/Background/background_script.ts"]
 	},
 	"background": {
-		"service_worker": "src/Background/index.ts"
+		"service_worker": "service_worker.js",
+		"type": "module"
 	},
 	"content_scripts": [],
 	"firefox:web_accessible_resources": [],

@@ -28,7 +28,9 @@ export default (env, argv) => {
 	const entries = getEntries(manifest);
 	const entry = {};
 	for (const entrypoint of entries) {
-		entry[entrypoint.name] = entrypoint.script;
+		if (!entrypoint.script.endsWith(".js")) {
+			entry[entrypoint.name] = entrypoint.script;
+		}
 	}
 	const browserAction = getBrowserAction(manifest);
 	if (browserAction.entry) {
@@ -43,9 +45,11 @@ export default (env, argv) => {
 			},
 			minimize: true,
 			minimizer: [
-				new TerserPlugin({
-					minify: TerserPlugin.esbuildMinify,
-				}),
+				production
+					? new TerserPlugin({
+							minify: TerserPlugin.esbuildMinify,
+					  })
+					: { apply: () => {} },
 				new CssMinimizerPlugin(),
 				new ImageMinimizerPlugin({
 					minimizer: {
