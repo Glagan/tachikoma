@@ -6,7 +6,7 @@
 	import { icons } from "@Overlay";
 	import Button from "@Components/Button.svelte";
 	import { statusToColor, statusToString } from "@Core/Title";
-	import Badge, { BadgeType } from "@Components/Badge.svelte";
+	import Badge, { type BadgeType } from "@Components/Badge.svelte";
 	import { file } from "@Core/Utility";
 	import { Lake } from "@Core/Lake";
 	import { Options } from "@Core/Options";
