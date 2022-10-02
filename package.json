@@ -6,7 +6,9 @@
 	"scripts": {
 		"dev": "npm run dev:firefox",
 		"dev:firefox": "webpack --env vendor=firefox --mode=development --watch --progress",
-		"dev:chrome": "webpack --env vendor=chrome --mode=development --watch --progress",
+		"dev:chrome:build": "webpack --env vendor=chrome --mode=development --watch --progress",
+		"dev:chrome:service-worker": "rollup -c -w",
+		"dev:chrome": "concurrently \"yarn dev:chrome:build\" \"yarn dev:chrome:service-worker\"",
 		"build": "npm run build:firefox && npm run build:chrome",
 		"build:firefox": "webpack --env vendor=firefox --mode=production --progress",
 		"build:chrome": "webpack --env vendor=chrome --mode=production --progress",
@@ -28,6 +30,7 @@
 		"@types/luxon": "^2.3.2",
 		"@types/webextension-polyfill": "^0.9.0",
 		"case-sensitive-paths-webpack-plugin": "^2.4.0",
+		"concurrently": "^7.4.0",
 		"copy-webpack-plugin": "^11.0.0",
 		"css-loader": "^6.7.1",
 		"css-minimizer-webpack-plugin": "^4.0.0",
