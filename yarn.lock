@@ -4727,6 +4727,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"source-list-map@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "source-list-map@npm:2.0.1"
+  checksum: 806efc6f75e7cd31e4815e7a3aaf75a45c704871ea4075cb2eb49882c6fca28998f44fc5ac91adb6de03b2882ee6fb02f951fdc85e6a22b338c32bfe19557938
+  languageName: node
+  linkType: hard
+
 "source-map-js@npm:^1.0.2":
   version: 1.0.2
   resolution: "source-map-js@npm:1.0.2"
@@ -5037,6 +5044,7 @@ __metadata:
     webpack: ^5.73.0
     webpack-cli: ^4.10.0
     webpack-sources: 3.2.3
+    webpack-string-replacer: ^0.0.20
     zip-webpack-plugin: ^4.0.1
   languageName: unknown
   linkType: soft
@@ -5338,6 +5346,25 @@ __metadata:
   version: 3.2.3
   resolution: "webpack-sources@npm:3.2.3"
   checksum: 989e401b9fe3536529e2a99dac8c1bdc50e3a0a2c8669cbafad31271eadd994bc9405f88a3039cd2e29db5e6d9d0926ceb7a1a4e7409ece021fe79c37d9c4607
+  languageName: node
+  linkType: hard
+
+"webpack-sources@npm:^2.3.0":
+  version: 2.3.1
+  resolution: "webpack-sources@npm:2.3.1"
+  dependencies:
+    source-list-map: ^2.0.1
+    source-map: ^0.6.1
+  checksum: 6fd67f2274a84c5f51ad89767112ec8b47727134bf0f2ba0cff458c970f18966939a24128bdbddba621cd66eeb2bef0552642a9333cd8e54514f7b2a71776346
+  languageName: node
+  linkType: hard
+
+"webpack-string-replacer@npm:^0.0.20":
+  version: 0.0.20
+  resolution: "webpack-string-replacer@npm:0.0.20"
+  dependencies:
+    webpack-sources: ^2.3.0
+  checksum: 59a89a80382e7f1c92aae675e24ed2f09b55955ec3c92432e688c7dddd954fc89fb30c10fec5fb3d5f83b3771fbbb1a4be434ef244270d4fd6db07367ef11325
   languageName: node
   linkType: hard
 
