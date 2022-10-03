@@ -147,6 +147,17 @@ export default abstract class Service {
 				) {
 					return true;
 				}
+			}
+			// Handle volume 0 being equal to undefined
+			else if (field === "volume") {
+				return (
+					(title.volume === undefined && other.volume !== undefined && other.volume > 0) ||
+					(title.volume !== undefined && title.volume > 0 && other.volume === undefined) ||
+					(title.volume !== undefined &&
+						other.volume !== undefined &&
+						title.volume !== other.volume &&
+						other.volume > 0)
+				);
 			} else if (title[field] != other[field]) {
 				return true;
 			}

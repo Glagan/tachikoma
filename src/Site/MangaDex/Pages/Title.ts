@@ -14,13 +14,14 @@ function findMangaDexId(): string | undefined {
 	return undefined;
 }
 
+const chapterSelector = ".volume-head + div > .bg-accent";
 export function chapterRows(): ChapterRow[] {
-	const rows = document.querySelectorAll<HTMLElement>(".volume-head + div > .bg-accent");
+	const rows = document.querySelectorAll<HTMLElement>(chapterSelector);
 	return Array.from(rows)
 		.map((row): ChapterRow | undefined => {
 			let progress: Progress | undefined = undefined;
 			if (row.childElementCount == 2) {
-				const chapterValue = row.firstElementChild?.firstElementChild?.textContent;
+				const chapterValue = row.firstElementChild?.querySelector("span")?.textContent;
 				if (chapterValue) {
 					progress = fullChapterFromString(chapterValue);
 				}
@@ -52,8 +53,10 @@ async function run() {
 		randomObserver.disconnect();
 		randomObserver = undefined;
 	}
+
 	// * Wait for required existing node
 	await waitForSelector('[to^="/title/"]');
+
 	// * Handle page
 	const mangaDexId = findMangaDexId();
 	if (!mangaDexId) {
@@ -79,10 +82,12 @@ async function run() {
 	}
 	Tachikoma.setTitle(title);
 	debug("found title", { title });
+
 	// * Initial merge import and export for all services
 	const report = await Tachikoma.sync();
 	waitForChaptersAndHighlight(title);
 	debug("sync report", { report });
+
 	// * Handle title page change
 	let lastId: string | undefined;
 	randomObserver = new MutationObserver((_, observer) => {
@@ -97,6 +102,30 @@ async function run() {
 		}
 	});
 	randomObserver.observe(document.body, { childList: true, subtree: true });
+
+	// * Handle page change (update highlight)
+	const chapterColumnSelector = `div[id^='${informations.id}']`;
+	waitForSelector(chapterColumnSelector).then(() => {
+		const chapterColumn = document.querySelector(chapterColumnSelector);
+		if (chapterColumn) {
+			let lastPage: string | null = null;
+			let waitingForSelector = false;
+			const pageObserver = new MutationObserver((_, observer) => {
+				const currentPage = new URLSearchParams(location.search).get("page");
+				if (currentPage != lastPage) {
+					waitingForSelector = true;
+					lastPage = currentPage;
+				}
+				if (waitingForSelector) {
+					if (document.querySelector(chapterSelector)) {
+						waitingForSelector = false;
+						waitForChaptersAndHighlight(title);
+					}
+				}
+			});
+			pageObserver.observe(chapterColumn.nextElementSibling!, { childList: true, subtree: true });
+		}
+	});
 }
 
 export default run;

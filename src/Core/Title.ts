@@ -162,7 +162,7 @@ export default class Title implements TitleInterface {
 	isMoreRecent(other: TitleInterface): boolean {
 		return (
 			other.chapter > this.chapter ||
-			(this.volume === undefined && other.volume !== undefined) ||
+			(this.volume === undefined && other.volume !== undefined && other.volume > 0) ||
 			(this.volume !== undefined && other.volume !== undefined && this.volume < other.volume) ||
 			(this.status === Status.NONE && other.status > Status.NONE) ||
 			(this.score === undefined && other.score !== undefined) ||
@@ -181,7 +181,8 @@ export default class Title implements TitleInterface {
 	isDifferent(other: TitleInterface): boolean {
 		return (
 			this.chapter !== other.chapter ||
-			this.volume !== other.volume ||
+			// Handle volume 0 being the same as undefined-
+			(this.volume !== other.volume && (other.volume === undefined || other.volume > 0)) ||
 			this.status !== other.status ||
 			(this.score === undefined && other.score !== undefined) ||
 			(this.score !== undefined && other.score === undefined) ||

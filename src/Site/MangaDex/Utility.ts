@@ -92,7 +92,7 @@ export function getCover(mangaDexManga: MangaDexManga, size?: "small" | "regular
 
 export function waitForSelector(selector: string, timeout: number = 5000): Promise<boolean> {
 	if (!document.querySelector(selector)) {
-		debug("Waiting for the page to load");
+		debug("Waiting for", selector, "to load");
 		return new Promise((resolve, reject) => {
 			let timer = setTimeout(() => {
 				reject();
@@ -101,11 +101,11 @@ export function waitForSelector(selector: string, timeout: number = 5000): Promi
 				if (document.querySelector(selector)) {
 					clearTimeout(timer);
 					resolve(true);
-					observer.disconnect();
+					initObserver.disconnect();
 				}
 			});
 			initObserver.observe(document.body, { childList: true, subtree: true });
 		});
 	}
-	return new Promise((resolve) => resolve(true));
+	return Promise.resolve(true);
 }

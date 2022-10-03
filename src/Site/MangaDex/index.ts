@@ -39,6 +39,7 @@ document.addEventListener("md:ready", async () => {
 	router.watch();
 });
 
+// $nuxt isn't found in window on script refresh on firefox...
 if (window.$nuxt === undefined) {
 	const initObserver = new MutationObserver((mutations, observer) => {
 		document.dispatchEvent(new CustomEvent("md:ready"));

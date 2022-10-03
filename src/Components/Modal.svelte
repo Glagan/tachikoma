@@ -36,7 +36,7 @@
 		<div class="modal" title="">
 			{#if $$slots.header || title}
 				<div class="header">
-					<h5 class="text-2xl font-medium leading-normal">
+					<h5 class="text-2xl font-medium leading-normal truncate mr-4" {title}>
 						<slot name="header" {show} {hide}>{title}</slot>
 					</h5>
 					<button type="button" title="Close" class="close-button" on:click={hide} />
