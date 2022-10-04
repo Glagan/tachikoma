@@ -3,7 +3,6 @@ import { Options } from "@Core/Options";
 import type Title from "@Core/Title";
 
 export type TitleChapterGroup = {
-	wrapper: HTMLElement | null;
 	row: HTMLElement;
 	title: Promise<Title | null>;
 	chapters: ChapterRow[];
@@ -55,20 +54,23 @@ export function highlight(rows: ChapterRow[], title: Title, hide?: boolean) {
 		} else if (state == ProgressState.Higher) {
 			chapterRow.row.style.backgroundColor = Options.values.colors.higherChapter;
 			if (hide && Options.values.lists.hideHigher) {
-				chapterRow.row.classList.add("chapter-hidden");
+				chapterRow.row.dataset.height = `${chapterRow.row.clientHeight}`;
+				chapterRow.row.classList.add("chapter-transition", "chapter-state", "chapter-hidden");
 			}
 		} else if (state == ProgressState.Current) {
 			chapterRow.row.style.backgroundColor = colors[currentColor];
 			currentColor = (currentColor + 1) % colors.length;
 			if (hide && Options.values.lists.hideLast) {
-				chapterRow.row.classList.add("chapter-hidden");
+				chapterRow.row.dataset.height = `${chapterRow.row.clientHeight}`;
+				chapterRow.row.classList.add("chapter-transition", "chapter-state", "chapter-hidden");
 			}
 		} else if (state == ProgressState.InList) {
 			chapterRow.row.style.backgroundColor = Options.values.colors.openedChapter;
 		} else if (state == ProgressState.Lower) {
 			chapterRow.row.style.backgroundColor = Options.values.colors.lowerChapter;
 			if (hide && Options.values.lists.hideHigher) {
-				chapterRow.row.classList.add("chapter-hidden");
+				chapterRow.row.dataset.height = `${chapterRow.row.clientHeight}`;
+				chapterRow.row.classList.add("chapter-transition", "chapter-state", "chapter-hidden");
 			}
 		}
 	}

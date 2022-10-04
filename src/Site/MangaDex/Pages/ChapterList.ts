@@ -17,7 +17,6 @@ export function titleGroups(): TitleChapterGroup[] {
 			const title = Title.get(MangaDex.key, { id: identifier });
 			const chapters = row.querySelectorAll<HTMLElement>(".chapter[title]");
 			return {
-				wrapper: row.parentElement,
 				row,
 				title,
 				chapters: Array.from(chapters)
@@ -36,7 +35,22 @@ export function titleGroups(): TitleChapterGroup[] {
 		.filter((row): row is TitleChapterGroup => row != undefined);
 }
 
+let toggleHidden: ToggleHidden | undefined;
+
+// Remove the toggle from a previous page
+function cleanupToggle() {
+	if (toggleHidden) {
+		if ("remove" in toggleHidden.$$.root) {
+			toggleHidden.$$.root.remove();
+		}
+		toggleHidden.$destroy();
+		toggleHidden = undefined;
+	}
+}
+
 async function highlightTitlesChapters() {
+	cleanupToggle();
+
 	const groups = titleGroups();
 	debug("Highlight title groups", groups);
 	let promises: Promise<unknown>[] = [];
@@ -47,25 +61,20 @@ async function highlightTitlesChapters() {
 					return;
 				}
 				highlight(titleRow.chapters, title, true);
-				if (titleRow.chapters.every((chapterRow) => chapterRow.row.classList.contains("chapter-hidden"))) {
-					titleRow.wrapper?.classList.add("chapter-hidden");
+				if (
+					titleRow.row &&
+					titleRow.chapters.every((chapterRow) => chapterRow.row.classList.contains("chapter-state"))
+				) {
+					titleRow.row.dataset.height = `${titleRow.row.clientHeight}`;
+					titleRow.row.classList.add("chapter-transition", "chapter-state", "chapter-hidden");
 				}
 			})
 		);
 	}
 	await Promise.all(promises);
-	return groups;
-}
-
-let toggleHidden: ToggleHidden | undefined;
-async function run() {
-	info("Chapter List page");
-	// * Only highlight in lists
-	await waitForSelector(".chapter-feed__container", 5000);
-	const groups = await highlightTitlesChapters();
 	const totalHidden = groups.reduce((acc, group) => {
 		return (
-			acc + group.chapters.reduce((acc, row) => acc + (row.row.classList.contains("chapter-hidden") ? 1 : 0), 0)
+			acc + group.chapters.reduce((acc, row) => acc + (row.row.classList.contains("chapter-state") ? 1 : 0), 0)
 		);
 	}, 0);
 	if (totalHidden > 0) {
@@ -75,6 +84,32 @@ async function run() {
 			target.insertBefore(wrapper, target.firstElementChild);
 			toggleHidden = new ToggleHidden({ target: wrapper, props: { amount: totalHidden } });
 		}
+	}
+}
+
+async function run() {
+	info("Chapter List page");
+	cleanupToggle();
+
+	// * Add page listener
+	// * Highlight and hide chapters
+	const container = document.querySelector(".container > div:last-child > div:nth-child(2)");
+	if (container) {
+		let lastPage: string | null = null;
+		let waitingForSelector = false;
+		const pageObserver = new MutationObserver((_, observer) => {
+			const currentPage = new URLSearchParams(location.search).get("page");
+			if (currentPage != lastPage) {
+				waitingForSelector = true;
+				lastPage = currentPage;
+				cleanupToggle();
+			}
+			if (waitingForSelector && document.querySelector(".chapter-feed__container")) {
+				waitingForSelector = false;
+				highlightTitlesChapters();
+			}
+		});
+		pageObserver.observe(container, { childList: true, subtree: true });
 	}
 }
 
