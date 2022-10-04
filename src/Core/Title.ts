@@ -194,6 +194,20 @@ export default class Title implements TitleInterface {
 		);
 	}
 
+	chapterIsNext(progress: Progress) {
+		return (
+			// Next from chapter (progress < current + 2) to handle sub-chapters
+			(progress.chapter > this.chapter && progress.chapter < Math.floor(this.chapter) + 2) ||
+			// Next from volume (progress == current + 1) if progress has no chapter
+			(progress.chapter < 0 &&
+				progress.volume !== undefined &&
+				this.volume !== undefined &&
+				progress.volume == this.volume + 1) ||
+			// First chapter if not completed (Oneshot)
+			(progress.chapter == 0 && this.chapter == 0 && this.status !== Status.COMPLETED)
+		);
+	}
+
 	static serialize(title: TitleInterface): TitleStorageInterface {
 		return {
 			i: title.id!,

@@ -1,9 +1,9 @@
 import { debug } from "@Core/Logger";
 import { Options } from "@Core/Options";
 import type Title from "@Core/Title";
-import { Status } from "@Core/Title";
 
-export type TitleRow = {
+export type TitleChapterGroup = {
+	wrapper: HTMLElement | null;
 	row: HTMLElement;
 	title: Promise<Title | null>;
 	chapters: ChapterRow[];
@@ -22,25 +22,11 @@ export enum ProgressState {
 	Lower,
 }
 
-export function isNext(title: Title, progress: Progress) {
-	return (
-		// Next from chapter (progress < current + 2) to handle sub-chapters
-		(progress.chapter > title.chapter && progress.chapter < Math.floor(title.chapter) + 2) ||
-		// Next from volume (progress == current + 1) if progress has no chapter
-		(progress.chapter < 0 &&
-			progress.volume !== undefined &&
-			title.volume !== undefined &&
-			progress.volume == title.volume + 1) ||
-		// First chapter if not completed (Oneshot)
-		(progress.chapter == 0 && title.chapter == 0 && title.status !== Status.COMPLETED)
-	);
-}
-
 export function chapterProgressState(title: Title, progress: Progress): ProgressState {
 	const titleChapter = Math.floor(title.chapter),
 		progressChapter = Math.floor(progress.chapter);
 	if (progress.chapter > title.chapter) {
-		if (isNext(title, progress)) {
+		if (title.chapterIsNext(progress)) {
 			return ProgressState.NextChapter;
 		}
 		return ProgressState.Higher;
@@ -52,7 +38,7 @@ export function chapterProgressState(title: Title, progress: Progress): Progress
 
 let colors = Options.values.colors.highlights;
 let currentColor = 0;
-export function highlight(rows: ChapterRow[], title: Title) {
+export function highlight(rows: ChapterRow[], title: Title, hide?: boolean) {
 	debug("Highlight enabled ?", Options.values.colors.enabled);
 	if (!Options.values.colors.enabled) {
 		return;
@@ -68,13 +54,22 @@ export function highlight(rows: ChapterRow[], title: Title) {
 			highlightedNext = true;
 		} else if (state == ProgressState.Higher) {
 			chapterRow.row.style.backgroundColor = Options.values.colors.higherChapter;
+			if (hide && Options.values.lists.hideHigher) {
+				chapterRow.row.classList.add("chapter-hidden");
+			}
 		} else if (state == ProgressState.Current) {
 			chapterRow.row.style.backgroundColor = colors[currentColor];
 			currentColor = (currentColor + 1) % colors.length;
+			if (hide && Options.values.lists.hideLast) {
+				chapterRow.row.classList.add("chapter-hidden");
+			}
 		} else if (state == ProgressState.InList) {
 			chapterRow.row.style.backgroundColor = Options.values.colors.openedChapter;
 		} else if (state == ProgressState.Lower) {
 			chapterRow.row.style.backgroundColor = Options.values.colors.lowerChapter;
+			if (hide && Options.values.lists.hideHigher) {
+				chapterRow.row.classList.add("chapter-hidden");
+			}
 		}
 	}
 }

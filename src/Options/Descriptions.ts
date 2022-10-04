@@ -62,27 +62,28 @@ const defaultOptionsList: LeafOptionList = {
 				sub: {
 					"colors.highlights": {
 						name: "Last chapters",
-						description: "Colors for all **current** chapters.\ntachikoma will cycle trough them.",
+						description:
+							"Colors for the  last chapters you read (in chapter lists), tachikoma will cycle through them.",
 						type: "colorList",
 					},
 					"colors.nextChapter": {
 						name: "Next chapter",
-						description: "Color of the row when a chapter is the next one.",
+						description: "Color of the next chapter.",
 						type: "color",
 					},
 					"colors.higherChapter": {
 						name: "Higher chapter",
-						description: "Color of the rows that are higher than the last one you read.",
+						description: "Color of chapters higher than the last one you read.",
 						type: "color",
 					},
 					"colors.lowerChapter": {
 						name: "Lower chapter",
-						description: "Color of the rows that are lower than the last one you read.",
+						description: "Color of chapters lower than the last one you read.",
 						type: "color",
 					},
 					"colors.openedChapter": {
 						name: "Opened chapters",
-						description: "Color of the rows of opened chapters.",
+						description: "Color for opened chapters.",
 						type: "color",
 					},
 				},
@@ -164,7 +165,7 @@ const defaultOptionsList: LeafOptionList = {
 			"notifications.enabled": {
 				name: "Show notifications",
 				description:
-					"Show some notifications after syncing a title or before a long operation.\nError notifications will still be displayed unless you also toggle them off below.\nConfirmation notifications are always displayed.",
+					"Show some notifications after syncing a title or before a long operation.\nError notifications will still be displayed unless you also toggle them off below.\nConfirmation notifications are always displayed.\nThe sync notification duration is as defined by the information notification duration option.",
 				type: "toggle",
 			},
 			"notifications.successDuration": {

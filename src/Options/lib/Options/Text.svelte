@@ -23,11 +23,9 @@
 </script>
 
 <label>
-	<p>{option.description}</p>
+	<p class="whitespace-break-spaces">{option.description}</p>
 	<input type="text" bind:value />
 </label>
 
-<label for={key} class="label">
-	{option.description}
-</label>
+<label for={key} class="label whitespace-break-spaces">{option.description}</label>
 <input type="text" class="input mx-2" id={key} placeholder={option.name} bind:value on:input={onChange} />

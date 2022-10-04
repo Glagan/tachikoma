@@ -7,3 +7,40 @@
 	background-color: rgba(0, 0, 0, 0.2);
 	transition: background-color 250ms ease-in-out;
 }
+
+@keyframes hide {
+	0% {
+		max-height: 400px;
+		transform: scaleY(1);
+	}
+	100% {
+		max-height: 0;
+		transform: scaleY(0);
+	}
+}
+@keyframes display {
+	0% {
+		max-height: 0;
+		transform: scaleY(0);
+	}
+	100% {
+		max-height: 400px;
+		transform: scaleY(1);
+	}
+}
+
+.chapter-hidden {
+	overflow: hidden;
+	max-height: 0;
+	border: 0;
+	border-top: 0;
+	border-bottom: 0;
+	border-color: transparent;
+	transform-origin: top;
+	animation: hide 200ms cubic-bezier(0.07, 0.95, 0, 1);
+}
+.chapter-hidden.chapter-visible {
+	transform: scaleY(1);
+	max-height: 400px;
+	animation: display 200ms cubic-bezier(0.07, 0.95, 0, 1);
+}

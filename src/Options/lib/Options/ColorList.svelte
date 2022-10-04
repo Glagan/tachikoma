@@ -49,9 +49,7 @@
 	}
 </script>
 
-<p class="label">
-	{option.description}
-</p>
+<p class="label whitespace-break-spaces">{option.description}</p>
 {#if value}
 	{#each value as color, index}
 		<div class="flex items-center mb-2">

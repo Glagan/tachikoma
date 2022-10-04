@@ -2,6 +2,7 @@ import { DateTime, Duration } from "luxon";
 import zap from "@glagan/zap";
 import type { Button, Notification } from "@glagan/zap/types";
 import Overlay from "@Overlay";
+import { Options } from "./Options";
 import Updater, { Snapshots, SyncReport } from "./Updater";
 import Title, { TitleInterface } from "./Title";
 import { file } from "./Utility";
@@ -65,6 +66,7 @@ export class TachikomaClass {
 	protected displaySyncReport(report: SyncReport, updater: Updater, cancellable = true) {
 		// Ignore empty reports and reports with every services already synced
 		if (
+			!Options.values.notifications.displayProgressUpdated ||
 			Object.keys(report.perServices).length === 0 ||
 			Object.values(report.perServices).every((report) => report.service.status === SaveStatus.ALREADY_SYNCED)
 		) {
@@ -102,12 +104,15 @@ export class TachikomaClass {
 				`![${service.name}|${file(`/static/icons/${serviceKey}.png`)}] **${service.name}** >*>${statusMessage}<`
 			);
 		}
-		return zap.success({
-			title: "Synced",
-			image: title.thumbnail,
-			message: message.join("\n"),
-			buttons,
-		});
+		return zap.success(
+			{
+				title: "Synced",
+				image: title.thumbnail,
+				message: message.join("\n"),
+				buttons,
+			},
+			{ duration: Options.values.notifications.infoDuration }
+		);
 	}
 
 	async setProgress(progress: Progress) {

@@ -25,9 +25,7 @@
 	}
 </script>
 
-<label for={key} class="label">
-	{option.description}
-</label>
+<label for={key} class="label whitespace-break-spaces">{option.description}</label>
 <div class="form-check form-switch">
 	<input
 		id={key}
