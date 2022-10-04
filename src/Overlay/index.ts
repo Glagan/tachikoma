@@ -1,4 +1,3 @@
-import "light-icons/dist/light-icon.css";
 import FloatingOverlay from "./index.svelte";
 import type Title from "@Core/Title";
 import { file } from "@Core/Utility";

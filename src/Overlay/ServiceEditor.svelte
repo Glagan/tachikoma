@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Trash2Icon, PlusCircleIcon } from "svelte-feather-icons";
 	import type Service from "@Core/Service";
 	import { file } from "@Core/Utility";
 	import Badge from "@Components/Badge.svelte";
@@ -106,13 +107,13 @@
 						{disabled}
 						on:click={removeTmpIdentifier.bind(null, index)}
 					>
-						<i class="light-icon-trash text-lg" />
+						<Trash2Icon />
 					</Button>
 				</div>
 			{/each}
 			<Button type="info" size="sm" class="mt-2" {disabled} on:click={addTmpIdentifier}>
 				<span>Add field</span>
-				<i class="light-icon-plus text-lg ml-2" />
+				<PlusCircleIcon class="ml-2" />
 			</Button>
 		</div>
 	</div>

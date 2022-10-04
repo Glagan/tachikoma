@@ -26,14 +26,14 @@
 		{@const rootCategory = descriptions[rootCategoryKey]}
 		<Title size="2">
 			{#if rootCategory.icon}
-				<OptionIcon src={rootCategory.icon} />
+				<OptionIcon icon={rootCategory.icon} />
 			{/if}{rootCategoryKey}
 		</Title>
 		{#each Object.keys(rootCategory.list) as categoryKey}
 			{@const category = rootCategory.list[categoryKey]}
 			<Title size="3">
 				{#if category.icon}
-					<OptionIcon src={category.icon} />
+					<OptionIcon icon={category.icon} />
 				{/if}{categoryKey}
 			</Title>
 			{#each Object.keys(category.list) as optionName}

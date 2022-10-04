@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { BookmarkIcon, BookIcon, CalendarIcon, EditIcon, RefreshCwIcon } from "svelte-feather-icons";
 	import { fade, crossfade } from "svelte/transition";
 	import { quintOut } from "svelte/easing";
 	import { ZapContainer } from "@glagan/zap";
@@ -102,32 +103,32 @@
 						<div>
 							{#if title.chapter}
 								<p class="flex items-center">
-									<i class="light-icon-bookmark mr-2" /> Chapter {title.chapter}
+									<BookmarkIcon size="20" class="mr-2" /> Chapter {title.chapter}
 								</p>
 							{/if}
 							{#if title.volume}
 								<p class="flex items-center">
-									<i class="light-icon-notebook mr-2" /> Volume {title.volume}
+									<BookIcon size="20" class="mr-2" /> Volume {title.volume}
 								</p>
 							{/if}
 							{#if title.startDate}
 								<p class="flex items-center">
-									<i class="light-icon-calendar-plus mr-2" /> Started {title.startDate.toLocaleString()}
+									<CalendarIcon size="20" class="mr-2" /> Started {title.startDate.toLocaleString()}
 								</p>
 							{/if}
 							{#if title.endDate}
 								<p class="flex items-center">
-									<i class="light-icon-calendar-event mr-2" /> Completed {title.endDate.toLocaleString()}
+									<CalendarIcon size="20" class="mr-2" /> Completed {title.endDate.toLocaleString()}
 								</p>
 							{/if}
 						</div>
 					</div>
-					<div class="p-1 flex  flex-col justify-between flex-shrink-0">
+					<div class="p-1 flex flex-col justify-between flex-shrink-0">
 						<Button type="info" size="xs" title="Open Title editor" on:click={showEditor}>
-							<i class="light-icon-edit text-lg" />
+							<EditIcon />
 						</Button>
 						<Button type="info" size="xs" disabled>
-							<i class="light-icon-refresh text-lg" />
+							<RefreshCwIcon />
 						</Button>
 					</div>
 				</div>

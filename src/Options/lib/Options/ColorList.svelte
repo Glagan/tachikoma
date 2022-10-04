@@ -1,10 +1,9 @@
 <script lang="ts">
+	import { Trash2Icon, PlusCircleIcon } from "svelte-feather-icons";
 	import Button from "@Components/Button.svelte";
-
 	import { Options } from "@Core/Options";
 	import type { SimpleOptionDescription } from "src/Options/Descriptions";
 	import { optionsStore } from "src/Options/stores/Options";
-	import { bind, each } from "svelte/internal";
 
 	export let key: MutableOption;
 	export let option: SimpleOptionDescription;
@@ -54,7 +53,7 @@
 	{#each value as color, index}
 		<div class="flex items-center mb-2">
 			<Button type="error" size="sm" class="mr-2" on:click={removeColor.bind(null, index)}>
-				<i class="light-icon-trash" />
+				<Trash2Icon size="20" />
 			</Button>
 			<input
 				type="text"
@@ -71,5 +70,5 @@
 	{/each}
 {/if}
 <Button type="info" on:click={addColor}>
-	<i class="light-icon-circle-plus mr-2" /> Add Color
+	<PlusCircleIcon size="20" class="mr-2" /> Add Color
 </Button>

@@ -1,5 +1,13 @@
 <script lang="ts">
 	import { onMount } from "svelte";
+	import {
+		ExternalLinkIcon,
+		LogInIcon,
+		LogOutIcon,
+		Trash2Icon,
+		ChevronUpIcon,
+		ChevronDownIcon,
+	} from "svelte-feather-icons";
 	import { tabs } from "webextension-polyfill";
 	import { Lake } from "@Core/Lake";
 	import { file } from "@Core/Utility";
@@ -196,12 +204,12 @@
 						{#if service.loginRedirect}
 							<Button type="success" on:click={loginOrRedirect}>
 								<span>Login</span>
-								<i class="light-icon-external-link text-lg ml-2" />
+								<ExternalLinkIcon size="20" class="ml-2" />
 							</Button>
 						{:else}
 							<Button type="success" on:click={loginOrRedirect}>
 								<span>Login</span>
-								<i class="light-icon-login text-lg ml-2" />
+								<LogInIcon size="20" class="ml-2" />
 							</Button>
 							<Modal bind:this={modal}>
 								<span slot="header">Login</span>
@@ -255,7 +263,7 @@
 										on:click={sendLoginInformations}
 									>
 										<span>Login</span>
-										<i class="light-icon-login text-lg ml-2" />
+										<LogInIcon size="20" class="ml-2" />
 									</Button>
 									<Button type="warning" disabled={loggingIn} on:click={() => modal.hide()}>
 										Close
@@ -267,7 +275,7 @@
 					{#if canLogout}
 						<Button type="info" class="ml-2" on:click={logout}>
 							<span>Logout</span>
-							<i class="light-icon-rotate-2 text-lg ml-2" />
+							<LogOutIcon size="20" class="ml-2" />
 						</Button>
 					{/if}
 				{/if}
@@ -279,17 +287,17 @@
 						disabled={loading}
 						on:click={deactivateServiceAndSave}
 					>
-						<i class="light-icon-trash text-lg" />
+						<Trash2Icon size="20" />
 					</Button>
 				{/if}
 			</div>
 			{#if isActive}
 				<div class="sub-actions flex flex-col ml-4">
 					<Button type="info" size="sm" class="mb-2" disabled={isFirst} on:click={moveUpAndSave}>
-						<i class="light-icon-chevron-up text-lg" />
+						<ChevronUpIcon size="20" />
 					</Button>
 					<Button type="info" size="sm" disabled={isLast} on:click={moveDownAndSave}>
-						<i class="light-icon-chevron-down text-lg" />
+						<ChevronDownIcon size="20" />
 					</Button>
 				</div>
 			{/if}

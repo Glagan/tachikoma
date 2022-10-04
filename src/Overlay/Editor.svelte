@@ -1,5 +1,16 @@
 <script lang="ts">
+	import { createEventDispatcher } from "svelte";
 	import { DateTime } from "luxon";
+	import {
+		HashIcon,
+		ImageIcon,
+		BookmarkIcon,
+		BookIcon,
+		CloudIcon,
+		StarIcon,
+		CalendarIcon,
+		SaveIcon,
+	} from "svelte-feather-icons";
 	import type Title from "@Core/Title";
 	import Modal from "@Components/Modal.svelte";
 	import Button from "@Components/Button.svelte";
@@ -13,7 +24,6 @@
 	import { Score } from "@Core/Score";
 	import Tachikoma from "@Core/Tachikoma";
 	import { debug } from "@Core/Logger";
-	import { createEventDispatcher } from "svelte";
 
 	export let title: Title;
 
@@ -114,11 +124,11 @@
 			</div>
 			<div class="flex-grow flex-shrink">
 				<label for="name" class="label mt-0">
-					<i class="light-icon-dots text-lg mr-2" /> Name
+					<HashIcon class="mr-2" /> Name
 				</label>
 				<input id="name" class="input" type="text" disabled={!closable} placeholder="Name" bind:value={name} />
 				<label for="thumbnail" class="label">
-					<i class="light-icon-photo text-lg mr-2" /> Thumbnail
+					<ImageIcon class="mr-2" /> Thumbnail
 				</label>
 				<input
 					id="thumbnail"
@@ -133,7 +143,7 @@
 		<div class="grid grid-cols-2 gap-4 p-4 pt-0">
 			<div>
 				<label for="chapter" class="label">
-					<i class="light-icon-bookmark text-lg mr-2" /> Chapter
+					<BookmarkIcon size="20" class="mr-2" /> Chapter
 				</label>
 				<div class="flex items-center">
 					<input
@@ -149,7 +159,7 @@
 			</div>
 			<div>
 				<label for="volume" class="label">
-					<i class="light-icon-notebook text-lg mr-2" /> Volume
+					<BookIcon size="20" class="mr-2" /> Volume
 				</label>
 				<div class="flex items-center">
 					<input
@@ -165,7 +175,7 @@
 			</div>
 			<div>
 				<label for="status" class="label">
-					<i class="light-icon-cloud text-lg mr-2" /> Status
+					<CloudIcon size="20" class="mr-2" /> Status
 				</label>
 				<select name="status" class="select" disabled={!closable} bind:value={status}>
 					{#each statusList as status}
@@ -175,7 +185,7 @@
 			</div>
 			<div>
 				<label for="score" class="label">
-					<i class="light-icon-star text-lg mr-2" /> Score
+					<StarIcon size="20" class="mr-2" /> Score
 				</label>
 				<div class="flex items-center">
 					<input
@@ -191,7 +201,7 @@
 			</div>
 			<div>
 				<div class="label flex justify-between">
-					<div><i class="light-icon-calendar-plus text-lg mr-2" /> Started</div>
+					<div><CalendarIcon size="20" class="inline mr-2" />Started</div>
 					<Badge type="info" class="cursor-pointer" on:click={() => startDateSelector.setTo(DateTime.now())}>
 						Today
 					</Badge>
@@ -200,7 +210,7 @@
 			</div>
 			<div>
 				<div class="label flex justify-between">
-					<div><i class="light-icon-calendar-event text-lg mr-2" /> Completed</div>
+					<div><CalendarIcon size="20" class="inline mr-2" />Completed</div>
 					<Badge type="info" class="cursor-pointer" on:click={() => endDateSelector.setTo(DateTime.now())}>
 						Today
 					</Badge>
@@ -229,7 +239,7 @@
 		<div class="flex items-center">
 			<Button type="success" disabled={!closable || !valid} class="mr-2 transition-all" on:click={save}>
 				<span>Save</span>
-				<i class="light-icon-upload text-lg ml-2" />
+				<SaveIcon class="ml-2" />
 			</Button>
 			<Button type="warning" disabled={!closable} on:click={hide}>Close</Button>
 		</div>

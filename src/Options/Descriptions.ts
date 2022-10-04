@@ -1,3 +1,6 @@
+import type { SvelteComponentTyped } from "svelte";
+import { PenToolIcon, RefreshCwIcon, ListIcon, BellIcon, LayersIcon } from "svelte-feather-icons";
+
 type SimpleOptionType = "color" | "colorList" | "string";
 type ToggleOptionType = "toggle";
 type NumberOptionType = "number";
@@ -27,11 +30,11 @@ export type OptionDescription = SimpleOptionDescription | ToggleOptionDescriptio
 type CategorizedOptions = {
 	[key: string]: {
 		description?: string;
-		icon?: string;
+		icon?: typeof SvelteComponentTyped<{ size?: string; class?: string }> | string;
 		list: {
 			[key: string]: {
 				description?: string;
-				icon: string;
+				icon: typeof SvelteComponentTyped<{ size?: string; class?: string }> | string;
 				list: {
 					[key in MutableOption]?: OptionDescription;
 				};
@@ -43,16 +46,17 @@ type CategorizedOptions = {
 type LeafOptionList = {
 	[key: string]: {
 		description?: string;
-		icon?: string;
+		icon: typeof SvelteComponentTyped<{ size?: string; class?: string }> | string;
 		list: {
 			[key in MutableOption]?: OptionDescription;
 		};
 	};
 };
 
+// <svelte:component this={icon} size="24" class="inline mx-3" />
 const defaultOptionsList: LeafOptionList = {
 	Highlight: {
-		icon: "light-icon-brush",
+		icon: PenToolIcon,
 		list: {
 			"colors.enabled": {
 				name: "Highlight chapter rows",
@@ -91,7 +95,7 @@ const defaultOptionsList: LeafOptionList = {
 		},
 	},
 	Updates: {
-		icon: "light-icon-refresh",
+		icon: RefreshCwIcon,
 		list: {
 			"reading.saveOnlyNext": {
 				name: "Sync only next chapter",
@@ -140,7 +144,7 @@ const defaultOptionsList: LeafOptionList = {
 		},
 	},
 	Lists: {
-		icon: "light-icon-list",
+		icon: ListIcon,
 		list: {
 			"lists.hideHigher": {
 				name: "Hide higher chapters",
@@ -160,7 +164,7 @@ const defaultOptionsList: LeafOptionList = {
 		},
 	},
 	Notifications: {
-		icon: "light-icon-bell",
+		icon: BellIcon,
 		list: {
 			"notifications.enabled": {
 				name: "Show notifications",
@@ -196,7 +200,7 @@ const defaultOptionsList: LeafOptionList = {
 		},
 	},
 	Overlay: {
-		icon: "light-icon-stack",
+		icon: LayersIcon,
 		list: {
 			"overlay.openOnClick": {
 				name: "Open Overlay on click",
@@ -213,9 +217,9 @@ descriptions.Global = {
 	icon: "file:/static/icons/tachikoma/16.png",
 	description: "The global options are overwrite by the corresponding Site option when enabled.",
 	list: {
-		...JSON.parse(JSON.stringify(defaultOptionsList)),
+		...defaultOptionsList,
 		// Other: {
-		// 	icon: "light-icon-settings",
+		// 	icon: SettingsIcon,
 		// 	list: {
 		// 		useMochi: {
 		// 			name: "Use Mochi",

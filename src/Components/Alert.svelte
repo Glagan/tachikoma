@@ -1,30 +1,33 @@
 <script lang="ts">
+	import type { SvelteComponentTyped } from "svelte";
+	import { InfoIcon, CheckCircleIcon, XCircleIcon, AlertCircleIcon, LoaderIcon } from "svelte-feather-icons";
+
 	let className: string = "";
 	export { className as class };
 	export let type: "loading" | "success" | "error" | "warning" | "info";
 
-	let icon: string = "";
+	let icon: typeof SvelteComponentTyped<{ size?: string; class?: string }>;
 	switch (type) {
 		case "info":
-			icon = "light-icon-info-circle";
+			icon = InfoIcon;
 			break;
 		case "success":
-			icon = "light-icon-circle-check";
+			icon = CheckCircleIcon;
 			break;
 		case "error":
-			icon = "light-icon-circle-x";
+			icon = XCircleIcon;
 			break;
 		case "warning":
-			icon = "light-icon-alert-triangle";
+			icon = AlertCircleIcon;
 			break;
 		case "loading":
-			icon = "light-icon-dots-circle-horizontal";
+			icon = LoaderIcon;
 			break;
 	}
 </script>
 
 <div class={`alert ${type} ${className}`} role="alert">
-	<i class={`w-6 h-6 ml-3 mr-3 fill-current text-base ${icon}`} />
+	<svelte:component this={icon} size="24" class="inline mx-3" />
 	<span><slot /></span>
 </div>
 

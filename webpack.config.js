@@ -10,9 +10,7 @@ import { getBrowserAction, getEntries, readAndTransformManifest } from "./config
 import WebExtensionPlugin from "./config/WebExtensionPlugin.js";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import CssMinimizerPlugin from "css-minimizer-webpack-plugin";
-import ImageMinimizerPlugin from "image-minimizer-webpack-plugin";
 import TerserPlugin from "terser-webpack-plugin";
-import WebpackStringReplacer from "webpack-string-replacer";
 
 export default (env, argv) => {
 	const vendor = env.vendor;
@@ -52,29 +50,6 @@ export default (env, argv) => {
 					  })
 					: { apply: () => {} },
 				new CssMinimizerPlugin(),
-				new ImageMinimizerPlugin({
-					minimizer: {
-						implementation: ImageMinimizerPlugin.imageminMinify,
-						options: {
-							plugins: [
-								[
-									"svgo",
-									{
-										name: "preset-default",
-										params: {
-											overrides: {
-												addAttributesToSVGElement: {
-													attributes: [{ xmlns: "http://www.w3.org/2000/svg" }],
-												},
-												removeViewBox: false,
-											},
-										},
-									},
-								],
-							],
-						},
-					},
-				}),
 			],
 		},
 		devtool: production ? undefined : "inline-source-map",
@@ -132,27 +107,6 @@ export default (env, argv) => {
 			new CaseSensitivePathsPlugin(),
 			new webpack.DefinePlugin({
 				"process.env.VENDOR": JSON.stringify(vendor),
-				"url(light-icon":
-					vendor == "firefox"
-						? "url(moz-extension://__MSG_@@extension_id__/light-icon"
-						: "url(chrome-extension://__MSG_@@extension_id__/light-icon",
-			}),
-			new WebpackStringReplacer({
-				rules: [
-					{
-						applyStage: "optimizeChunkAssets",
-						outputFileInclude: /\.css$/,
-						replacements: [
-							{
-								pattern: "url(light-icon",
-								replacement:
-									vendor == "firefox"
-										? "url(moz-extension://__MSG_@@extension_id__/light-icon"
-										: "url(chrome-extension://__MSG_@@extension_id__/light-icon",
-							},
-						],
-					},
-				],
 			}),
 			new CopyWebpackPlugin({
 				patterns: [{ from: "static", to: "static" }],
