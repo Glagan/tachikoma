@@ -3,6 +3,7 @@ import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import typescript from "rollup-plugin-typescript2";
 import replace from "@rollup/plugin-replace";
+import { terser } from "rollup-plugin-terser";
 
 // this override is needed because Module format cjs does not support top-level await
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -11,6 +12,8 @@ const packageJson = require("./package.json");
 const globals = {
 	...packageJson.devDependencies,
 };
+
+const isProduction = !!process.env.production;
 
 export default {
 	input: "src/Background/service_worker.ts",
@@ -39,6 +42,7 @@ export default {
 			exclude: "node_modules",
 			ignoreGlobal: true,
 		}),
+		isProduction && terser(),
 	],
 	external: Object.keys(globals),
 };
