@@ -3,7 +3,7 @@ import Tachikoma from "@Core/Tachikoma";
 import Title from "@Core/Title";
 import MangaDex from "@Service/MangaDex";
 import MangaDexAPI from "../API";
-import { convertServices, fullChapterFromString, getCover, IDFromLink, waitForSelector } from "../Utility";
+import { fullChapterFromString, IDFromLink, waitForSelector } from "../Utility";
 import { ChapterRow, highlight } from "../Highlight";
 
 function findMangaDexId(): string | undefined {
@@ -67,12 +67,12 @@ async function run() {
 	if (!informations) {
 		return;
 	}
-	const services = convertServices(informations.attributes.links);
+	const services = MangaDex.extractServices(informations.attributes.links);
 	services[MangaDex.key] = { id: informations.id };
 	const title = await Title.getOrCreate(
 		MangaDex.key,
 		{ id: informations.id },
-		{ name: informations.attributes.title.en, thumbnail: getCover(informations), services }
+		{ name: informations.attributes.title.en, thumbnail: MangaDex.extractCover(informations), services }
 	);
 	waitForChaptersAndHighlight(title);
 	debug("title", title);

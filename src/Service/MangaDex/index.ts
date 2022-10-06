@@ -10,10 +10,12 @@ import {
 	SaveStatus,
 	DeleteResult,
 	DeleteStatus,
+	SearchStatus,
 } from "@Core/Service";
 import { Volcano } from "@Core/Volcano";
 import Title, { Status, TitleInterface } from "@Core/Title";
-import { info } from "@Core/Logger";
+import { debug, info } from "@Core/Logger";
+import MyAnimeList from "@Service/MyAnimeList";
 
 type Token = {
 	session: string;
@@ -62,10 +64,134 @@ type UserResponse =
 	  }
 	| ({ result: "error" } & ResponseError);
 
+export type Links = {
+	// https://anilist.co/manga/`{id}`
+	al?: string;
+	// https://www.anime-planet.com/manga/`{slug}`
+	ap?: string;
+	// https://bookwalker.jp/`{slug}` -- stored as "series/"
+	bw?: string;
+	// https://www.mangaupdates.com/series.html?id=`{id}`
+	mu?: string;
+	// https://www.novelupdates.com/series/`{slug}`
+	nu?: string;
+	// https://kitsu.io/api/edge/manga/`{id}` or https://kitsu.io/api/edge/manga?filter[slug]={slug}
+	// If integer, use id version of the URL, otherwise use slug one
+	kt?: string;
+	// Stored as full URL
+	amz?: string;
+	// Stored as full URL
+	ebj?: string;
+	// https://myanimelist.net/manga/{id}
+	mal?: string;
+	// Stored as full URL
+	cdj?: string;
+	// Stored as full URL, untranslated stuff URL (original language)
+	raw?: string;
+	// Stored as full URL, official english licenced URL
+	engtl?: string;
+};
+
+type Demographic = "shounen" | "shoujo" | "josei" | "seinen";
+type PublicationStatus = "ongoing" | "completed" | "hiatus" | "cancelled";
+type ContentRating = "safe" | "suggestive" | "erotica" | "pornographic";
+
+type MangaRelationship =
+	| "manga"
+	| "chapter"
+	| "cover_art"
+	| "author"
+	| "artist"
+	| "scanlation_group"
+	| "tag"
+	| "user"
+	| "custom_list";
+
+type Related =
+	| "monochrome"
+	| "colored"
+	| "preserialization"
+	| "serialization"
+	| "prequel"
+	| "sequel"
+	| "main_story"
+	| "side_story"
+	| "adapted_from"
+	| "spin_off"
+	| "based_on"
+	| "doujinshi"
+	| "same_franchise"
+	| "shared_universe"
+	| "alternate_story"
+	| "alternate_version";
+
+export type MangaDexManga = {
+	id: string;
+	type: "manga";
+	attributes: {
+		title: { en: string; [key: string]: string };
+		altTitles: { [key: string]: string }[];
+		description: { [key: string]: string };
+		isLocked: boolean;
+		links?: Links;
+		originalLanguage: string;
+		lastVolume: string;
+		lastChapter: string;
+		publicationDemographic: Demographic;
+		status: PublicationStatus;
+		year: number;
+		contentRating: ContentRating;
+		chapterNumbersResetOnNewVolume: boolean;
+		availableTranslatedLanguages: string[];
+		tags: {
+			id: string;
+			type: "tag";
+			attributes: {
+				name: { en: string; [key: string]: string };
+				description: { [key: string]: string };
+				group: string;
+				version: number;
+			};
+			relationships: {
+				id: string;
+				type: string;
+			}[];
+		}[];
+		state: string;
+		version: number;
+		createdAt: string;
+		updatedAt: string;
+	};
+	relationships: ({
+		id: string;
+		type: MangaRelationship;
+		// related: Related;
+	} & {
+		type: "cover_art";
+		attributes: {
+			description: string;
+			volume: string;
+			fileName: string;
+			locale: string;
+			createdAt: string;
+			updatedAt: string;
+			version: number;
+		};
+	})[];
+};
+
+type SearchResponse =
+	| {
+			result: "ok";
+			response: "collection";
+			data: MangaDexManga[];
+	  }
+	| ({ result: "error" } & ResponseError);
+
 /***
  * Only the `status` is currently available on MangaDex.
  */
-export default new (class MangaDex extends APIService {
+class MangaDex_ extends APIService {
 	name = "MangaDex";
 	key = "md";
 	url = "https://mangadex.org/";
@@ -315,4 +441,65 @@ export default new (class MangaDex extends APIService {
 		if (!id.id) return undefined;
 		return this.route(`title/${id.id}`, true);
 	}
-})();
+
+	/**
+	 * Convert a list of services from their full names and the resource URL to a corresponding
+	 * tachikoma service and it's TitleIdentifier for the service.
+	 * @param services List of Service fullnames and their URL as stored in MangaDex
+	 * @returns List of services formatted for tachikoma
+	 */
+	extractServices(services?: Links): { [key: string]: TitleIdentifier } {
+		let converted: { [key: string]: TitleIdentifier } = {};
+		if (services?.mal) {
+			converted[MyAnimeList.key] = { id: parseInt(services.mal) };
+		} /* else if (services.al) {
+		} */
+		return converted;
+	}
+
+	extractCover(mangaDexManga: MangaDexManga, size?: "small" | "regular"): string | undefined {
+		let cover = mangaDexManga.relationships.find((relation) => relation.type == "cover_art");
+		debug("found cover", cover);
+		if (cover) {
+			let sizePx = !size || size == "small" ? 256 : 512;
+			return `https://uploads.mangadex.org/covers/${mangaDexManga.id}/${cover.attributes.fileName}.${sizePx}.jpg`;
+		}
+		return undefined;
+	}
+
+	async search(query: string, page?: number) {
+		const token = await this.validToken();
+		// Use the token if it's available, it's not required
+
+		// Simple search request, /manga?title=search
+		// covert_art is required to get the thumbnail
+		if (!page) page = 1;
+		const response = await Volcano.get<SearchResponse>(
+			this.route(
+				`manga?${Volcano.buildQuery({
+					title: query,
+					"includes[]": "covert_art",
+					offset: (page - 1) * 100,
+				})}`
+			),
+			{ headers: token && token?.session ? this.headers(token.session) : undefined }
+		);
+
+		if (response.status >= 401 && response.status <= 403) {
+			return { status: SearchStatus.ACCOUNT_ERROR };
+		}
+		if (!response.body || response.status >= 500 || response.body.result !== "ok") {
+			return { status: SearchStatus.SERVICE_ERROR };
+		}
+
+		debug("[MangaDex] search response", response);
+
+		return response.body.data.map((manga) => ({
+			name: manga.attributes.title.en,
+			thumbnail: this.extractCover(manga),
+			service: { id: manga.id },
+			external: this.extractServices(manga.attributes.links),
+		}));
+	}
+}
+export default new MangaDex_();

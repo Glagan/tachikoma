@@ -60,6 +60,9 @@ export class TachikomaClass {
 		const result = await updater.restore(report.snapshots, report.localSnapshot);
 		this.overlay.setTitle(updater.title);
 		this.displaySyncReport(result, updater, false);
+		if (this.current) {
+			this.overlay.setTitle(this.current.title);
+		}
 		this.overlay.setLoading(false);
 	}
 
@@ -129,6 +132,7 @@ export class TachikomaClass {
 		const result = await this.current.export();
 		result.localSnapshot = localSnapshot;
 		this.displaySyncReport(result, this.current, true);
+		this.overlay.setTitle(this.current.title);
 		this.overlay.setLoading(false);
 		return result;
 	}
@@ -153,6 +157,7 @@ export class TachikomaClass {
 			result.localSnapshot = localSnapshot;
 			this.displaySyncReport(result, this.current, true);
 		}
+		this.overlay.setTitle(this.current.title);
 		this.overlay.setLoading(false);
 		return result;
 	}
@@ -168,6 +173,7 @@ export class TachikomaClass {
 		}
 		const result = await this.current.export();
 		this.syncNotification = this.displaySyncReport(result, this.current, true);
+		this.overlay.setTitle(this.current.title);
 		this.overlay.setLoading(false);
 		return result;
 	}
@@ -185,6 +191,7 @@ export class TachikomaClass {
 		await currentUpdater.import();
 		const result = await currentUpdater.export();
 		this.syncNotification = this.displaySyncReport(result, currentUpdater, true);
+		this.overlay.setTitle(this.current.title);
 		this.overlay.setLoading(false);
 		return result;
 	}

@@ -52,6 +52,12 @@
 	$: badgeType = title ? (statusToColor(title.status) as BadgeType) : "loading";
 	$: activeServices = title ? Object.keys(title.services).filter((key) => Options.hasService(key)) : undefined;
 
+	$: titleName = title?.name;
+	$: chapter = title?.chapter;
+	$: volume = title?.volume;
+	$: startDate = title?.startDate;
+	$: endDate = title?.endDate;
+
 	let editor: Editor;
 	let editorVisible = false;
 
@@ -88,7 +94,7 @@
 					{#if cover}
 						<img
 							src={cover}
-							alt={`${title.name} cover`}
+							alt={`${titleName} cover`}
 							height="150"
 							width="112"
 							class="border-r border-tachikoma-50"
@@ -96,29 +102,29 @@
 						/>
 					{/if}
 					<div class="p-1 flex-grow flex-shrink overflow-hidden">
-						<div class="truncate overflow-hidden font-bold" title={title.name}>{title.name}</div>
+						<div class="truncate overflow-hidden font-bold" title={titleName}>{titleName}</div>
 						<div class="text-center my-1">
 							<Badge type={badgeType}>{statusToString(title.status)}</Badge>
 						</div>
 						<div>
-							{#if title.chapter}
+							{#if chapter}
 								<p class="flex items-center">
-									<BookmarkIcon size="20" class="mr-2" /> Chapter {title.chapter}
+									<BookmarkIcon size="20" class="mr-2" /> Chapter {chapter}
 								</p>
 							{/if}
-							{#if title.volume}
+							{#if volume}
 								<p class="flex items-center">
-									<BookIcon size="20" class="mr-2" /> Volume {title.volume}
+									<BookIcon size="20" class="mr-2" /> Volume {volume}
 								</p>
 							{/if}
-							{#if title.startDate}
+							{#if startDate}
 								<p class="flex items-center">
-									<CalendarIcon size="20" class="mr-2" /> Started {title.startDate.toLocaleString()}
+									<CalendarIcon size="20" class="mr-2" /> Started {startDate.toLocaleString()}
 								</p>
 							{/if}
-							{#if title.endDate}
+							{#if endDate}
 								<p class="flex items-center">
-									<CalendarIcon size="20" class="mr-2" /> Completed {title.endDate.toLocaleString()}
+									<CalendarIcon size="20" class="mr-2" /> Completed {endDate.toLocaleString()}
 								</p>
 							{/if}
 						</div>

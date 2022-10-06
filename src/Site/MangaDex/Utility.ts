@@ -1,6 +1,4 @@
 import { debug } from "@Core/Logger";
-import MyAnimeList from "@Service/MyAnimeList";
-import type { Links, MangaDexManga } from "./API";
 
 /**
  * Find the ID of a MangaDex title OR chapter by looking at it's URL.
@@ -63,31 +61,6 @@ export function fullChapterFromString(raw: string): Progress {
 		volume: regres[1] ? parseInt(regres[1]) || undefined : undefined,
 		oneshot: false,
 	};
-}
-
-/**
- * Convert a list of services from their full names and the resource URL to a corresponding
- * tachikoma service and it's TitleIdentifier for the service.
- * @param services List of Service fullnames and their URL as stored in MangaDex
- * @returns List of services formatted for tachikoma
- */
-export function convertServices(services?: Links): { [key: string]: TitleIdentifier } {
-	let converted: { [key: string]: TitleIdentifier } = {};
-	if (services?.mal) {
-		converted[MyAnimeList.key] = { id: parseInt(services.mal) };
-	} /* else if (services.al) {
-	} */
-	return converted;
-}
-
-export function getCover(mangaDexManga: MangaDexManga, size?: "small" | "regular"): string | undefined {
-	let cover = mangaDexManga.relationships.find((relation) => relation.type == "cover_art");
-	debug("found cover", cover);
-	if (cover) {
-		let sizePx = !size || size == "small" ? 256 : 512;
-		return `https://uploads.mangadex.org/covers/${mangaDexManga.id}/${cover.attributes.fileName}.${sizePx}.jpg`;
-	}
-	return undefined;
 }
 
 export function waitForSelector(selector: string, timeout: number = 5000): Promise<boolean> {

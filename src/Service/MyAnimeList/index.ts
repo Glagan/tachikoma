@@ -9,11 +9,13 @@ import {
 	DeleteResult,
 	SaveStatus,
 	DeleteStatus,
+	SearchStatus,
 } from "@Core/Service";
 import { Volcano } from "@Core/Volcano";
 import { pkce } from "@Core/Utility";
 import Title, { Status, TitleInterface } from "@Core/Title";
 import { Score } from "@Core/Score";
+import { debug } from "@Core/Logger";
 
 const CLIENT_ID = "aaead2491067691606c70a480a0ebb02" as const;
 const OAUTH2_AUTHORIZE = "https://myanimelist.net/v1/oauth2/authorize" as const;
@@ -40,6 +42,10 @@ const enum ListStatus {
  * Time: "01:35"
  */
 
+type NSFW = "white" | "gray" | "black";
+type MediaType = "unknown" | "manga" | "novel" | "one_shot" | "doujinshi" | "manhwa" | "manhua" | "oel";
+type PublicationStatus = "finished" | "currently_publishing" | "not_yet_published";
+
 type MangaDetails = {
 	id: number;
 	title: string;
@@ -59,13 +65,13 @@ type MangaDetails = {
 	popularity: number;
 	num_list_users: number;
 	num_scoring_users: number;
-	nsfw: "white" | "gray" | "black";
+	nsfw: NSFW;
 	created_at: string; // DateTime
 	updated_at: string; // DateTime
-	media_type: "unknown" | "manga" | "novel" | "one_shot" | "doujinshi" | "manhwa" | "manhua" | "oel";
+	media_type: MediaType;
 	num_volumes: number; // 0 if unknown
 	num_chapters: number; // 0 if unknown
-	status: "finished" | "currently_publishing" | "not_yet_published";
+	status: PublicationStatus;
 	authors: { node: { id: number; first_name: string; last_name: string }; role: string }[];
 	pictures: { large?: string; medium: string }[];
 	background: string | null;
@@ -102,7 +108,18 @@ type MangaDetails = {
 	} | null;
 };
 
-export default new (class MyAnimeList extends APIService {
+type SearchNode = {
+	node: {
+		id: number;
+		title: string;
+		main_picture?: {
+			large?: string | null;
+			medium: string;
+		} | null;
+	};
+};
+
+class MyAnimeList_ extends APIService {
 	name = "MyAnimeList";
 	key = "mal";
 	url = "https://myanimelist.net/";
@@ -371,4 +388,49 @@ export default new (class MyAnimeList extends APIService {
 		if (!id.id) return undefined;
 		return this.route(`manga/${id.id}`, true);
 	}
-})();
+
+	async search(query: string, page?: number) {
+		const token = await this.validToken();
+		if (!token) {
+			return {
+				status: SearchStatus.ACCOUNT_ERROR,
+				message: "Failed to refresh token",
+			};
+		}
+		if (!token.token) return { status: SearchStatus.ACCOUNT_ERROR };
+
+		// Simple search request, /manga?q=search
+		if (!page) page = 1;
+		const response = await Volcano.get<{
+			data: SearchNode[];
+			paging: {
+				previous: string;
+				next: string;
+			};
+		}>(
+			this.route(
+				`manga?${Volcano.buildQuery({
+					q: query,
+					offset: (page - 1) * 100,
+				})}`
+			),
+			{ headers: this.headers(token.token) }
+		);
+
+		if (response.status >= 401 && response.status <= 403) {
+			return { status: SearchStatus.ACCOUNT_ERROR };
+		}
+		if (!response.body || response.status >= 500) {
+			return { status: SearchStatus.SERVICE_ERROR };
+		}
+
+		debug("[MyAnimeList] search response", response);
+
+		return response.body.data.map(({ node }) => ({
+			name: node.title,
+			thumbnail: node.main_picture?.medium,
+			service: { id: node.id },
+		}));
+	}
+}
+export default new MyAnimeList_();

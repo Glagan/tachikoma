@@ -91,7 +91,7 @@ export type SaveResult = {
 };
 
 export enum DeleteStatus {
-	ID_ERROR = 0xf0, // Invalid given ID format
+	ID_ERROR = 0x10, // Invalid given ID format
 	ACCOUNT_ERROR, // Any Token, Cookies or expired tokens error
 	SERVICE_ERROR, // 500+
 	TACHIKOMA_ERROR, // 400-499
@@ -112,6 +112,30 @@ export const deleteStatusDescription: Record<DeleteStatus, string> = {
 
 export type DeleteResult = {
 	status: DeleteStatus;
+	message?: string;
+};
+
+export enum SearchStatus {
+	INVALID_QUERY = 0x20,
+	INVALID_PAGE,
+	ACCOUNT_ERROR, // Any Token, Cookies or expired tokens error
+	SERVICE_ERROR, // 500+
+	TACHIKOMA_ERROR, // 400-499
+	SUCCESS,
+	LOADING,
+}
+
+export type SearchTitle = {
+	name: string;
+	thumbnail?: string;
+	publicationStatus?: string;
+	description?: string;
+	service: TitleIdentifier;
+	external?: { [key: string]: TitleIdentifier };
+};
+
+export type SearchResult = {
+	status: SearchStatus;
 	message?: string;
 };
 
@@ -169,6 +193,8 @@ export default abstract class Service {
 	abstract get(id: TitleIdentifier): Promise<Title | TitleFetchFailure>;
 	abstract save(id: TitleIdentifier, title: Title): Promise<SaveResult>;
 	abstract delete(id: TitleIdentifier): Promise<DeleteResult>;
+
+	search?(query: string, page?: number): Promise<SearchResult | SearchTitle[]>;
 
 	route(path: string, useBaseUrl: boolean = false): string {
 		const base = !useBaseUrl && this.apiUrl ? this.apiUrl : this.url;
