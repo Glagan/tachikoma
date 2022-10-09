@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { DateTime } from "luxon";
 
-	export let date: DateTime | undefined;
+	export let date: DateTime | undefined = undefined;
 	export let disabled: boolean = false;
 
 	let day: number | undefined = date?.get("day");

@@ -130,7 +130,7 @@ export type SearchTitle = {
 	thumbnail?: string;
 	publicationStatus?: string;
 	description?: string;
-	service: TitleIdentifier;
+	identifier: TitleIdentifier;
 	external?: { [key: string]: TitleIdentifier };
 };
 

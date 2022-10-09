@@ -459,7 +459,6 @@ class MangaDex_ extends APIService {
 
 	extractCover(mangaDexManga: MangaDexManga, size?: "small" | "regular"): string | undefined {
 		let cover = mangaDexManga.relationships.find((relation) => relation.type == "cover_art");
-		debug("found cover", cover);
 		if (cover) {
 			let sizePx = !size || size == "small" ? 256 : 512;
 			return `https://uploads.mangadex.org/covers/${mangaDexManga.id}/${cover.attributes.fileName}.${sizePx}.jpg`;
@@ -472,13 +471,13 @@ class MangaDex_ extends APIService {
 		// Use the token if it's available, it's not required
 
 		// Simple search request, /manga?title=search
-		// covert_art is required to get the thumbnail
+		// cover_art is required to get the thumbnail
 		if (!page) page = 1;
 		const response = await Volcano.get<SearchResponse>(
 			this.route(
 				`manga?${Volcano.buildQuery({
 					title: query,
-					"includes[]": "covert_art",
+					"includes[]": "cover_art",
 					offset: (page - 1) * 100,
 				})}`
 			),
@@ -492,12 +491,10 @@ class MangaDex_ extends APIService {
 			return { status: SearchStatus.SERVICE_ERROR };
 		}
 
-		debug("[MangaDex] search response", response);
-
 		return response.body.data.map((manga) => ({
 			name: manga.attributes.title.en,
 			thumbnail: this.extractCover(manga),
-			service: { id: manga.id },
+			identifier: { id: manga.id },
 			external: this.extractServices(manga.attributes.links),
 		}));
 	}

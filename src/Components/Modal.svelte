@@ -56,7 +56,7 @@
 
 <style lang="postcss">
 	.wrapper {
-		@apply fixed z-[99] h-screen w-screen top-0 right-0 bottom-0 left-0 flex items-center justify-center bg-black bg-opacity-80;
+		@apply fixed z-[99] h-screen w-screen top-0 right-0 bottom-0 left-0 flex items-center justify-center bg-black bg-opacity-90;
 	}
 
 	.wrapper .modal {

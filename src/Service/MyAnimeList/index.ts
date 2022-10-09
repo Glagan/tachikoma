@@ -424,12 +424,10 @@ class MyAnimeList_ extends APIService {
 			return { status: SearchStatus.SERVICE_ERROR };
 		}
 
-		debug("[MyAnimeList] search response", response);
-
 		return response.body.data.map(({ node }) => ({
 			name: node.title,
 			thumbnail: node.main_picture?.medium,
-			service: { id: node.id },
+			identifier: { id: node.id },
 		}));
 	}
 }

@@ -15,7 +15,6 @@
 	import Modal from "@Components/Modal.svelte";
 	import Button from "@Components/Button.svelte";
 	import { Lake } from "@Core/Lake";
-	import { deepAssign } from "@Core/Utility";
 	import Badge from "@Components/Badge.svelte";
 	import { Status, statusToString, type TitleInterface } from "@Core/Title";
 	import Toggle from "@Components/Toggle.svelte";
@@ -24,13 +23,18 @@
 	import { Score } from "@Core/Score";
 	import Tachikoma from "@Core/Tachikoma";
 	import { debug } from "@Core/Logger";
+	import Search from "./Search.svelte";
+	import { temporaryTitleStore } from "./TemporaryTitle";
 
 	export let title: Title;
+	temporaryTitleStore.setFrom(title);
 
 	let closable = true;
 	let modal: Modal;
+	let searchModal: Search;
 
 	export function show() {
+		searchModal.cleanup();
 		modal.show();
 	}
 
@@ -41,12 +45,12 @@
 		dispatch("hide");
 	}
 
-	let name = title?.name;
-	let thumbnail = title?.thumbnail;
-	let chapter = title?.chapter != undefined ? `${title.chapter}` : "";
-	let volume = title?.volume != undefined ? `${title.volume}` : "";
-	let status = title?.status;
-	let score = title?.score ? `${title.score.get([0, 100])}` : "";
+	let name = $temporaryTitleStore.name;
+	let thumbnail = $temporaryTitleStore.thumbnail;
+	let chapter = $temporaryTitleStore.chapter != undefined ? `${$temporaryTitleStore.chapter}` : "";
+	let volume = $temporaryTitleStore.volume != undefined ? `${$temporaryTitleStore.volume}` : "";
+	let status = $temporaryTitleStore.status;
+	let score = $temporaryTitleStore.score ? `${$temporaryTitleStore.score.get([0, 100])}` : "";
 
 	const statusList = Object.keys(Status)
 		.map((key) => parseInt(key))
@@ -54,17 +58,7 @@
 		.map((key) => key as Status);
 
 	let startDateSelector: DateSelector;
-	let startDate: DateTime | undefined = title?.startDate?.set({});
 	let endDateSelector: DateSelector;
-	let endDate: DateTime | undefined = title?.endDate?.set({});
-
-	const lockedServices = Array.from(title.lockedServices);
-	const services: typeof title.services = deepAssign({}, title.services);
-	for (const service of Lake.services) {
-		if (!services[service.key]) {
-			services[service.key] = {};
-		}
-	}
 
 	$: intChapter = parseInt(chapter);
 	$: validChapter = chapter != undefined && !isNaN(intChapter) && intChapter >= 0;
@@ -79,10 +73,10 @@
 
 	async function save() {
 		closable = false;
-		const validServices: typeof title.services = {};
-		for (const key of Object.keys(services)) {
-			if (Object.keys(services[key]).length > 0) {
-				validServices[key] = services[key];
+		const validServices: typeof $temporaryTitleStore.services = {};
+		for (const key of Object.keys($temporaryTitleStore.services)) {
+			if (Object.keys($temporaryTitleStore.services[key]).length > 0) {
+				validServices[key] = $temporaryTitleStore.services[key];
 			}
 		}
 		const title: TitleInterface = {
@@ -92,15 +86,19 @@
 			volume: isNaN(intVolume) ? undefined : intVolume,
 			status,
 			score: score == undefined || score == "" || isNaN(intScore) ? undefined : new Score(intScore, [0, 100]),
-			startDate,
-			endDate,
-			lockedServices,
+			startDate: $temporaryTitleStore.startDate,
+			endDate: $temporaryTitleStore.endDate,
+			lockedServices: $temporaryTitleStore.lockedServices,
 			services: validServices,
 		};
 		debug("Updating title to", JSON.parse(JSON.stringify(title)));
 		await Tachikoma.update(title, deletePrevious, updateExternals);
 		closable = true;
 		hide();
+	}
+
+	function showSearch() {
+		searchModal.show();
 	}
 </script>
 
@@ -206,7 +204,11 @@
 						Today
 					</Badge>
 				</div>
-				<DateSelector bind:this={startDateSelector} disabled={!closable} bind:date={startDate} />
+				<DateSelector
+					bind:this={startDateSelector}
+					disabled={!closable}
+					bind:date={$temporaryTitleStore.startDate}
+				/>
 			</div>
 			<div>
 				<div class="label flex justify-between">
@@ -215,13 +217,20 @@
 						Today
 					</Badge>
 				</div>
-				<DateSelector bind:this={endDateSelector} disabled={!closable} bind:date={endDate} />
+				<DateSelector
+					bind:this={endDateSelector}
+					disabled={!closable}
+					bind:date={$temporaryTitleStore.endDate}
+				/>
 			</div>
 		</div>
-		<div class="title-separator border-y">Services</div>
+		<div class="flex justify-between items-center title-separator border-y">
+			Services
+			<Button size="sm" on:click={showSearch}>Search</Button>
+		</div>
 		<div class="p-4">
 			{#each Lake.services as service (service.key)}
-				<ServiceEditor {service} {lockedServices} disabled={!closable} identifier={services[service.key]} />
+				<ServiceEditor {service} disabled={!closable} />
 			{/each}
 		</div>
 	</div>
@@ -245,6 +254,7 @@
 		</div>
 	</div>
 </Modal>
+<Search bind:this={searchModal} />
 
 <style lang="postcss">
 	.title-separator {

@@ -51,6 +51,3 @@ if (window.$nuxt === undefined) {
 } else {
 	document.dispatchEvent(new CustomEvent("md:ready"));
 }
-
-MyAnimeList.search("berserk");
-MangaDex.search("berserk");

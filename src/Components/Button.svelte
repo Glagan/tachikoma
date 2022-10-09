@@ -12,7 +12,7 @@
 	export let target: "_blank" | undefined = undefined;
 	export let rel: "noreferrer" | "noopener" | "noreferrer noopener" | undefined = undefined;
 
-	let classes = `${className} button ${type} ${size ? size : ""} ${block ? "block" : ""}`;
+	$: classes = `${className} button ${type} ${size ? size : ""} ${block ? "block" : ""}`;
 </script>
 
 <svelte:element this={href ? "a" : "button"} class={classes} {title} {disabled} {href} {target} {rel} on:click>

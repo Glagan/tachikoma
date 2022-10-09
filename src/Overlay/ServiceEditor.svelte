@@ -5,52 +5,14 @@
 	import Badge from "@Components/Badge.svelte";
 	import Button from "@Components/Button.svelte";
 	import Toggle from "@Components/Toggle.svelte";
-	import type Title from "@Core/Title";
 	import { Options } from "@Core/Options";
+	import { temporaryTitleStore } from "./TemporaryTitle";
 
 	export let service: Service;
-	export let lockedServices: Title["lockedServices"];
-	export let identifier: TitleIdentifier;
 	export let disabled: boolean = false;
 
 	const enabled = Options.hasService(service.key);
-	let locked = lockedServices.indexOf(service.key) >= 0;
-	$: {
-		if (locked) {
-			lockedServices.push(service.key);
-		} else {
-			const index = lockedServices.indexOf(service.key);
-			if (index >= 0) {
-				lockedServices.splice(index, 1);
-			}
-		}
-		lockedServices = lockedServices;
-	}
-
-	let tmpIdentifiers = Object.keys(identifier).map((key) => ({ key, value: identifier[key] }));
-	$: {
-		for (const tmpIdentifier of tmpIdentifiers) {
-			if (
-				tmpIdentifier.key &&
-				tmpIdentifier.key.length > 0 &&
-				tmpIdentifier.value &&
-				tmpIdentifier.value.length > 0
-			) {
-				identifier[tmpIdentifier.key] = tmpIdentifier.value;
-			}
-		}
-		identifier = identifier;
-	}
-
-	function addTmpIdentifier() {
-		tmpIdentifiers.push({ key: "", value: "" });
-		tmpIdentifiers = tmpIdentifiers;
-	}
-
-	function removeTmpIdentifier(index: number) {
-		tmpIdentifiers.splice(index, 1);
-		tmpIdentifiers = tmpIdentifiers;
-	}
+	$: locked = $temporaryTitleStore.lockedServices!.indexOf(service.key) >= 0;
 </script>
 
 <div class="mb-4 last-of-type:mb-0">
@@ -71,6 +33,7 @@
 					{disabled}
 					showLabel={false}
 					value={locked}
+					on:change={() => temporaryTitleStore.toggleServiceLock(service.key)}
 				/>
 			</div>
 			<div>
@@ -78,7 +41,7 @@
 			</div>
 		</div>
 		<div>
-			{#each tmpIdentifiers as tmpIdentifier, index}
+			{#each $temporaryTitleStore.tmpIdentifiers[service.key] as tmpIdentifier, index}
 				<div class="grid grid-cols-[1fr_1fr_auto] gap-2 items-end">
 					<div>
 						<label for="debug" class="label mt-0">Key</label>
@@ -105,13 +68,19 @@
 						size="xs"
 						class="mb-1"
 						{disabled}
-						on:click={removeTmpIdentifier.bind(null, index)}
+						on:click={temporaryTitleStore.removeTmpIdentifier.bind(null, service.key, index)}
 					>
 						<Trash2Icon />
 					</Button>
 				</div>
 			{/each}
-			<Button type="info" size="sm" class="mt-2" {disabled} on:click={addTmpIdentifier}>
+			<Button
+				type="info"
+				size="sm"
+				class="mt-2"
+				{disabled}
+				on:click={temporaryTitleStore.addTmpIdentifier.bind(null, service.key)}
+			>
 				<span>Add field</span>
 				<PlusCircleIcon class="ml-2" />
 			</Button>
