@@ -146,7 +146,7 @@ export default class Title implements TitleInterface {
 
 			this.lockedServices = title.lockedServices ?? [];
 			this.services = JSON.parse(JSON.stringify(title.services));
-			this.sites = JSON.parse(JSON.stringify(title.sites));
+			this.sites = JSON.parse(JSON.stringify(title.sites ?? {}));
 			this.creation = title.creation;
 			this.lastUpdate = title.lastUpdate;
 			this.lastAccess = title.lastAccess;

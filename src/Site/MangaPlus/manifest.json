@@ -1,0 +1,6 @@
+{
+	"content_scripts": {
+		"entry": "index.ts",
+		"matches": ["https://mangaplus.shueisha.co.jp/*"]
+	}
+}
