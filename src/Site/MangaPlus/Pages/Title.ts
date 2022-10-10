@@ -41,7 +41,6 @@ async function highlightRows(title: Title) {
 	highlight(rows, title);
 }
 
-let randomObserver: MutationObserver | undefined;
 async function run() {
 	info("Title page");
 

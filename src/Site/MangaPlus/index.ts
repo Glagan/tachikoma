@@ -2,7 +2,7 @@ import { Options } from "@Core/Options";
 import Router from "@Core/Router";
 import Tachikoma from "@Core/Tachikoma";
 import { info } from "@Core/Logger";
-// import Chapter from "./Pages/Chapter";
+import Chapter from "./Pages/Chapter";
 import Title from "./Pages/Title";
 // import ChapterList from "./Pages/ChapterList";
 import "@Core/sites.css";
@@ -14,7 +14,7 @@ const router = new Router();
 router.add([/^\/manga_list\/all\/?$/, /^\/featured\/?$/], async () => {
 	info("Title List Page");
 });
-// router.add([/^\/viewer\/(\d+)\/?/], Chapter);
+router.add([/^\/viewer\/(\d+)\/?/], Chapter);
 // router.add([/^\/updates\/?$/], ChapterList, undefined);
 router.add([/^\/titles\/(\d+)\/?/], Title);
 
