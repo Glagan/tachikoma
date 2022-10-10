@@ -19,9 +19,9 @@
 
 <Title size="4">
 	<span>{option.name}</span>
-	<div class="inline-block ml-4">
+	<div class="inline-flex ml-2">
 		{#each servicesEnabled as serviceKey}
-			<img src={file(`/static/icons/${serviceKey}.png`)} alt={serviceKey} />
+			<img src={file(`/static/icons/${serviceKey}.png`)} alt={serviceKey} class="mr-2" />
 		{/each}
 	</div>
 </Title>
