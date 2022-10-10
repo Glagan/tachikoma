@@ -2,9 +2,10 @@ import { debug, info } from "@Core/Logger";
 import Tachikoma from "@Core/Tachikoma";
 import Title from "@Core/Title";
 import MangaDex from "@Service/MangaDex";
+import { ChapterRow, highlight } from "@Core/Highlight";
+import { waitForSelector } from "@Core/Utility";
 import MangaDexAPI from "../API";
-import { fullChapterFromString, IDFromLink, waitForSelector } from "../Utility";
-import { ChapterRow, highlight } from "../Highlight";
+import { fullChapterFromString, IDFromLink } from "../Utility";
 
 function findMangaDexId(): string | undefined {
 	const titleLink = document.querySelector<HTMLAnchorElement>('[to^="/title/"]');
@@ -80,7 +81,11 @@ async function run() {
 		debug("updated services", { services: title.services });
 		await title.save();
 	}
-	Tachikoma.setTitle(title);
+	const updater = Tachikoma.setTitle(title);
+	updater.addListener((title) => {
+		waitForChaptersAndHighlight(title);
+	});
+
 	debug("found title", { title });
 
 	// * Initial merge import and export for all services

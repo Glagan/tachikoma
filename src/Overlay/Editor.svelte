@@ -51,6 +51,7 @@
 	let volume = $temporaryTitleStore.volume != undefined ? `${$temporaryTitleStore.volume}` : "";
 	let status = $temporaryTitleStore.status;
 	let score = $temporaryTitleStore.score ? `${$temporaryTitleStore.score.get([0, 100])}` : "";
+	let originalSites = title.sites;
 
 	const statusList = Object.keys(Status)
 		.map((key) => parseInt(key))
@@ -74,9 +75,12 @@
 	async function save() {
 		closable = false;
 		const validServices: typeof $temporaryTitleStore.services = {};
-		for (const key of Object.keys($temporaryTitleStore.services)) {
-			if (Object.keys($temporaryTitleStore.services[key]).length > 0) {
-				validServices[key] = $temporaryTitleStore.services[key];
+		for (const service of Object.keys($temporaryTitleStore.tmpIdentifiers)) {
+			if ($temporaryTitleStore.tmpIdentifiers[service].length > 0) {
+				validServices[service] = {};
+				for (const { key, value } of $temporaryTitleStore.tmpIdentifiers[service]) {
+					validServices[service][key] = value;
+				}
 			}
 		}
 		const title: TitleInterface = {
@@ -90,6 +94,7 @@
 			endDate: $temporaryTitleStore.endDate,
 			lockedServices: $temporaryTitleStore.lockedServices,
 			services: validServices,
+			sites: originalSites,
 		};
 		debug("Updating title to", JSON.parse(JSON.stringify(title)));
 		await Tachikoma.update(title, deletePrevious, updateExternals);
@@ -237,12 +242,12 @@
 	<div slot="footer" class="flex justify-between w-full">
 		<div>
 			<div class="flex items-center justify-start">
-				<label for="update-external" class="text-sm cursor-pointer mr-2">Update all Services</label>
-				<Toggle key="update-external" bind:value={updateExternals} showLabel={false} />
+				<label for="delete-previous" class="text-sm cursor-pointer mr-2">Delete previous services</label>
+				<Toggle key="delete-previous" bind:value={deletePrevious} disabled showLabel={false} />
 			</div>
 			<div class="flex items-center justify-start">
-				<label for="delete-previous" class="text-sm cursor-pointer mr-2">Delete previous services</label>
-				<Toggle key="delete-previous" bind:value={deletePrevious} showLabel={false} />
+				<label for="update-external" class="text-sm cursor-pointer mr-2">Update all Services</label>
+				<Toggle key="update-external" bind:value={updateExternals} disabled showLabel={false} />
 			</div>
 		</div>
 		<div class="flex items-center">

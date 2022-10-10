@@ -4,7 +4,7 @@
 
 type TitleIdentifier = Record<any, any>;
 
-type ServiceList = { [key: string]: TitleIdentifier };
+type IdentifierList = { [key: string]: TitleIdentifier };
 
 type TitleStorageInterface = {
 	i: number; // ID
@@ -17,7 +17,8 @@ type TitleStorageInterface = {
 	t?: number; // Start Date
 	e?: number; // End Date
 	l?: string[]; // Locked Services
-	$?: ServiceList; // Services
+	$?: IdentifierList; // Services
+	["@"]?: IdentifierList; // Sites
 	o?: number; // Creation Date
 	u?: number; // Last Update
 	a?: number; // Last Access

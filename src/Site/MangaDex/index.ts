@@ -5,9 +5,7 @@ import { info } from "@Core/Logger";
 import Chapter from "./Pages/Chapter";
 import Title from "./Pages/Title";
 import ChapterList from "./Pages/ChapterList";
-import "./index.css";
-import MyAnimeList from "@Service/MyAnimeList";
-import MangaDex from "@Service/MangaDex";
+import "@Core/sites.css";
 
 const router = new Router();
 router.add([/\/titles$/, /\/titles\/recent$/, /\/titles\/seasonal$/, /\/titles\/follows$/], async () => {

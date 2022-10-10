@@ -1,5 +1,5 @@
 import App from "./index.svelte";
-import "../Core/tailwind.css";
+import "../Core/core.css";
 import "./index.css";
 
 const app = new App({

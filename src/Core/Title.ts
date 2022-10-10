@@ -89,7 +89,9 @@ export type TitleInterface = {
 	// List of locked Service keys
 	lockedServices?: string[];
 	// List of {Service.key}
-	services: ServiceList;
+	services: IdentifierList;
+	// List of Sites keys -- for Sites that don't have a service
+	sites?: IdentifierList;
 	// Creation time
 	creation?: DateTime;
 	// Last update time
@@ -121,6 +123,7 @@ export default class Title implements TitleInterface {
 
 	lockedServices: string[] = [];
 	services: { [key: string]: TitleIdentifier };
+	sites: { [key: string]: TitleIdentifier };
 
 	// Meta
 	creation?: DateTime;
@@ -143,6 +146,7 @@ export default class Title implements TitleInterface {
 
 			this.lockedServices = title.lockedServices ?? [];
 			this.services = JSON.parse(JSON.stringify(title.services));
+			this.sites = JSON.parse(JSON.stringify(title.sites));
 			this.creation = title.creation;
 			this.lastUpdate = title.lastUpdate;
 			this.lastAccess = title.lastAccess;
@@ -150,6 +154,7 @@ export default class Title implements TitleInterface {
 			this.chapter = 0;
 			this.status = Status.NONE;
 			this.services = {};
+			this.sites = {};
 			this.creation = DateTime.now();
 		}
 	}
@@ -221,6 +226,7 @@ export default class Title implements TitleInterface {
 			e: title.endDate ? title.endDate.toMillis() : undefined,
 			l: title.lockedServices ? title.lockedServices : undefined,
 			$: Object.keys(title.services).length > 0 ? title.services : undefined,
+			["@"]: title.sites && Object.keys(title.sites).length > 0 ? title.sites : undefined,
 			o: title.creation ? title.creation.toMillis() : undefined,
 			u: title.lastUpdate ? title.lastUpdate.toMillis() : undefined,
 			a: title.lastAccess ? title.lastAccess.toMillis() : undefined,
@@ -248,6 +254,7 @@ export default class Title implements TitleInterface {
 			endDate: title.e ? DateTime.fromMillis(title.e) : undefined,
 			lockedServices: title.l ? title.l : [],
 			services: title.$ ? title.$ : {},
+			sites: title["@"] ? title["@"] : {},
 			creation: title.o ? DateTime.fromMillis(title.o) : undefined,
 			lastUpdate: title.u ? DateTime.fromMillis(title.u) : undefined,
 			lastAccess: title.a ? DateTime.fromMillis(title.a) : undefined,
@@ -298,6 +305,7 @@ export default class Title implements TitleInterface {
 				: undefined;
 			if (values) {
 				if (!values.services) values.services = {};
+				if (!values.sites) values.sites = {};
 				if (!values.chapter) values.chapter = 0;
 				if (!values.status) values.status = Status.NONE;
 			}
@@ -403,13 +411,14 @@ export default class Title implements TitleInterface {
 		this.endDate = title.endDate;
 		this.lockedServices = title.lockedServices ?? [];
 		this.services = title.services;
+		this.sites = title.sites ?? {};
 	}
 
 	/**
 	 * Update the list of Services to new ID if needed.
 	 * Check locked Services and do not update them.
 	 */
-	updateServices(services: ServiceList): boolean {
+	updateServices(services: IdentifierList): boolean {
 		let updated = false;
 		for (const serviceKey in services) {
 			if (
@@ -429,15 +438,26 @@ export default class Title implements TitleInterface {
 		// Check if the title has no ID to get one
 		// const titleServices = Options.filterServices(Object.keys(this.services));
 		const titleServices = Object.keys(this.services);
+		const siteKeys = Object.keys(this.sites);
 		if (this.id === undefined) {
 			// Check each Services keys
-			const fromServices = await Shelf.get(
-				titleServices.map((key) => {
+			const keys = [
+				...titleServices.map((key) => {
 					return `=${key}>${serviceIdentifierToToken(this.services[key])}` as `=${string}>${string}`;
-				})
-			);
+				}),
+				...siteKeys.map((key) => {
+					return `=${key}>${serviceIdentifierToToken(this.sites[key])}` as `=${string}>${string}`;
+				}),
+			];
+			const fromServices = await Shelf.get(keys);
 			// Select the preferred keys ordered by Services
 			for (const key of titleServices) {
+				const relationkey = key as keyof typeof fromServices;
+				if (fromServices[relationkey]) {
+					this.id = fromServices[relationkey];
+				}
+			}
+			for (const key of siteKeys) {
 				const relationkey = key as keyof typeof fromServices;
 				if (fromServices[relationkey]) {
 					this.id = fromServices[relationkey];
@@ -459,6 +479,11 @@ export default class Title implements TitleInterface {
 				update[`=${relation}>${serviceIdentifierToToken(this.services[relation])}`] = this.id;
 			}
 		}
+		for (const relation of siteKeys) {
+			if (this.sites[relation]) {
+				update[`=${relation}>${serviceIdentifierToToken(this.sites[relation])}`] = this.id;
+			}
+		}
 		await Shelf.set(update);
 		return true;
 	}
@@ -469,6 +494,10 @@ export default class Title implements TitleInterface {
 			for (const key of Object.keys(this.services)) {
 				const relationkey = key as keyof typeof this.services;
 				keys.push(`=${relationkey}>${serviceIdentifierToToken(this.services[relationkey])}`);
+			}
+			for (const key of Object.keys(this.sites)) {
+				const relationkey = key as keyof typeof this.sites;
+				keys.push(`=${relationkey}>${serviceIdentifierToToken(this.sites[relationkey])}`);
 			}
 			await Shelf.remove(keys);
 			this.id = undefined;

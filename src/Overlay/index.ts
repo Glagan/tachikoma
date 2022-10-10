@@ -1,7 +1,7 @@
 import FloatingOverlay from "./index.svelte";
 import type Title from "@Core/Title";
 import { file } from "@Core/Utility";
-import "../Core/tailwind.css";
+import "../Core/core.css";
 import "./overlay.css";
 
 export const icons = {

@@ -62,23 +62,3 @@ export function fullChapterFromString(raw: string): Progress {
 		oneshot: false,
 	};
 }
-
-export function waitForSelector(selector: string, timeout: number = 5000): Promise<boolean> {
-	if (!document.querySelector(selector)) {
-		debug("Waiting for", selector, "to load");
-		return new Promise((resolve, reject) => {
-			let timer = setTimeout(() => {
-				reject();
-			}, timeout);
-			const initObserver = new MutationObserver((_, observer) => {
-				if (document.querySelector(selector)) {
-					clearTimeout(timer);
-					resolve(true);
-					initObserver.disconnect();
-				}
-			});
-			initObserver.observe(document.body, { childList: true, subtree: true });
-		});
-	}
-	return Promise.resolve(true);
-}

@@ -2,9 +2,10 @@ import { debug, error, info } from "@Core/Logger";
 import { Options } from "@Core/Options";
 import Tachikoma from "@Core/Tachikoma";
 import Title, { Status } from "@Core/Title";
+import { waitForSelector } from "@Core/Utility";
+import { fullChapterFromString, IDFromLink } from "../Utility";
 import MangaDex from "@Service/MangaDex";
 import MangaDexAPI from "../API";
-import { fullChapterFromString, IDFromLink, waitForSelector } from "../Utility";
 
 type ReaderProgress = {
 	current: number;

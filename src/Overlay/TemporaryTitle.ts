@@ -26,6 +26,7 @@ export const temporaryTitleStore = (() => {
 		endDate: undefined,
 		lockedServices: [],
 		services: {},
+		sites: {},
 		tmpIdentifiers: {},
 	};
 	const { subscribe, set, update } = writable<TemporaryTitle>(temporaryTitle);

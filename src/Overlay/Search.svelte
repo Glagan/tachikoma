@@ -66,6 +66,7 @@
 	function isUsingIdentifier(identifier: TitleIdentifier, currentIdentifier: TitleIdentifier | undefined) {
 		return (
 			currentIdentifier &&
+			Object.keys(currentIdentifier).length > 0 &&
 			Object.keys(currentIdentifier).every((key) => identifier[key] == currentIdentifier[key])
 		);
 	}

@@ -29,9 +29,30 @@ export default class Updater {
 	globalLoading: Promise<any> | null = null;
 	loadingServices: Promise<Title | TitleFetchFailure | null>[] = [];
 	state: { [key: string]: Title | TitleFetchFailure } = {};
+	listeners: { [key: number]: (title: Title) => void } = {};
 
 	constructor(title: Title) {
 		this.title = title;
+	}
+
+	addListener(listener: (title: Title) => void) {
+		const id = Date.now();
+		this.listeners[id] = listener;
+		return id;
+	}
+
+	removeListener(id: number) {
+		delete this.listeners[id];
+	}
+
+	removeAllListeners() {
+		this.listeners = [];
+	}
+
+	emit() {
+		for (const listener of Object.values(this.listeners)) {
+			listener(this.title);
+		}
 	}
 
 	/**
@@ -87,6 +108,7 @@ export default class Updater {
 			}
 		}
 		await this.title.save();
+		this.emit();
 		return snapshots;
 	}
 
@@ -102,6 +124,8 @@ export default class Updater {
 			snapshots: {},
 		};
 		if (this.title.status === Status.NONE) {
+			await this.title.save();
+			this.emit();
 			return report;
 		}
 		const titleServices = Object.keys(this.title.services);
@@ -163,6 +187,7 @@ export default class Updater {
 			}
 		}
 		await Promise.all([this.title.save(), Promise.all(updates)]);
+		this.emit();
 		return report;
 	}
 
@@ -204,6 +229,7 @@ export default class Updater {
 			}
 		}
 		await Promise.all([this.title.save(), Promise.all(updates)]);
+		this.emit();
 		return report;
 	}
 }

@@ -1,5 +1,7 @@
 import { runtime } from "webextension-polyfill";
 import getPkce from "oauth-pkce";
+import { debug } from "./Logger";
+
 export function deepAssign(target: Record<string, any>, ...objs: Record<string, any>[]) {
 	for (let i = 0, max = objs.length; i < max; i++) {
 		for (var k in objs[i]) {
@@ -45,4 +47,24 @@ export function pkce(length: number): Promise<{ verifier: string; challenge: str
  */
 export function file(file: string): string {
 	return runtime.getURL(file);
+}
+
+export function waitForSelector(selector: string, timeout: number = 5000): Promise<boolean> {
+	if (!document.querySelector(selector)) {
+		debug("Waiting for", selector, "to load");
+		return new Promise((resolve, reject) => {
+			let timer = setTimeout(() => {
+				reject();
+			}, timeout);
+			const initObserver = new MutationObserver((_, observer) => {
+				if (document.querySelector(selector)) {
+					clearTimeout(timer);
+					resolve(true);
+					initObserver.disconnect();
+				}
+			});
+			initObserver.observe(document.body, { childList: true, subtree: true });
+		});
+	}
+	return Promise.resolve(true);
 }

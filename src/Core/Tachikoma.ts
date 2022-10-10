@@ -18,6 +18,9 @@ export class TachikomaClass {
 	syncNotification: Notification | undefined;
 
 	clearTitle() {
+		if (this.current) {
+			this.current.removeAllListeners();
+		}
 		this.current = undefined;
 		this.overlay.setTitle(undefined);
 		this.overlay.setLoading(false);
@@ -156,6 +159,8 @@ export class TachikomaClass {
 			const result = await this.current.export();
 			result.localSnapshot = localSnapshot;
 			this.displaySyncReport(result, this.current, true);
+		} else {
+			await this.current.title.save();
 		}
 		this.overlay.setTitle(this.current.title);
 		this.overlay.setLoading(false);

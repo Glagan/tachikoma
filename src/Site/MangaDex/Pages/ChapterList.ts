@@ -1,8 +1,8 @@
 import { debug, info } from "@Core/Logger";
 import Title from "@Core/Title";
 import MangaDex from "@Service/MangaDex";
-import { fullChapterFromString, IDFromLink, waitForSelector } from "../Utility";
-import { ChapterRow, highlight, TitleChapterGroup } from "../Highlight";
+import { ChapterRow, highlight, TitleChapterGroup } from "@Core/Highlight";
+import { fullChapterFromString, IDFromLink } from "../Utility";
 import ToggleHidden from "../ToggleHidden.svelte";
 
 export function titleGroups(): TitleChapterGroup[] {
