@@ -4,8 +4,8 @@ import Tachikoma from "@Core/Tachikoma";
 import { info } from "@Core/Logger";
 import Chapter from "./Pages/Chapter";
 import Title from "./Pages/Title";
-// import ChapterList from "./Pages/ChapterList";
-import "@Core/sites.css";
+import ChapterList from "./Pages/ChapterList";
+import "./highlight.css";
 
 info("[MangaPlus]");
 
@@ -15,7 +15,7 @@ router.add([/^\/manga_list\/all\/?$/, /^\/featured\/?$/], async () => {
 	info("Title List Page");
 });
 router.add([/^\/viewer\/(\d+)\/?/], Chapter);
-// router.add([/^\/updates\/?$/], ChapterList, undefined);
+router.add([/^\/updates\/?$/], ChapterList);
 router.add([/^\/titles\/(\d+)\/?/], Title);
 
 // * Clear Overlay title between routes

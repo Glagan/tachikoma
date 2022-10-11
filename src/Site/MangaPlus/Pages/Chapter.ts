@@ -4,6 +4,7 @@ import Tachikoma from "@Core/Tachikoma";
 import Title, { Status } from "@Core/Title";
 import { waitForSelector } from "@Core/Utility";
 import MangaPlusKey from "../key";
+import { chapterFromString, IDfromString } from "../Utility";
 
 type ReaderProgress = {
 	lastPage: boolean;
@@ -46,15 +47,10 @@ function readingState(): ReaderProgress | undefined {
 }
 
 function chapterState() {
-	const chapterNumber = document
-		.querySelector<HTMLAnchorElement>('[class^="Navigation-module_chapterTitle"]')
-		?.textContent?.trim();
-	if (chapterNumber) {
-		const chapter = parseInt(chapterNumber.slice(1));
-		if (!chapter || isNaN(chapter)) {
-			return undefined;
-		}
-		return { id: chapterNumber, progress: { chapter, volume: undefined, oneshot: false } };
+	const id = document.querySelector<HTMLAnchorElement>('[class^="Navigation-module_chapterTitle"]')?.textContent;
+	const chapter = chapterFromString(id);
+	if (id && chapter) {
+		return { id, progress: { chapter, volume: undefined, oneshot: false } };
 	}
 	return undefined;
 }
@@ -102,14 +98,7 @@ async function checkAndUpdate() {
 
 const idSelector = 'a[href^="/titles/"]';
 function findMangaPlusId(): number | undefined {
-	const titleLink = document.querySelector<HTMLAnchorElement>(idSelector);
-	if (titleLink) {
-		const match = titleLink.getAttribute("href")?.match(/\/titles\/(\d+)\/?/);
-		if (match) {
-			return parseInt(match[1]);
-		}
-	}
-	return undefined;
+	return IDfromString(document.querySelector<HTMLAnchorElement>(idSelector)?.getAttribute("href"));
 }
 
 let progressObserver: MutationObserver | undefined;

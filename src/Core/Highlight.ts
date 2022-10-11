@@ -1,6 +1,7 @@
 import { debug } from "@Core/Logger";
 import { Options } from "@Core/Options";
 import type Title from "@Core/Title";
+import "./highlight.css";
 
 export type TitleChapterGroup = {
 	row: HTMLElement;
