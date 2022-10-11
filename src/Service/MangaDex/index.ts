@@ -16,6 +16,7 @@ import { Volcano } from "@Core/Volcano";
 import Title, { Status, TitleInterface } from "@Core/Title";
 import { debug, info } from "@Core/Logger";
 import MyAnimeList from "@Service/MyAnimeList";
+import MangaPlusKey from "@Site/MangaPlus/key";
 
 type Token = {
 	session: string;
@@ -452,8 +453,22 @@ class MangaDex_ extends APIService {
 		let converted: { [key: string]: TitleIdentifier } = {};
 		if (services?.mal) {
 			converted[MyAnimeList.key] = { id: parseInt(services.mal) };
-		} /* else if (services.al) {
+		}
+		/* if (services.al) {
 		} */
+		return converted;
+	}
+
+	extractSites(links?: Links): { [key: string]: TitleIdentifier } {
+		let converted: { [key: string]: TitleIdentifier } = {};
+		if (links?.engtl && links.engtl?.indexOf("mangaplus.shueisha.co.jp")) {
+			// https://mangaplus.shueisha.co.jp/titles/100071
+			const match = links.engtl.match(/\/titles\/(\d+)\/?$/);
+			const id = parseInt(match?.[1] ?? "");
+			if (id && !isNaN(id)) {
+				converted[MangaPlusKey] = { id };
+			}
+		}
 		return converted;
 	}
 

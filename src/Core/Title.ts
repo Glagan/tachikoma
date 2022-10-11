@@ -434,6 +434,22 @@ export default class Title implements TitleInterface {
 		return updated;
 	}
 
+	// Merge the title sites with the incoming sites
+	updateSites(sites: IdentifierList): boolean {
+		let updated = false;
+		for (const key in sites) {
+			if (
+				this.lockedServices.indexOf(key) < 0 &&
+				// Compare TitleIdentifiers
+				(!this.sites[key] || !Object.keys(this.sites[key]).every((k) => this.sites[key] === sites[k]))
+			) {
+				this.sites[key] = sites[key];
+				updated = true;
+			}
+		}
+		return updated;
+	}
+
 	async save(): Promise<boolean> {
 		// Check if the title has no ID to get one
 		// const titleServices = Options.filterServices(Object.keys(this.services));

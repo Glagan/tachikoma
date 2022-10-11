@@ -124,14 +124,22 @@ export default async () => {
 	}
 	const services = MangaDex.extractServices(informations.attributes.links);
 	services[MangaDex.key] = { id: informations.id };
+	const sites = MangaDex.extractSites(informations.attributes.links);
 	const title = await Title.getOrCreate(
 		MangaDex.key,
 		{ id: informations.id },
-		{ name: informations.attributes.title.en, thumbnail: MangaDex.extractCover(informations), services }
+		{
+			name: informations.attributes.title.en,
+			thumbnail: MangaDex.extractCover(informations),
+			services,
+			sites,
+		}
 	);
 	if (!initialized) {
 		debug("title", title);
-		if (title.updateServices(services)) {
+		let updated = title.updateServices(services);
+		updated = title.updateSites(sites) || updated;
+		if (updated) {
 			debug("updated services", { services: title.services });
 			await title.save();
 		}
