@@ -28,7 +28,7 @@
 	}
 </script>
 
-<div class="toggle-button" title="Toggle hidden" on:click={toggle}>
+<div class="toggle-button" title="Toggle hidden" on:click={toggle} on:keypress>
 	{#if visible}
 		<EyeIcon size="20" class="inline" />
 	{:else}

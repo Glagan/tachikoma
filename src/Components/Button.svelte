@@ -15,7 +15,19 @@
 	$: classes = `${className} button ${type} ${size ? size : ""} ${block ? "block" : ""}`;
 </script>
 
-<svelte:element this={href ? "a" : "button"} class={classes} {title} {disabled} {href} {target} {rel} on:click>
+<svelte:element
+	this={href ? "a" : "button"}
+	class={classes}
+	{title}
+	{disabled}
+	{href}
+	{target}
+	{rel}
+	on:click
+	on:keydown
+	on:keyup
+	on:keypress
+>
 	<slot />
 </svelte:element>
 

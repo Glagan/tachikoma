@@ -90,7 +90,7 @@
 						{/each}
 					</div>
 				{/if}
-				<div class="overlay title" on:click={toggleOverlay}>
+				<div class="overlay title" on:click={toggleOverlay} on:keypress>
 					{#if cover}
 						<img
 							src={cover}
@@ -144,7 +144,7 @@
 				{#if loading}
 					<div class="loader" in:fade />
 				{/if}
-				<div class="overlay opener" on:click={toggleOverlay}>
+				<div class="overlay opener" on:click={toggleOverlay} on:keypress>
 					<img src={title ? icons.loading : icons.inactive} alt="tachikoma" />
 				</div>
 			</div>
