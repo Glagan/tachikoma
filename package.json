@@ -4,12 +4,12 @@
 	"version": "0.1.0",
 	"description": "Automatically sync what you read on MangaDex across many services like MyAnimeList, Anilist, Kitsu and more.",
 	"scripts": {
-		"dev": "npm run dev:firefox",
+		"dev": "yarn run dev:firefox",
 		"dev:firefox": "webpack --env vendor=firefox --mode=development --watch --progress",
 		"dev:chrome:build": "webpack --env vendor=chrome --mode=development --watch --progress",
 		"dev:chrome:service-worker": "rollup -c -w",
 		"dev:chrome": "concurrently \"yarn dev:chrome:build\" \"yarn dev:chrome:service-worker\"",
-		"build": "npm run build:firefox && npm run build:chrome",
+		"build": "yarn run build:firefox && yarn run build:chrome",
 		"build:firefox": "webpack --env vendor=firefox --mode=production --progress",
 		"build:chrome": "webpack --env vendor=chrome --mode=production --progress && rollup -c --environment production",
 		"format": "prettier --write ."
