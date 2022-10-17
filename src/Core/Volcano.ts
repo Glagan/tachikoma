@@ -18,12 +18,12 @@ export namespace Volcano {
 	 * @param url The URL to send the GET request to
 	 * @param init RequestInit params
 	 */
-	export async function get<R = any, E = R>(
+	export async function get<R extends {} | string = any, E extends {} | string = R>(
 		url: string,
 		init?: Omit<HttpRequest, "url" | "method">
 	): Promise<HttpResponse<R, E>> {
 		const response = await Message.send("request", { ...init, method: "GET", url });
-		return processResponse(response);
+		return processResponse<R, E>(response);
 	}
 
 	/**
@@ -31,12 +31,12 @@ export namespace Volcano {
 	 * @param url The URL to send the POST request to
 	 * @param init RequestInit params
 	 */
-	export async function post<R = any, E = R>(
+	export async function post<R extends {} | string = any, E extends {} | string = R>(
 		url: string,
 		init?: Omit<HttpRequest, "url" | "method">
 	): Promise<HttpResponse<R, E>> {
 		const response = await Message.send("request", { ...init, method: "POST", url });
-		return processResponse(response);
+		return processResponse<R, E>(response);
 	}
 
 	/**
@@ -44,12 +44,12 @@ export namespace Volcano {
 	 * @param url The URL to send the POST request to
 	 * @param init RequestInit params
 	 */
-	export async function put<R = any, E = R>(
+	export async function put<R extends {} | string = any, E extends {} | string = R>(
 		url: string,
 		init?: Omit<HttpRequest, "url" | "method">
 	): Promise<HttpResponse<R, E>> {
 		const response = await Message.send("request", { ...init, method: "PUT", url });
-		return processResponse(response);
+		return processResponse<R, E>(response);
 	}
 
 	/**
@@ -57,12 +57,12 @@ export namespace Volcano {
 	 * @param url The URL to send the POST request to
 	 * @param init RequestInit params
 	 */
-	export async function patch<R = any, E = R>(
+	export async function patch<R extends {} | string = any, E extends {} | string = R>(
 		url: string,
 		init?: Omit<HttpRequest, "url" | "method">
 	): Promise<HttpResponse<R, E>> {
 		const response = await Message.send("request", { ...init, method: "PATCH", url });
-		return processResponse(response);
+		return processResponse<R, E>(response);
 	}
 
 	/**
@@ -70,18 +70,18 @@ export namespace Volcano {
 	 * @param url The URL to send the POST request to
 	 * @param init RequestInit params
 	 */
-	export async function deleteRequest<R = any, E = R>(
+	export async function deleteRequest<R extends {} | string = any, E extends {} | string = R>(
 		url: string,
 		init?: Omit<HttpRequest, "url" | "method">
 	): Promise<HttpResponse<R, E>> {
 		const response = await Message.send("request", { ...init, method: "DELETE", url });
-		return processResponse(response);
+		return processResponse<R, E>(response);
 	}
 
 	/**
 	 * Check if the response should be handled as JSON and parse it.
 	 */
-	async function processResponse<R = any, E = R>(response: RawHttpResponse): Promise<HttpResponse<R, E>> {
+	async function processResponse<R extends {} = any, E extends {} = R>(response: RawHttpResponse): Promise<HttpResponse<R, E>> {
 		if (response.body) {
 			for (const key in response.headers) {
 				if (

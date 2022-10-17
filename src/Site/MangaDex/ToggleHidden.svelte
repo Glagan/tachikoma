@@ -27,7 +27,7 @@
 	}
 </script>
 
-<div class="cursor-pointer" title="Toggle hidden" on:click={toggle}>
+<div class="cursor-pointer" title="Toggle hidden" on:click={toggle} on:keypress>
 	{#if visible}
 		<EyeIcon class="inline" />
 	{:else}

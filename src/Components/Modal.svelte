@@ -32,6 +32,7 @@
 		title={closable ? "Click to close" : undefined}
 		transition:fade={{ duration: 250 }}
 		on:click={hideFromWrapper}
+		on:keypress
 	>
 		<div class="modal" title="">
 			{#if $$slots.header || title}

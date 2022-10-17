@@ -3,7 +3,9 @@
 	"private": true,
 	"version": "0.1.0",
 	"scripts": {
-		"build": "yarn rollup --config"
+		"build": "yarn run build:manifest-transformer && yarn run build:webextension-plugin",
+		"build:manifest-transformer": "yarn rollup ManifestTransformer.ts -p node-resolve,commonjs,typescript -o ManifestTransformer.js",
+		"build:webextension-plugin": "yarn rollup WebExtensionPlugin.ts -p node-resolve,commonjs,typescript -o WebExtensionPlugin.js"
 	},
 	"dependencies": {
 		"@rollup/plugin-commonjs": "^22.0.2",

@@ -8,7 +8,7 @@
 	export { classes as class };
 </script>
 
-<div on:click>
+<div on:click on:keydown on:keyup on:keypress>
 	<span class={`badge ${type} ${classes ? classes : ""}`}>
 		<slot />
 	</span>
