@@ -82,44 +82,15 @@ export interface AnilistGetResponse {
 }
 
 const GET_QUERY = `
-		query ($mediaId:Int) {
-			Media(id:$mediaId) {
-				title {
-					userPreferred
-				}
-				chapters
-				volumes
-				mediaListEntry {
-					id
-					status
-					score(format: POINT_100)
-					progress
-					progressVolumes
-					startedAt {
-						year
-						month
-						day
-					}
-					completedAt {
-						year
-						month
-						day
-					}
-				}
+	query ($mediaId:Int) {
+		Media(id:$mediaId) {
+			title {
+				userPreferred
 			}
-		}`.replace(/\n\t+/g, " ");
-
-interface AnilistPersistResponse {
-	data: {
-		SaveMediaListEntry: SaveMediaListEntry;
-	};
-}
-
-const PERSIST_QUERY = `
-		mutation ($mediaId:Int $status:MediaListStatus $score:Float $scoreRaw:Int $progress:Int $progressVolumes:Int $startedAt:FuzzyDateInput $completedAt:FuzzyDateInput) {
-			SaveMediaListEntry (mediaId:$mediaId status:$status score:$score scoreRaw:$scoreRaw progress:$progress progressVolumes:$progressVolumes startedAt:$startedAt completedAt:$completedAt) {
+			chapters
+			volumes
+			mediaListEntry {
 				id
-				mediaId
 				status
 				score(format: POINT_100)
 				progress
@@ -135,14 +106,74 @@ const PERSIST_QUERY = `
 					day
 				}
 			}
-		}`.replace(/\n\t+/g, " ");
+		}
+	}`.replace(/\n\t+/g, " ");
+
+interface AnilistPersistResponse {
+	data: {
+		SaveMediaListEntry: SaveMediaListEntry;
+	};
+}
+
+const PERSIST_QUERY = `
+	mutation ($mediaId:Int $status:MediaListStatus $score:Float $scoreRaw:Int $progress:Int $progressVolumes:Int $startedAt:FuzzyDateInput $completedAt:FuzzyDateInput) {
+		SaveMediaListEntry (mediaId:$mediaId status:$status score:$score scoreRaw:$scoreRaw progress:$progress progressVolumes:$progressVolumes startedAt:$startedAt completedAt:$completedAt) {
+			id
+			mediaId
+			status
+			score(format: POINT_100)
+			progress
+			progressVolumes
+			startedAt {
+				year
+				month
+				day
+			}
+			completedAt {
+				year
+				month
+				day
+			}
+		}
+	}`.replace(/\n\t+/g, " ");
 
 const DELETE_QUERY = `
-		mutation ($id:Int) {
-			DeleteMediaListEntry (id:$id) {
-				deleted
+	mutation ($id:Int) {
+		DeleteMediaListEntry (id:$id) {
+			deleted
+		}
+	}`.replace(/\n\t+/g, " ");
+
+interface AnilistSearchResponse {
+	data: {
+		manga: {
+			results: {
+				id: number;
+				title: {
+					userPreferred: string;
+				};
+				coverImage?: {
+					medium: string;
+				};
+			}[];
+		};
+	};
+}
+
+const SEARCH_QUERY = `
+	query ($search: String $page:Int) {
+		manga: Page(page:$page perPage: 10) {
+			results: media(type: MANGA, search: $search) {
+				id
+				title {
+					userPreferred
+				}
+				coverImage {
+					medium
+				}
 			}
-		}`.replace(/\n\t+/g, " ");
+		}
+	}`.replace(/\n\t+/g, " ");
 
 class Anilist_ extends APIService {
 	name = "Anilist";
@@ -391,46 +422,37 @@ class Anilist_ extends APIService {
 		return this.route(`manga/${id.id}`, true);
 	}
 
-	/* async search(query: string, page?: number) {
+	async search(query: string, page?: number) {
 		const token = await this.validToken();
 		if (!token) {
 			return {
 				status: SearchStatus.ACCOUNT_ERROR,
 				message: "Failed to refresh token",
 			};
+		} else if (!token.token) {
+			return { status: SearchStatus.ACCOUNT_ERROR };
 		}
-		if (!token.token) return { status: SearchStatus.ACCOUNT_ERROR };
 
-		// Simple search request, /manga?q=search
 		if (!page) page = 1;
-		const response = await Volcano.get<{
-			data: SearchNode[];
-			paging: {
-				previous: string;
-				next: string;
-			};
-		}>(
-			this.route(
-				`manga?${Volcano.buildQuery({
-					q: query,
-					offset: (page - 1) * 100,
-				})}`
-			),
-			{ headers: this.headers(token.token) }
-		);
+		const response = await Volcano.post<AnilistSearchResponse>(this.apiUrl, {
+			headers: this.headers(token),
+			body: JSON.stringify({
+				query: SEARCH_QUERY,
+				variables: { search: query, page: page ?? 1 },
+			}),
+		});
 
 		if (response.status >= 401 && response.status <= 403) {
 			return { status: SearchStatus.ACCOUNT_ERROR };
-		}
-		if (!response.body || response.status >= 500) {
+		} else if (!response.body || response.status >= 500) {
 			return { status: SearchStatus.SERVICE_ERROR };
 		}
 
-		return response.body.data.map(({ node }) => ({
-			name: node.title,
-			thumbnail: node.main_picture?.medium,
-			identifier: { id: node.id },
+		return response.body.data.manga.results.map((title) => ({
+			name: title.title.userPreferred,
+			thumbnail: title.coverImage?.medium,
+			identifier: { id: title.id },
 		}));
-	} */
+	}
 }
 export default new Anilist_();

@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
+	import { ExternalLinkIcon, LoaderIcon } from "svelte-feather-icons";
 	import Modal from "@Components/Modal.svelte";
 	import Button from "@Components/Button.svelte";
 	import type { SearchResult, SearchTitle } from "@Core/Service";
 	import { file } from "@Core/Utility";
-	import { ExternalLinkIcon, LoaderIcon } from "svelte-feather-icons";
+	import { Options } from "@Core/Options";
 	import { Lake } from "@Core/Lake";
 	import { crossfade, fade } from "svelte/transition";
 	import { quintOut } from "svelte/easing";
@@ -32,7 +33,7 @@
 		results = {};
 	}
 
-	const searchableServices = Lake.services.filter((service) => service.search);
+	const searchableServices = Lake.services.filter((service) => Options.hasService(service.key) && service.search);
 	async function doSearch() {
 		if (query.length < 2) return;
 		closable = false;

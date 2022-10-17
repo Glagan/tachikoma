@@ -98,6 +98,10 @@ export namespace Options {
 		return services.filter((service) => hasService(service));
 	}
 
+	export function enabledServices(reverse: boolean = false) {
+		return Options.filterServices(Options.services(reverse));
+	}
+
 	/**
 	 * Breakdown leaf (MutableOption key) to retrieve the last object containing the last key.
 	 * [site].colors.nextChapter
