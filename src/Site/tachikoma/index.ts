@@ -12,9 +12,19 @@ const ERROR_IMG = "/sleepy.png" as const;
 			if ("login" in service && service.login) {
 				const image = document.getElementById("image") as HTMLImageElement;
 				const body = document.getElementById("body")!;
-
-				const urlSearchParams = new URLSearchParams(window.location.search);
 				const params: ServiceLoginInformations = {};
+
+				// Parse hash params if there is any
+				// -- first so if there are duplicates they are overwritten
+				if (window.location.hash.length > 0) {
+					const urlHashParams = new URLSearchParams(window.location.hash.slice(1));
+					urlHashParams.forEach((value, key) => {
+						params[key] = value;
+					});
+				}
+
+				// Parse regular query params
+				const urlSearchParams = new URLSearchParams(window.location.search);
 				// Any other function returns
 				// -- `TypeError: urlSearchParams.entries() is not iterable` for some reasons
 				urlSearchParams.forEach((value, key) => {

@@ -15,7 +15,6 @@ import { Volcano } from "@Core/Volcano";
 import { pkce } from "@Core/Utility";
 import Title, { Status, TitleInterface } from "@Core/Title";
 import { Score } from "@Core/Score";
-import { debug } from "@Core/Logger";
 
 const CLIENT_ID = "aaead2491067691606c70a480a0ebb02" as const;
 const OAUTH2_AUTHORIZE = "https://myanimelist.net/v1/oauth2/authorize" as const;
@@ -180,13 +179,13 @@ class MyAnimeList_ extends APIService {
 		const response = await Volcano.get<{ id: Number; name: string }>(this.route("users/@me"), {
 			headers: this.headers(token.token),
 		});
-		if (response.ok && response.body) {
-			return { status: ServiceStatus.LOGGED_IN, user: response.body.name };
-		}
 		if (response.status == 401) {
 			return { status: ServiceStatus.INVALID_TOKEN };
 		} else if (response.status >= 400 && response.status < 500) {
 			return { status: ServiceStatus.TACHIKOMA_ERROR };
+		}
+		if (response.ok && response.body) {
+			return { status: ServiceStatus.LOGGED_IN, user: response.body.name };
 		}
 		return { status: ServiceStatus.SERVICE_ERROR };
 	}
@@ -341,7 +340,7 @@ class MyAnimeList_ extends APIService {
 		}
 		if (!token.token) return { status: SaveStatus.ACCOUNT_ERROR };
 
-		const created = title.status === Status.NONE;
+		const created = title.status === Status.NONE; // ???
 		const response = await Volcano.patch(this.route(`manga/${id.id}/my_list_status`), {
 			headers: this.headers(token.token),
 			query: {
