@@ -4,6 +4,7 @@ import { writable } from "svelte/store";
 import { Score } from "@Core/Score";
 import { deepAssign } from "@Core/Utility";
 import { Lake } from "@Core/Lake";
+import Relations from "@Core/Relations";
 
 type TemporaryTitle = TitleInterface & {
 	tmpIdentifiers: {
@@ -24,9 +25,8 @@ export const temporaryTitleStore = (() => {
 		score: undefined,
 		startDate: undefined,
 		endDate: undefined,
-		lockedServices: [],
-		services: {},
-		sites: {},
+		lockedRelations: [],
+		relations: {},
 		tmpIdentifiers: {},
 	};
 	const { subscribe, set, update } = writable<TemporaryTitle>(temporaryTitle);
@@ -44,59 +44,59 @@ export const temporaryTitleStore = (() => {
 			temporaryTitle.score = title?.score ? new Score(title.score) : undefined;
 			temporaryTitle.startDate = title?.startDate?.set({});
 			temporaryTitle.endDate = title?.endDate?.set({});
-			temporaryTitle.lockedServices = [...title.lockedServices];
-			temporaryTitle.services = deepAssign({}, title.services);
+			temporaryTitle.lockedRelations = [...title.lockedRelations];
+			temporaryTitle.relations = deepAssign({}, title.relations);
 			temporaryTitle.tmpIdentifiers = {};
-			for (const service of Lake.services) {
-				if (!temporaryTitle.services[service.key]) {
-					temporaryTitle.services[service.key] = {};
-					temporaryTitle.tmpIdentifiers[service.key] = [];
+			for (const relationKey of Relations) {
+				if (!temporaryTitle.relations[relationKey]) {
+					temporaryTitle.relations[relationKey] = {};
+					temporaryTitle.tmpIdentifiers[relationKey] = [];
 				} else {
-					temporaryTitle.tmpIdentifiers[service.key] = Object.keys(temporaryTitle.services[service.key]).map(
-						(key) => ({ key, value: temporaryTitle.services[service.key][key] })
+					temporaryTitle.tmpIdentifiers[relationKey] = Object.keys(temporaryTitle.relations[relationKey]).map(
+						(key) => ({ key, value: temporaryTitle.relations[relationKey][key] })
 					);
 				}
 			}
 			return set(temporaryTitle);
 		},
-		toggleServiceLock(service: string) {
-			if (temporaryTitle.lockedServices) {
-				const index = temporaryTitle.lockedServices.indexOf(service);
+		toggleRelationLock(relation: string) {
+			if (temporaryTitle.lockedRelations) {
+				const index = temporaryTitle.lockedRelations.indexOf(relation);
 				if (index >= 0) {
-					temporaryTitle.lockedServices.splice(index, 1);
+					temporaryTitle.lockedRelations.splice(index, 1);
 				} else {
-					temporaryTitle.lockedServices.push(service);
+					temporaryTitle.lockedRelations.push(relation);
 				}
 			}
 			return set(temporaryTitle);
 		},
 		useService(service: string, identifier: TitleIdentifier) {
-			temporaryTitle.services[service] = { ...identifier };
-			temporaryTitle.services = temporaryTitle.services;
+			temporaryTitle.relations[service] = { ...identifier };
+			temporaryTitle.relations = temporaryTitle.relations;
 			temporaryTitle.tmpIdentifiers[service] = Object.keys(identifier).map((key) => ({
 				key,
 				value: identifier[key],
 			}));
 			return set(temporaryTitle);
 		},
-		getTmpIdentifiers(service: string) {
-			if (!temporaryTitle.tmpIdentifiers[service]) {
-				temporaryTitle.tmpIdentifiers[service] = [];
+		getTmpIdentifiers(relation: string) {
+			if (!temporaryTitle.tmpIdentifiers[relation]) {
+				temporaryTitle.tmpIdentifiers[relation] = [];
 			}
-			return temporaryTitle.tmpIdentifiers[service];
+			return temporaryTitle.tmpIdentifiers[relation];
 		},
-		addTmpIdentifier(service: string) {
-			if (!temporaryTitle.tmpIdentifiers[service]) {
-				temporaryTitle.tmpIdentifiers[service] = [];
+		addTmpIdentifier(relation: string) {
+			if (!temporaryTitle.tmpIdentifiers[relation]) {
+				temporaryTitle.tmpIdentifiers[relation] = [];
 			}
-			temporaryTitle.tmpIdentifiers[service].push({ key: "", value: "" });
+			temporaryTitle.tmpIdentifiers[relation].push({ key: "", value: "" });
 			return set(temporaryTitle);
 		},
-		removeTmpIdentifier(service: string, index: number) {
-			if (!temporaryTitle.tmpIdentifiers[service]) {
-				temporaryTitle.tmpIdentifiers[service] = [];
+		removeTmpIdentifier(relation: string, index: number) {
+			if (!temporaryTitle.tmpIdentifiers[relation]) {
+				temporaryTitle.tmpIdentifiers[relation] = [];
 			}
-			temporaryTitle.tmpIdentifiers[service].splice(index, 1);
+			temporaryTitle.tmpIdentifiers[relation].splice(index, 1);
 			return set(temporaryTitle);
 		},
 	};

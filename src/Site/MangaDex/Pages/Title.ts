@@ -68,25 +68,22 @@ async function run() {
 	if (!informations) {
 		return;
 	}
-	const services = MangaDex.extractServices(informations.attributes.links);
-	services[MangaDex.key] = { id: informations.id };
-	const sites = MangaDex.extractSites(informations.attributes.links);
+	const relations = MangaDex.extractRelations(informations.attributes.links);
+	relations[MangaDex.key] = { id: informations.id };
 	const title = await Title.getOrCreate(
 		MangaDex.key,
 		{ id: informations.id },
 		{
 			name: informations.attributes.title.en,
 			thumbnail: MangaDex.extractCover(informations),
-			services,
-			sites,
+			relations,
 		}
 	);
 	waitForChaptersAndHighlight(title);
 	debug("title", title);
-	let updated = title.updateServices(services);
-	updated = title.updateSites(sites) || updated;
+	const updated = title.updateRelations(relations);
 	if (updated) {
-		debug("updated services", { services: title.services });
+		debug("updated relations", { relations: title.relations });
 		await title.save();
 	}
 	const updater = Tachikoma.setTitle(title);

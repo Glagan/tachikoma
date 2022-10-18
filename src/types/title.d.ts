@@ -16,9 +16,8 @@ type TitleStorageInterface = {
 	r?: [number, number, number]; // Score
 	t?: number; // Start Date
 	e?: number; // End Date
-	l?: string[]; // Locked Services
-	$?: IdentifierList; // Services
-	["@"]?: IdentifierList; // Sites
+	l?: string[]; // Locked relations
+	$?: IdentifierList; // Relations
 	o?: number; // Creation Date
 	u?: number; // Last Update
 	a?: number; // Last Access

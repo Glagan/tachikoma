@@ -50,7 +50,7 @@
 	});
 
 	$: badgeType = title ? (statusToColor(title.status) as BadgeType) : "loading";
-	$: activeServices = title ? Object.keys(title.services).filter((key) => Options.hasService(key)) : undefined;
+	$: activeServices = title ? Object.keys(title.relations).filter((key) => Options.hasService(key)) : undefined;
 
 	$: titleName = title?.name;
 	$: chapter = title?.chapter;

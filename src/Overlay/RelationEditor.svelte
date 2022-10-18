@@ -7,33 +7,40 @@
 	import Toggle from "@Components/Toggle.svelte";
 	import { Options } from "@Core/Options";
 	import { temporaryTitleStore } from "./TemporaryTitle";
+	import { Lake } from "@Core/Lake";
 
-	export let service: Service;
+	export let relationKey: string;
 	export let disabled: boolean = false;
 
-	const enabled = Options.hasService(service.key);
-	$: locked = $temporaryTitleStore.lockedServices!.indexOf(service.key) >= 0;
+	let service = Lake.map[relationKey];
+
+	const enabled = Options.hasService(relationKey);
+	$: locked = $temporaryTitleStore.lockedRelations!.indexOf(relationKey) >= 0;
 </script>
 
 <div class="mb-4 last-of-type:mb-0">
 	<div class="flex items-center">
 		<div class="icon flex-grow-0 flex-shrink-0 mr-2">
-			<img src={file(`/static/icons/${service.key}.png`)} alt={`${service.name} icon`} />
+			<img src={file(`/static/icons/${relationKey}.png`)} alt={`${service ? service.name : relationKey} icon`} />
 		</div>
-		<span class="text-lg font-bold mr-2">{service.name}</span>
-		<Badge type={enabled ? "success" : "info"}>{enabled ? "Enabled" : "Disabled"}</Badge>
+		<span class="text-lg font-bold mr-2">{service ? service.name : relationKey}</span>
+		{#if service}
+			<Badge type={enabled ? "success" : "info"}>{enabled ? "Enabled" : "Disabled"}</Badge>
+		{:else}
+			<Badge type="loading">Site</Badge>
+		{/if}
 	</div>
 	<div class="flex mt-2">
 		<div class="flex-grow-0 flex-shrink-0 mr-4">
 			<div class="flex flex-col items-center justify-start">
 				<div class="text-xs">Locked</div>
 				<Toggle
-					key={`${service.key}-locked`}
+					key={`${relationKey}-locked`}
 					class="service-toggle-locked"
 					{disabled}
 					showLabel={false}
 					value={locked}
-					on:change={() => temporaryTitleStore.toggleServiceLock(service.key)}
+					on:change={() => temporaryTitleStore.toggleRelationLock(relationKey)}
 				/>
 			</div>
 			<div>
@@ -41,7 +48,7 @@
 			</div>
 		</div>
 		<div>
-			{#each $temporaryTitleStore.tmpIdentifiers[service.key] as tmpIdentifier, index}
+			{#each $temporaryTitleStore.tmpIdentifiers[relationKey] as tmpIdentifier, index}
 				<div class="grid grid-cols-[1fr_1fr_auto] gap-2 items-end">
 					<div>
 						<label for="debug" class="label mt-0">Key</label>
@@ -68,7 +75,7 @@
 						size="xs"
 						class="mb-1"
 						{disabled}
-						on:click={temporaryTitleStore.removeTmpIdentifier.bind(null, service.key, index)}
+						on:click={temporaryTitleStore.removeTmpIdentifier.bind(null, relationKey, index)}
 					>
 						<Trash2Icon />
 					</Button>
@@ -79,7 +86,7 @@
 				size="sm"
 				class="mt-2"
 				{disabled}
-				on:click={temporaryTitleStore.addTmpIdentifier.bind(null, service.key)}
+				on:click={temporaryTitleStore.addTmpIdentifier.bind(null, relationKey)}
 			>
 				<span>Add field</span>
 				<PlusCircleIcon class="ml-2" />
@@ -87,6 +94,3 @@
 		</div>
 	</div>
 </div>
-
-<style lang="postcss">
-</style>

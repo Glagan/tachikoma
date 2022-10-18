@@ -144,7 +144,7 @@
 							{#each resultAsArray(results[service.key]) as result}
 								{@const used = isUsingIdentifier(
 									result.identifier,
-									$temporaryTitleStore.services[service.key]
+									$temporaryTitleStore.relations[service.key]
 								)}
 								<div class="flex-1 text-center min-w-[125px]" title={result.name} transition:fade>
 									{#if result.thumbnail}

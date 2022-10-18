@@ -58,7 +58,7 @@ async function run() {
 	const title = await Title.getOrCreate(
 		MangaPlusKey,
 		{ id },
-		{ name: informations.name, thumbnail: informations.thumbnail, sites: { [MangaPlusKey]: { id } } }
+		{ name: informations.name, thumbnail: informations.thumbnail, relations: { [MangaPlusKey]: { id } } }
 	);
 	highlightRows(title);
 	debug("title", title);

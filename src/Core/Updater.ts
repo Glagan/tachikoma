@@ -63,7 +63,7 @@ export default class Updater {
 	async initialize(): Promise<any> {
 		if (this.initialized) return;
 		if (this.globalLoading) return this.globalLoading;
-		const services = Options.filterServices(Object.keys(this.title.services));
+		const services = Options.filterServices(Object.keys(this.title.relations));
 		for (const serviceKey of services) {
 			this.initializeService(serviceKey);
 		}
@@ -82,9 +82,9 @@ export default class Updater {
 	 */
 	async initializeService(serviceKey: string): Promise<Title | TitleFetchFailure> {
 		if (!Lake.map[serviceKey]) return { status: ExternalStatus.NO_SERVICE };
-		if (!this.title.services[serviceKey]) return { status: ExternalStatus.NO_ID };
+		if (!this.title.relations[serviceKey]) return { status: ExternalStatus.NO_ID };
 		const promise = Lake.map[serviceKey]
-			.get(this.title.services[serviceKey])
+			.get(this.title.relations[serviceKey])
 			.then((result) => (this.state[serviceKey] = result));
 		this.loadingServices.push(promise);
 		return promise;
@@ -98,8 +98,8 @@ export default class Updater {
 	async import(): Promise<Snapshots> {
 		const snapshots: Snapshots = {};
 		await this.initialize();
-		const titleServices = Object.keys(this.title.services);
-		const services = Options.services(true).filter((service) => titleServices.indexOf(service) >= 0);
+		const titleRelations = Object.keys(this.title.relations);
+		const services = Options.services(true).filter((service) => titleRelations.indexOf(service) >= 0);
 		for (const serviceKey of services) {
 			if (this.state[serviceKey] instanceof Title) {
 				const externalTitle = this.state[serviceKey] as Title;
@@ -128,11 +128,11 @@ export default class Updater {
 			this.emit();
 			return report;
 		}
-		const titleServices = Object.keys(this.title.services);
-		const services = Options.services(true).filter((service) => titleServices.indexOf(service) >= 0);
+		const titleRelations = Object.keys(this.title.relations);
+		const services = Options.services(true).filter((service) => titleRelations.indexOf(service) >= 0);
 		const updates: Promise<SaveResult>[] = [];
 		for (const serviceKey of services) {
-			const id = this.title.services[serviceKey];
+			const id = this.title.relations[serviceKey];
 			if (
 				id &&
 				this.state[serviceKey] &&
@@ -206,7 +206,7 @@ export default class Updater {
 		const snapshotServices = Object.keys(snapshots);
 		const updates: Promise<SaveResult | DeleteResult>[] = [];
 		for (const serviceKey of snapshotServices) {
-			const id = this.title.services[serviceKey];
+			const id = this.title.relations[serviceKey];
 			if (id) {
 				const service = Lake.map[serviceKey];
 				const snapshot = snapshots[serviceKey];

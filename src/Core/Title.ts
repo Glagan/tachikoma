@@ -87,11 +87,9 @@ export type TitleInterface = {
 	endDate?: DateTime;
 
 	// List of locked Service keys
-	lockedServices?: string[];
-	// List of {Service.key}
-	services: IdentifierList;
-	// List of Sites keys -- for Sites that don't have a service
-	sites?: IdentifierList;
+	lockedRelations?: string[];
+	// List of {Service.key}, for Services and Sites
+	relations: IdentifierList;
 	// Creation time
 	creation?: DateTime;
 	// Last update time
@@ -121,9 +119,8 @@ export default class Title implements TitleInterface {
 	startDate?: DateTime;
 	endDate?: DateTime;
 
-	lockedServices: string[] = [];
-	services: { [key: string]: TitleIdentifier };
-	sites: { [key: string]: TitleIdentifier };
+	lockedRelations: string[] = [];
+	relations: { [key: string]: TitleIdentifier };
 
 	// Meta
 	creation?: DateTime;
@@ -144,17 +141,15 @@ export default class Title implements TitleInterface {
 			this.startDate = title.startDate;
 			this.endDate = title.endDate;
 
-			this.lockedServices = title.lockedServices ?? [];
-			this.services = JSON.parse(JSON.stringify(title.services));
-			this.sites = JSON.parse(JSON.stringify(title.sites ?? {}));
+			this.lockedRelations = title.lockedRelations ?? [];
+			this.relations = JSON.parse(JSON.stringify(title.relations));
 			this.creation = title.creation;
 			this.lastUpdate = title.lastUpdate;
 			this.lastAccess = title.lastAccess;
 		} else {
 			this.chapter = 0;
 			this.status = Status.NONE;
-			this.services = {};
-			this.sites = {};
+			this.relations = {};
 			this.creation = DateTime.now();
 		}
 	}
@@ -224,9 +219,8 @@ export default class Title implements TitleInterface {
 			r: title.score ? [title.score.value, ...title.score.range] : undefined,
 			t: title.startDate ? title.startDate.toMillis() : undefined,
 			e: title.endDate ? title.endDate.toMillis() : undefined,
-			l: title.lockedServices ? title.lockedServices : undefined,
-			$: Object.keys(title.services).length > 0 ? title.services : undefined,
-			["@"]: title.sites && Object.keys(title.sites).length > 0 ? title.sites : undefined,
+			l: title.lockedRelations ? title.lockedRelations : undefined,
+			$: Object.keys(title.relations).length > 0 ? title.relations : undefined,
 			o: title.creation ? title.creation.toMillis() : undefined,
 			u: title.lastUpdate ? title.lastUpdate.toMillis() : undefined,
 			a: title.lastAccess ? title.lastAccess.toMillis() : undefined,
@@ -252,9 +246,8 @@ export default class Title implements TitleInterface {
 			score: title.r ? new Score(title.r[0], [title.r[1], title.r[2]]) : undefined,
 			startDate: title.t ? DateTime.fromMillis(title.t) : undefined,
 			endDate: title.e ? DateTime.fromMillis(title.e) : undefined,
-			lockedServices: title.l ? title.l : [],
-			services: title.$ ? title.$ : {},
-			sites: title["@"] ? title["@"] : {},
+			lockedRelations: title.l ? title.l : [],
+			relations: title.$ ? title.$ : {},
 			creation: title.o ? DateTime.fromMillis(title.o) : undefined,
 			lastUpdate: title.u ? DateTime.fromMillis(title.u) : undefined,
 			lastAccess: title.a ? DateTime.fromMillis(title.a) : undefined,
@@ -304,8 +297,7 @@ export default class Title implements TitleInterface {
 				? JSON.parse(JSON.stringify(createValues))
 				: undefined;
 			if (values) {
-				if (!values.services) values.services = {};
-				if (!values.sites) values.sites = {};
+				if (!values.relations) values.relations = {};
 				if (!values.chapter) values.chapter = 0;
 				if (!values.status) values.status = Status.NONE;
 			}
@@ -314,7 +306,9 @@ export default class Title implements TitleInterface {
 			newTitle.lastAccess = DateTime.now();
 			await newTitle.save();
 			return newTitle;
-		}
+		} /*  else if (createValues?.relations) {
+			title.updateRelations(createValues.relations);
+		} */
 		title.lastAccess = DateTime.now();
 		if (createValues) {
 			if (createValues.name) {
@@ -409,41 +403,24 @@ export default class Title implements TitleInterface {
 		}
 		this.startDate = title.startDate;
 		this.endDate = title.endDate;
-		this.lockedServices = title.lockedServices ?? [];
-		this.services = title.services;
-		this.sites = title.sites ?? {};
+		this.lockedRelations = title.lockedRelations ?? [];
+		this.relations = title.relations;
 	}
 
 	/**
-	 * Update the list of Services to new ID if needed.
-	 * Check locked Services and do not update them.
+	 * Update the list of relations to new IDs if needed.
+	 * Check locked relations and do not update them.
 	 */
-	updateServices(services: IdentifierList): boolean {
+	updateRelations(relations: IdentifierList): boolean {
 		let updated = false;
-		for (const serviceKey in services) {
+		for (const key in relations) {
 			if (
-				this.lockedServices.indexOf(serviceKey) < 0 &&
+				this.lockedRelations.indexOf(key) < 0 &&
 				// Compare TitleIdentifiers
-				(!this.services[serviceKey] ||
-					!Object.keys(this.services[serviceKey]).every((k) => this.services[serviceKey] === services[k]))
+				(!this.relations[key] ||
+					!Object.keys(this.relations[key]).every((k) => this.relations[key] === relations[k]))
 			) {
-				this.services[serviceKey] = services[serviceKey];
-				updated = true;
-			}
-		}
-		return updated;
-	}
-
-	// Merge the title sites with the incoming sites
-	updateSites(sites: IdentifierList): boolean {
-		let updated = false;
-		for (const key in sites) {
-			if (
-				this.lockedServices.indexOf(key) < 0 &&
-				// Compare TitleIdentifiers
-				(!this.sites[key] || !Object.keys(this.sites[key]).every((k) => this.sites[key] === sites[k]))
-			) {
-				this.sites[key] = sites[key];
+				this.relations[key] = relations[key];
 				updated = true;
 			}
 		}
@@ -452,31 +429,18 @@ export default class Title implements TitleInterface {
 
 	async save(): Promise<boolean> {
 		// Check if the title has no ID to get one
-		// const titleServices = Options.filterServices(Object.keys(this.services));
-		const titleServices = Object.keys(this.services);
-		const siteKeys = Object.keys(this.sites);
+		const titleRelations = Object.keys(this.relations);
 		if (this.id === undefined) {
 			// Check each Services keys
-			const keys = [
-				...titleServices.map((key) => {
-					return `=${key}>${serviceIdentifierToToken(this.services[key])}` as `=${string}>${string}`;
-				}),
-				...siteKeys.map((key) => {
-					return `=${key}>${serviceIdentifierToToken(this.sites[key])}` as `=${string}>${string}`;
-				}),
-			];
-			const fromServices = await Shelf.get(keys);
+			const keys = titleRelations.map((key) => {
+				return `=${key}>${serviceIdentifierToToken(this.relations[key])}` as `=${string}>${string}`;
+			});
+			const fromRelations = await Shelf.get(keys);
 			// Select the preferred keys ordered by Services
-			for (const key of titleServices) {
-				const relationkey = key as keyof typeof fromServices;
-				if (fromServices[relationkey]) {
-					this.id = fromServices[relationkey];
-				}
-			}
-			for (const key of siteKeys) {
-				const relationkey = key as keyof typeof fromServices;
-				if (fromServices[relationkey]) {
-					this.id = fromServices[relationkey];
+			for (const key of titleRelations) {
+				const relationkey = key as keyof typeof fromRelations;
+				if (fromRelations[relationkey]) {
+					this.id = fromRelations[relationkey];
 				}
 			}
 			// Check if there is stil no ID and create one
@@ -490,14 +454,9 @@ export default class Title implements TitleInterface {
 		const update = {
 			[`_${this.id!}`]: this.toStorage(),
 		} as unknown as StorageTitle;
-		for (const relation of titleServices) {
-			if (this.services[relation]) {
-				update[`=${relation}>${serviceIdentifierToToken(this.services[relation])}`] = this.id;
-			}
-		}
-		for (const relation of siteKeys) {
-			if (this.sites[relation]) {
-				update[`=${relation}>${serviceIdentifierToToken(this.sites[relation])}`] = this.id;
+		for (const relation of titleRelations) {
+			if (this.relations[relation]) {
+				update[`=${relation}>${serviceIdentifierToToken(this.relations[relation])}`] = this.id;
 			}
 		}
 		await Shelf.set(update);
@@ -507,13 +466,9 @@ export default class Title implements TitleInterface {
 	async delete(): Promise<boolean> {
 		if (this.id) {
 			const keys = [`_${this.id}`];
-			for (const key of Object.keys(this.services)) {
-				const relationkey = key as keyof typeof this.services;
-				keys.push(`=${relationkey}>${serviceIdentifierToToken(this.services[relationkey])}`);
-			}
-			for (const key of Object.keys(this.sites)) {
-				const relationkey = key as keyof typeof this.sites;
-				keys.push(`=${relationkey}>${serviceIdentifierToToken(this.sites[relationkey])}`);
+			for (const key of Object.keys(this.relations)) {
+				const relationkey = key as keyof typeof this.relations;
+				keys.push(`=${relationkey}>${serviceIdentifierToToken(this.relations[relationkey])}`);
 			}
 			await Shelf.remove(keys);
 			this.id = undefined;

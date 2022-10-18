@@ -323,7 +323,7 @@ class MyAnimeList_ extends APIService {
 				startDate: listStatus.start_date ? DateTime.fromISO(listStatus.start_date) : undefined,
 				endDate: listStatus.finish_date ? DateTime.fromISO(listStatus.finish_date) : undefined,
 				lastAccess: DateTime.now(),
-				services: { [this.key]: id },
+				relations: { [this.key]: id },
 			});
 		}
 		return { status: ExternalStatus.NOT_IN_LIST };

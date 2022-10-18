@@ -14,9 +14,10 @@ import {
 } from "@Core/Service";
 import { Volcano } from "@Core/Volcano";
 import Title, { Status, TitleInterface } from "@Core/Title";
-import { debug, info } from "@Core/Logger";
+import { info } from "@Core/Logger";
 import MyAnimeList from "@Service/MyAnimeList";
 import MangaPlusKey from "@Site/MangaPlus/key";
+import Anilist from "@Service/Anilist";
 
 type Token = {
 	session: string;
@@ -390,7 +391,7 @@ class MangaDex_ extends APIService {
 		if (status != Status.NONE) {
 			return new Title({
 				chapter: 0,
-				services: { [this.key]: id },
+				relations: { [this.key]: id },
 				status: this.toStatus(response.body.status),
 			});
 		}
@@ -449,21 +450,20 @@ class MangaDex_ extends APIService {
 	 * @param services List of Service fullnames and their URL as stored in MangaDex
 	 * @returns List of services formatted for tachikoma
 	 */
-	extractServices(services?: Links): { [key: string]: TitleIdentifier } {
+	extractRelations(services?: Links): { [key: string]: TitleIdentifier } {
 		let converted: { [key: string]: TitleIdentifier } = {};
-		if (services?.mal) {
+		if (!services) {
+			return converted;
+		}
+		if (services.mal) {
 			converted[MyAnimeList.key] = { id: parseInt(services.mal) };
 		}
-		/* if (services.al) {
-		} */
-		return converted;
-	}
-
-	extractSites(links?: Links): { [key: string]: TitleIdentifier } {
-		let converted: { [key: string]: TitleIdentifier } = {};
-		if (links?.engtl && links.engtl?.indexOf("mangaplus.shueisha.co.jp")) {
+		if (services.al) {
+			converted[Anilist.key] = { id: parseInt(services.al) };
+		}
+		if (services.engtl && services.engtl?.indexOf("mangaplus.shueisha.co.jp")) {
 			// https://mangaplus.shueisha.co.jp/titles/100071
-			const match = links.engtl.match(/\/titles\/(\d+)\/?$/);
+			const match = services.engtl.match(/\/titles\/(\d+)\/?$/);
 			const id = parseInt(match?.[1] ?? "");
 			if (id && !isNaN(id)) {
 				converted[MangaPlusKey] = { id };
@@ -510,7 +510,7 @@ class MangaDex_ extends APIService {
 			name: manga.attributes.title.en,
 			thumbnail: this.extractCover(manga),
 			identifier: { id: manga.id },
-			external: this.extractServices(manga.attributes.links),
+			external: this.extractRelations(manga.attributes.links),
 		}));
 	}
 }

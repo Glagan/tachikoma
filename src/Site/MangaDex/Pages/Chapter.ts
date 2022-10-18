@@ -2,10 +2,10 @@ import { debug, info } from "@Core/Logger";
 import Tachikoma from "@Core/Tachikoma";
 import Title from "@Core/Title";
 import { waitForSelector } from "@Core/Utility";
-import { fullChapterFromString, IDFromLink } from "../Utility";
 import MangaDex from "@Service/MangaDex";
-import MangaDexAPI from "../API";
 import Reader from "@Core/Reader";
+import MangaDexAPI from "../API";
+import { fullChapterFromString, IDFromLink } from "../Utility";
 
 function findMangaDexId(): string | undefined {
 	const titleLink = document.querySelector<HTMLAnchorElement>('a.text-primary[href^="/title/"]');
@@ -32,25 +32,22 @@ export default async () => {
 	if (!informations) {
 		return;
 	}
-	const services = MangaDex.extractServices(informations.attributes.links);
-	services[MangaDex.key] = { id: informations.id };
-	const sites = MangaDex.extractSites(informations.attributes.links);
+	const relations = MangaDex.extractRelations(informations.attributes.links);
+	relations[MangaDex.key] = { id: informations.id };
 	const title = await Title.getOrCreate(
 		MangaDex.key,
 		{ id: informations.id },
 		{
 			name: informations.attributes.title.en,
 			thumbnail: MangaDex.extractCover(informations),
-			services,
-			sites,
+			relations,
 		}
 	);
 	if (!initialized) {
 		debug("title", title);
-		let updated = title.updateServices(services);
-		updated = title.updateSites(sites) || updated;
+		let updated = title.updateRelations(relations);
 		if (updated) {
-			debug("updated services", { services: title.services });
+			debug("updated relations", { relations: title.relations });
 			await title.save();
 		}
 	}

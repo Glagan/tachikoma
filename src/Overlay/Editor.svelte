@@ -14,17 +14,17 @@
 	import type Title from "@Core/Title";
 	import Modal from "@Components/Modal.svelte";
 	import Button from "@Components/Button.svelte";
-	import { Lake } from "@Core/Lake";
 	import Badge from "@Components/Badge.svelte";
 	import { Status, statusToString, type TitleInterface } from "@Core/Title";
 	import Toggle from "@Components/Toggle.svelte";
 	import DateSelector from "./DateSelector.svelte";
-	import ServiceEditor from "./ServiceEditor.svelte";
+	import RelationEditor from "./RelationEditor.svelte";
 	import { Score } from "@Core/Score";
 	import Tachikoma from "@Core/Tachikoma";
 	import { debug } from "@Core/Logger";
 	import Search from "./Search.svelte";
 	import { temporaryTitleStore } from "./TemporaryTitle";
+	import Relations from "@Core/Relations";
 
 	export let title: Title;
 	temporaryTitleStore.setFrom(title);
@@ -51,7 +51,6 @@
 	let volume = $temporaryTitleStore.volume != undefined ? `${$temporaryTitleStore.volume}` : "";
 	let status = $temporaryTitleStore.status;
 	let score = $temporaryTitleStore.score ? `${$temporaryTitleStore.score.get([0, 100])}` : "";
-	let originalSites = title.sites;
 
 	const statusList = Object.keys(Status)
 		.map((key) => parseInt(key))
@@ -74,12 +73,12 @@
 
 	async function save() {
 		closable = false;
-		const validServices: typeof $temporaryTitleStore.services = {};
-		for (const service of Object.keys($temporaryTitleStore.tmpIdentifiers)) {
-			if ($temporaryTitleStore.tmpIdentifiers[service].length > 0) {
-				validServices[service] = {};
-				for (const { key, value } of $temporaryTitleStore.tmpIdentifiers[service]) {
-					validServices[service][key] = value;
+		const validRelations: typeof $temporaryTitleStore.relations = {};
+		for (const relationKey of Object.keys($temporaryTitleStore.tmpIdentifiers)) {
+			if ($temporaryTitleStore.tmpIdentifiers[relationKey].length > 0) {
+				validRelations[relationKey] = {};
+				for (const { key, value } of $temporaryTitleStore.tmpIdentifiers[relationKey]) {
+					validRelations[relationKey][key] = value;
 				}
 			}
 		}
@@ -92,9 +91,8 @@
 			score: score == undefined || score == "" || isNaN(intScore) ? undefined : new Score(intScore, [0, 100]),
 			startDate: $temporaryTitleStore.startDate,
 			endDate: $temporaryTitleStore.endDate,
-			lockedServices: $temporaryTitleStore.lockedServices,
-			services: validServices,
-			sites: originalSites,
+			lockedRelations: $temporaryTitleStore.lockedRelations,
+			relations: validRelations,
 		};
 		debug("Updating title to", JSON.parse(JSON.stringify(title)));
 		await Tachikoma.update(title, deletePrevious, updateExternals);
@@ -234,8 +232,8 @@
 			<Button size="sm" on:click={showSearch}>Search</Button>
 		</div>
 		<div class="p-4">
-			{#each Lake.services as service (service.key)}
-				<ServiceEditor {service} disabled={!closable} />
+			{#each Relations as relationKey}
+				<RelationEditor {relationKey} disabled={!closable} />
 			{/each}
 		</div>
 	</div>

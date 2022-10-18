@@ -41,7 +41,7 @@ export default async () => {
 	const title = await Title.getOrCreate(
 		MangaPlusKey,
 		{ id },
-		{ name: informations.name, sites: { [MangaPlusKey]: { id } } }
+		{ name: informations.name, relations: { [MangaPlusKey]: { id } } }
 	);
 	Tachikoma.setTitle(title);
 	debug("found title", { title });

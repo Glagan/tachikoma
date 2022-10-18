@@ -350,7 +350,7 @@ class Anilist_ extends APIService {
 				startDate: userMedia.startedAt ? this.dateFromAnilist(userMedia.startedAt) : undefined,
 				endDate: userMedia.completedAt ? this.dateFromAnilist(userMedia.completedAt) : undefined,
 				lastAccess: DateTime.now(),
-				services: { [this.key]: id },
+				relations: { [this.key]: id },
 			});
 		}
 		return { status: ExternalStatus.NOT_IN_LIST };
