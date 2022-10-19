@@ -21,6 +21,7 @@ You can enable multiple services at the same time, and it will sync all of them 
 |                         Site                          |                    Link                     |  Features   |
 | :---------------------------------------------------: | :-----------------------------------------: | :---------: |
 | ![MyAnimeList Icon](static/icons/mal.png) MyAnimeList | [myanimelist.net](https://myanimelist.net/) |             |
+|     ![Anilist Icon](static/icons/al.png) Anilist      |      [anilist.co](https://anilist.co/)      |             |
 |    ![MangaDex Icon](static/icons/md.png) MangaDex     |    [mangadex.org](https://mangadex.org/)    | Status only |
 
 Your favorite service is missing ? Check that it's not already requested and [request it](https://github.com/Glagan/tachikoma/issues/new?template=service-request.md&title=%5BService%5D)
@@ -38,8 +39,7 @@ Your favorite service is missing ? Check that it's not already requested and [re
 Here is some features that **will** be added to **tachikoma**, with no particular order of priority:
 
 * Services
-	* Anilist
-	* Kitsu
+    * Kitsu
 * Services Import/Export
 * Automatic import on startup
 
