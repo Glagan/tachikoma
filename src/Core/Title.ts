@@ -98,7 +98,7 @@ export type TitleInterface = {
 	lastAccess?: DateTime;
 };
 
-function serviceIdentifierToToken(id: TitleIdentifier): string {
+export function serviceIdentifierToToken(id: TitleIdentifier): string {
 	return Object.keys(id)
 		.sort()
 		.map((key) => `${key}${id[key]}`)

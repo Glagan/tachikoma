@@ -4,7 +4,7 @@ import type { Button, Notification } from "@glagan/zap/types";
 import Overlay from "@Overlay";
 import { Options } from "./Options";
 import Updater, { Snapshots, SyncReport } from "./Updater";
-import Title, { TitleInterface } from "./Title";
+import Title, { serviceIdentifierToToken, TitleInterface } from "./Title";
 import { file } from "./Utility";
 import { Lake } from "./Lake";
 import { DeleteStatus, deleteStatusDescription, SaveStatus, saveStatusDescription } from "./Service";
@@ -150,10 +150,38 @@ export class TachikomaClass {
 			this.syncNotification = undefined;
 		}
 		const localSnapshot = Title.serialize(this.current.title);
+
+		let deleteReport: SyncReport | undefined = undefined;
 		if (deletePrevious) {
-			// TODO [Feature] delete all services currently in the Title
+			const promises = [];
+			for (const relationkey of Object.keys(this.current.title.relations)) {
+				const service = Lake.map[relationkey];
+				if (service && this.current.title.relations[relationkey]) {
+					if (!deleteReport) {
+						deleteReport = {
+							perServices: {},
+							snapshots: {},
+						};
+					}
+					if (
+						!(relationkey in title.relations) ||
+						!title.relations[relationkey] ||
+						serviceIdentifierToToken(this.current.title.relations[relationkey]) !==
+							serviceIdentifierToToken(title.relations[relationkey])
+					) {
+						promises.push(
+							service.delete(this.current.title.relations[relationkey]).then((result) => {
+								deleteReport!.perServices[relationkey] = { service: result, title: null };
+								return result;
+							})
+						);
+					}
+				}
+			}
+			await Promise.all(promises);
 		}
 		this.current.title.update(title);
+
 		let result: SyncReport | undefined = undefined;
 		if (updateExternals) {
 			const result = await this.current.export();

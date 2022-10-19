@@ -94,7 +94,7 @@
 			lockedRelations: $temporaryTitleStore.lockedRelations,
 			relations: validRelations,
 		};
-		debug("Updating title to", JSON.parse(JSON.stringify(title)));
+		debug("Updating title to", JSON.parse(JSON.stringify(title)), deletePrevious, updateExternals);
 		await Tachikoma.update(title, deletePrevious, updateExternals);
 		closable = true;
 		hide();
@@ -228,7 +228,7 @@
 			</div>
 		</div>
 		<div class="flex justify-between items-center title-separator border-y">
-			Services
+			Relations
 			<Button size="sm" on:click={showSearch}>Search</Button>
 		</div>
 		<div class="p-4">

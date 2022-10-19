@@ -137,6 +137,14 @@ const PERSIST_QUERY = `
 		}
 	}`.replace(/\n\t+/g, " ");
 
+interface AnilistDeleteResponse {
+	data: {
+		DeleteMediaListEntry: {
+			deleted: boolean;
+		};
+	};
+}
+
 const DELETE_QUERY = `
 	mutation ($id:Int) {
 		DeleteMediaListEntry (id:$id) {
@@ -374,7 +382,6 @@ class Anilist_ extends APIService {
 			body: JSON.stringify({
 				query: PERSIST_QUERY,
 				variables: {
-					// TODO Save mediaEntryId ?
 					mediaId: parseInt(id.id),
 					status: this.fromStatus(title.status),
 					scoreRaw: title.score ? title.score.get([0, 100]) : undefined,
@@ -389,7 +396,6 @@ class Anilist_ extends APIService {
 			return { status: SaveStatus.ACCOUNT_ERROR };
 		}
 
-		// TODO Save mediaEntryId ?
 		return { status: created ? SaveStatus.CREATED : SaveStatus.SUCCESS };
 	}
 
@@ -405,14 +411,42 @@ class Anilist_ extends APIService {
 			return { status: DeleteStatus.ACCOUNT_ERROR };
 		}
 
-		await Volcano.post(this.apiUrl, {
+		// We need to get the Anilist MediaEntryId
+		// -- delete shouldn't happen often and an extra request is better than storing it
+		const response = await Volcano.post<AnilistGetResponse>(this.apiUrl, {
+			headers: this.headers(token),
+			body: JSON.stringify({
+				query: GET_QUERY,
+				variables: {
+					mediaId: parseInt(id.id),
+				},
+			}),
+		});
+		if (response.status >= 401 && response.status <= 403) {
+			return { status: DeleteStatus.ACCOUNT_ERROR };
+		} else if (!response.body || response.status >= 500) {
+			return { status: DeleteStatus.SERVICE_ERROR };
+		}
+
+		const mediaEntryId = response.body.data.Media.mediaListEntry?.id;
+		if (!mediaEntryId) {
+			return { status: DeleteStatus.NOT_IN_LIST };
+		}
+
+		await Volcano.post<AnilistDeleteResponse>(this.apiUrl, {
 			headers: this.headers(token),
 			body: JSON.stringify({
 				query: DELETE_QUERY,
-				// TODO Save mediaEntryId
-				// variables: { id: this.mediaEntryId },
+				variables: {
+					id: mediaEntryId,
+				},
 			}),
 		});
+		if (response.status >= 401 && response.status <= 403) {
+			return { status: DeleteStatus.ACCOUNT_ERROR };
+		} else if (!response.body || response.status >= 500) {
+			return { status: DeleteStatus.SERVICE_ERROR };
+		}
 
 		return { status: DeleteStatus.SUCCESS };
 	}
