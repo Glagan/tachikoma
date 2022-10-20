@@ -250,7 +250,7 @@ class Anilist_ extends APIService {
 		}
 		await this.storage.set<Token>({
 			token: informations.access_token,
-			expires: DateTime.now().plus({ milliseconds: informations.expires_in }).toMillis(),
+			expires: DateTime.now().plus({ seconds: informations.expires_in }).toMillis(),
 		});
 		return { status: ServiceLogin.SUCCESS };
 	}
@@ -365,7 +365,7 @@ class Anilist_ extends APIService {
 	}
 
 	async save(id: TitleIdentifier, title: Title): Promise<SaveResult> {
-		if (!id.id) return { status: SaveStatus.ACCOUNT_ERROR };
+		if (!id.id) return { status: SaveStatus.ID_ERROR };
 		const token = await this.validToken();
 		if (!token) {
 			return {
@@ -400,7 +400,7 @@ class Anilist_ extends APIService {
 	}
 
 	async delete(id: TitleIdentifier): Promise<DeleteResult> {
-		if (!id.id) return { status: DeleteStatus.ACCOUNT_ERROR };
+		if (!id.id) return { status: DeleteStatus.ID_ERROR };
 		const token = await this.validToken();
 		if (!token) {
 			return {

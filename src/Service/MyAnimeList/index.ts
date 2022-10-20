@@ -330,7 +330,7 @@ class MyAnimeList_ extends APIService {
 	}
 
 	async save(id: TitleIdentifier, title: Title): Promise<SaveResult> {
-		if (!id.id) return { status: SaveStatus.ACCOUNT_ERROR };
+		if (!id.id) return { status: SaveStatus.ID_ERROR };
 		const token = await this.validToken();
 		if (!token) {
 			return {
@@ -366,7 +366,7 @@ class MyAnimeList_ extends APIService {
 	}
 
 	async delete(id: TitleIdentifier): Promise<DeleteResult> {
-		if (!id.id) return { status: DeleteStatus.ACCOUNT_ERROR };
+		if (!id.id) return { status: DeleteStatus.ID_ERROR };
 		const token = await this.validToken();
 		if (!token) {
 			return {

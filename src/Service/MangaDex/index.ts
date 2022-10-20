@@ -18,6 +18,7 @@ import { info } from "@Core/Logger";
 import MyAnimeList from "@Service/MyAnimeList";
 import MangaPlusKey from "@Site/MangaPlus/key";
 import Anilist from "@Service/Anilist";
+import Kitsu from "@Service/Kitsu";
 
 type Token = {
 	session: string;
@@ -361,7 +362,7 @@ class MangaDex_ extends APIService {
 	}
 
 	async get(id: TitleIdentifier): Promise<Title | TitleFetchFailure> {
-		if (!id.id) return { status: ExternalStatus.ACCOUNT_ERROR };
+		if (!id.id) return { status: ExternalStatus.ID_ERROR };
 		const token = await this.validToken();
 		if (!token) {
 			return {
@@ -399,7 +400,7 @@ class MangaDex_ extends APIService {
 	}
 
 	async save(id: TitleIdentifier, title: Title): Promise<SaveResult> {
-		if (!id.id) return { status: SaveStatus.ACCOUNT_ERROR };
+		if (!id.id) return { status: SaveStatus.ID_ERROR };
 		const token = await this.validToken();
 		if (!token) {
 			return {
@@ -419,7 +420,7 @@ class MangaDex_ extends APIService {
 	}
 
 	async delete(id: TitleIdentifier): Promise<DeleteResult> {
-		if (!id.id) return { status: DeleteStatus.ACCOUNT_ERROR };
+		if (!id.id) return { status: DeleteStatus.ID_ERROR };
 		const token = await this.validToken();
 		if (!token) {
 			return {
@@ -460,6 +461,13 @@ class MangaDex_ extends APIService {
 		}
 		if (services.al) {
 			converted[Anilist.key] = { id: parseInt(services.al) };
+		}
+		if (services.kt) {
+			// Ignore slug keys
+			const key = parseInt(services.kt);
+			if (!isNaN(key)) {
+				converted[Kitsu.key] = { id: parseInt(services.kt) };
+			}
 		}
 		if (services.engtl && services.engtl?.indexOf("mangaplus.shueisha.co.jp")) {
 			// https://mangaplus.shueisha.co.jp/titles/100071
