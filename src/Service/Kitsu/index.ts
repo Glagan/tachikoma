@@ -10,6 +10,7 @@ import {
 	SaveStatus,
 	DeleteStatus,
 	LoginField,
+	SearchStatus,
 } from "@Core/Service";
 import { Volcano } from "@Core/Volcano";
 import Title, { Status, TitleInterface } from "@Core/Title";
@@ -116,6 +117,31 @@ export interface KitsuGetResponse {
 
 interface KitsuPersistResponse {
 	data: KitsuLibraryEntry;
+}
+
+interface KitsuSearchResponse {
+	data: {
+		id: string;
+		attributes: {
+			canonicalTitle: string;
+			posterImage: {
+				tiny: string;
+				small: string;
+				medium: string;
+				large: string;
+				original: string;
+			};
+		};
+	}[];
+	meta: {
+		count: number;
+	};
+	links: {
+		first: string;
+		prev: string;
+		next: string;
+		last: string;
+	};
 }
 
 class Kitsu_ extends APIService {
@@ -477,6 +503,40 @@ class Kitsu_ extends APIService {
 	link(id: TitleIdentifier): string | undefined {
 		if (!id.id) return undefined;
 		return this.route(`manga/${id.id}`, true);
+	}
+
+	async search(query: string, page?: number) {
+		const token = await this.validToken();
+		if (!token) {
+			return {
+				status: SearchStatus.ACCOUNT_ERROR,
+				message: "Failed to refresh token",
+			};
+		} else if (!token.token) {
+			return { status: SearchStatus.ACCOUNT_ERROR };
+		}
+
+		if (!page) page = 1;
+		const response = await Volcano.get<KitsuSearchResponse>(
+			`https://kitsu.io/api/edge/manga?${Volcano.buildQuery({
+				"filter[text]": query,
+			})}`,
+			{
+				headers: this.headers(token),
+			}
+		);
+
+		if (response.status >= 401 && response.status <= 403) {
+			return { status: SearchStatus.ACCOUNT_ERROR };
+		} else if (!response.body || response.status >= 500) {
+			return { status: SearchStatus.SERVICE_ERROR };
+		}
+
+		return response.body.data.map((title) => ({
+			name: title.attributes.canonicalTitle,
+			thumbnail: title.attributes.posterImage.small,
+			identifier: { id: parseInt(title.id) },
+		}));
 	}
 }
 export default new Kitsu_();
