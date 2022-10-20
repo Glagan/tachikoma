@@ -22,6 +22,7 @@ You can enable multiple services at the same time, and it will sync all of them 
 | :---------------------------------------------------: | :-----------------------------------------: | :---------: |
 | ![MyAnimeList Icon](static/icons/mal.png) MyAnimeList | [myanimelist.net](https://myanimelist.net/) |             |
 |     ![Anilist Icon](static/icons/al.png) Anilist      |      [anilist.co](https://anilist.co/)      |             |
+|       ![Kitsu Icon](static/icons/ku.png) Kitsu        |        [kitsu.io](https://kitsu.io/)        |             |
 |    ![MangaDex Icon](static/icons/md.png) MangaDex     |    [mangadex.org](https://mangadex.org/)    | Status only |
 
 Your favorite service is missing ? Check that it's not already requested and [request it](https://github.com/Glagan/tachikoma/issues/new?template=service-request.md&title=%5BService%5D)
@@ -38,10 +39,9 @@ Your favorite service is missing ? Check that it's not already requested and [re
 **tachikoma** aim to have most of the features from the previous **SyncDex**, dropping unused or now not needed features.  
 Here is some features that **will** be added to **tachikoma**, with no particular order of priority:
 
-* Services
-    * Kitsu
 * Services Import/Export
 * Automatic import on startup
+* Last chapter detection and automatically set end date
 
 There is also some features that are currently in **tachikoma** but incomplete or in progress and that will be updated:
 
