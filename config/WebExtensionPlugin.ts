@@ -140,12 +140,13 @@ export default class WebExtensionPlugin {
 				{ name: pluginName, stage: 100 /* Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE */ },
 				() => {
 					this.resetManifest();
+					thisCompilation.emitAsset("manifest.json", new RawSource(""));
 				}
 			);
 
 			// Process each final chunks and get the list of files associated to each entry points
 			thisCompilation.hooks.processAssets.tap(
-				{ name: pluginName, stage: 5000 /* Compilation.PROCESS_ASSETS_STAGE_REPORT */ },
+				{ name: pluginName, stage: 1000 /* Compilation.PROCESS_ASSETS_STAGE_SUMMARIZE */ },
 				(assets) => {
 					// * Fix missing assets in production mode not being reported inside vendors chunks
 					if (options.production) {
@@ -237,7 +238,7 @@ export default class WebExtensionPlugin {
 
 					// * Add the final manifest.json to the output
 					const manifestStr = JSON.stringify(this.manifest);
-					thisCompilation.emitAsset("manifest.json", new RawSource(manifestStr));
+					thisCompilation.updateAsset("manifest.json", new RawSource(manifestStr));
 				}
 			);
 		});
