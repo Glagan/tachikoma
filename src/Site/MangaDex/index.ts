@@ -16,7 +16,7 @@ router.add([/\/group\/([-A-Za-z0-9]{36})\//], async () => {
 router.add([/\/user\/([-A-Za-z0-9]{36})\//], async () => {
 	info("User Page");
 });
-router.add([/^\/chapter\/(\d+|[-A-Za-z0-9]{36})\/(\d+)\/?/], Chapter);
+router.add([/^\/chapter\/(\d+|[-A-Za-z0-9]{36})(?:\/(?:\d+))?\/?/], Chapter);
 router.add([/\/titles\/latest$/, /\/titles\/feed$/], ChapterList, undefined);
 router.add([/^\/manga\/(\d+)\/?/, /^\/title\/([-A-Za-z0-9]{36})\/?/], Title);
 router.add([/^\/(title|manga)(\/random)\/?/], Title, undefined);

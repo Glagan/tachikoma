@@ -63,34 +63,42 @@ export default async () => {
 
 	// * Handle page change
 	// Call the Reader state automatically
-	const container = document.querySelector<HTMLElement>(".progress .prog-inner") ?? undefined;
+	const container = document.querySelector<HTMLElement>(".md--progress") ?? undefined;
 	if (container) {
 		new Reader()
 			.withChapterState(function () {
 				const chapterLink = document.querySelector<HTMLAnchorElement>('a[href^="/chapter/"]');
 				if (chapterLink) {
-					const chapterContainer = document.querySelector<HTMLElement>("div.grid.grid-cols-3")!;
-					const progress = fullChapterFromString(chapterContainer.firstElementChild!.textContent!.trim());
+					const trySelectLabels = document.querySelectorAll<HTMLElement>(
+						".reader--menu .md-select .transition-label"
+					);
+					let progress = undefined;
+					for (const label of Array.from(trySelectLabels).reverse()) {
+						if (label.textContent && label.textContent?.indexOf("Chapter") >= 0) {
+							progress = fullChapterFromString(label.nextElementSibling!.textContent!.trim());
+							break;
+						}
+					}
+					if (!progress) {
+						return undefined;
+					}
 					return { id: IDFromLink(chapterLink, "chapter"), progress };
 				}
 				return undefined;
 			})
 			.withReadingState(function () {
 				if (container) {
-					let currentPage = container.querySelectorAll(".read").length + 1;
-					const doublePage = container.querySelectorAll(".page.active").length > 1;
-					if (doublePage) {
-						currentPage += 1;
-					}
+					let currentPage =
+						container.querySelectorAll(".read").length + container.querySelectorAll(".current").length;
 					const progress = { current: currentPage, max: 0 };
-					let currentExpectedLastPage: Element | null = container.lastElementChild!;
-					while (currentExpectedLastPage) {
-						const lastPageProgress = parseInt(currentExpectedLastPage.textContent!);
-						if (!isNaN(lastPageProgress)) {
-							progress.max = lastPageProgress;
+					// Find the max progress in the last child of the container
+					let lastPageContainer = container.lastElementChild!;
+					for (const pageBlock of Array.from(lastPageContainer.children)) {
+						const pageProgress = parseInt(pageBlock.textContent!);
+						if (!isNaN(pageProgress) && pageProgress > progress.max) {
+							progress.max = pageProgress;
 							break;
 						}
-						currentExpectedLastPage = currentExpectedLastPage.previousElementSibling;
 					}
 					return { lastPage: progress.current == progress.max };
 				}
