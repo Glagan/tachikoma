@@ -42,14 +42,28 @@ export function chapterRows(): ChapterRow[] {
 		.reverse();
 }
 
-async function waitForChaptersAndHighlight(title: Title) {
-	const rows = chapterRows();
-	highlight(rows, title);
+let highlightWith: Title | undefined = undefined;
+async function waitAndHighlightRows(title: Title) {
+	const execute = highlightWith == undefined;
+	highlightWith = title;
+	if (execute) {
+		try {
+			await waitForSelector(chapterSelector);
+			if (highlightWith) {
+				const rows = chapterRows();
+				highlight(rows, title);
+			}
+			highlightWith = undefined;
+		} catch (error) {
+			// Ignore errors, Network Error or no chapters
+		}
+	}
 }
 
 let randomObserver: MutationObserver | undefined;
 async function run() {
 	info("Title page");
+	highlightWith = undefined;
 	if (randomObserver) {
 		randomObserver.disconnect();
 		randomObserver = undefined;
@@ -79,7 +93,7 @@ async function run() {
 			relations,
 		}
 	);
-	waitForChaptersAndHighlight(title);
+	waitAndHighlightRows(title);
 	debug("title", title);
 	const updated = title.updateRelations(relations);
 	if (updated) {
@@ -88,20 +102,20 @@ async function run() {
 	}
 	const updater = Tachikoma.setTitle(title);
 	updater.addListener((title) => {
-		waitForChaptersAndHighlight(title);
+		waitAndHighlightRows(title);
 	});
 
 	debug("found title", { title });
 
 	// * Initial merge import and export for all services
 	const report = await Tachikoma.sync();
-	waitForChaptersAndHighlight(title);
+	waitAndHighlightRows(title);
 	debug("sync report", { report });
 
 	// * Handle title page change
 	let lastId: string | undefined;
 	randomObserver = new MutationObserver((_, observer) => {
-		if (document.querySelector('[to^="/title/"]')) {
+		if (location.pathname.startsWith("/title/") && document.querySelector('[to^="/title/"]')) {
 			const currentId = findMangaDexId();
 			if (!lastId) lastId = currentId;
 			else if (lastId != currentId) {
@@ -109,6 +123,9 @@ async function run() {
 				Tachikoma.clearTitle();
 				run();
 			}
+		} else {
+			randomObserver?.disconnect();
+			randomObserver = undefined;
 		}
 	});
 	randomObserver.observe(document.body, { childList: true, subtree: true });
@@ -121,6 +138,10 @@ async function run() {
 			let lastPage: string | null = null;
 			let waitingForSelector = false;
 			const pageObserver = new MutationObserver((_, observer) => {
+				if (!location.pathname.startsWith("/title/")) {
+					pageObserver.disconnect();
+					return;
+				}
 				const currentPage = new URLSearchParams(location.search).get("page");
 				if (currentPage != lastPage) {
 					waitingForSelector = true;
@@ -129,7 +150,7 @@ async function run() {
 				if (waitingForSelector) {
 					if (document.querySelector(chapterSelector)) {
 						waitingForSelector = false;
-						waitForChaptersAndHighlight(title);
+						waitAndHighlightRows(title);
 					}
 				}
 			});

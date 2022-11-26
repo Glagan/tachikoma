@@ -34,22 +34,18 @@ export default class Router {
 
 	public match(identifier: string): [Route, string[]] | null {
 		for (const route of this.routes) {
-			let match: [Route, string[]] | null = null;
 			for (const id of route.identifier) {
 				if (typeof id === "string") {
 					if (id == identifier) {
-						match = [route, []];
-						break;
+						return [route, []];
 					}
 				} else {
 					const results = id.exec(identifier);
 					if (results) {
-						match = [route, results.slice(1)];
-						break;
+						return [route, results.slice(1)];
 					}
 				}
 			}
-			if (match) return match;
 		}
 		return null;
 	}
