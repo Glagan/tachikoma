@@ -35,9 +35,8 @@ export function titleGroups(): TitleChapterGroup[] {
 		.filter((row): row is TitleChapterGroup => row != undefined);
 }
 
-let toggleHidden: ToggleHidden | undefined;
-
 // Remove the toggle from a previous page
+let toggleHidden: ToggleHidden | undefined;
 function cleanupToggle() {
 	if (toggleHidden) {
 		if ("remove" in toggleHidden.$$.root) {
@@ -110,6 +109,9 @@ async function run() {
 			}
 		});
 		pageObserver.observe(container, { childList: true, subtree: true });
+		return () => {
+			pageObserver.disconnect();
+		};
 	}
 }
 

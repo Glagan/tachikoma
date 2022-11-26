@@ -4,7 +4,7 @@ import Tachikoma from "@Core/Tachikoma";
 import Title from "@Core/Title";
 import { waitForSelector } from "@Core/Utility";
 import MangaPlusKey from "../key";
-import { chapterFromString, IDfromString } from "../Utility";
+import { chapterFromString } from "../Utility";
 
 function findMangaPlusId(): number | undefined {
 	const imageLink = document.querySelector<HTMLImageElement>('[class^="TitleDetailHeader-module_coverImage"');

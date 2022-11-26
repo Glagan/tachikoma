@@ -1,6 +1,12 @@
+type RouteCleanup = void | undefined | (() => any) | (() => Promise<any>);
 type Route = {
 	identifier: (string | RegExp)[];
-	fnct: (() => Promise<any>) | ((results?: string[]) => Promise<any>) | (() => any) | ((results?: string[]) => any);
+	fnct:
+		| (() => Promise<RouteCleanup>)
+		| ((results?: string[]) => Promise<RouteCleanup>)
+		| (() => RouteCleanup)
+		| ((results?: string[]) => RouteCleanup);
+	cleanup?: () => Promise<any>;
 	meta?: Record<any, any>;
 };
 
@@ -14,6 +20,9 @@ export default class Router {
 			| ((identifier: string, previous?: string) => void);
 		afterRoute?: ((identifier: string) => Promise<void>) | ((identifier: string) => void);
 	} = {};
+	protected running: boolean = false;
+	protected nextRoute: string | undefined = undefined;
+	protected cleanup: RouteCleanup = undefined;
 
 	public onBeforeRoute(
 		callback:
@@ -50,25 +59,48 @@ export default class Router {
 		return null;
 	}
 
-	public async execute(identifier?: string) {
+	public async execute(identifier?: string, force = false): Promise<unknown> {
 		if (!identifier) identifier = window.location.pathname;
+		if (this.running && !force) {
+			this.nextRoute = identifier;
+			return;
+		}
 		const match = this.match(identifier);
 		if (match) {
+			this.running = true;
+			if (this.cleanup) {
+				await this.cleanup();
+				this.cleanup = undefined;
+			}
 			if (this.events.beforeRoute) {
 				await this.events.beforeRoute(identifier, this.currentRoute);
 			}
-			await match[0].fnct(match[1]);
 			this.currentRoute = identifier;
+			let cleanup = (await match[0].fnct(match[1])) as RouteCleanup;
 			if (this.events.afterRoute) {
 				await this.events.afterRoute(identifier);
+			}
+			if (this.nextRoute) {
+				let identifier = this.nextRoute;
+				this.nextRoute = undefined;
+				return this.execute(identifier, true);
+			} else {
+				this.cleanup = cleanup;
+				this.running = false;
 			}
 		}
 		// Execute beforeRoute and reset currentRoute on inexisting routes
 		else {
+			this.running = true;
+			if (this.cleanup) {
+				await this.cleanup();
+				this.cleanup = undefined;
+			}
 			if (this.events.beforeRoute) {
 				await this.events.beforeRoute(identifier, this.currentRoute);
 			}
 			this.currentRoute = undefined;
+			this.running = false;
 		}
 	}
 

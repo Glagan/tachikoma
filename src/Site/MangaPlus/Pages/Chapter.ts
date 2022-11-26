@@ -56,8 +56,9 @@ export default async () => {
 	// * Handle page change
 	// Listen on the slider flex-basis style update
 	const slider = document.querySelector(".zao-slider-bar-previous");
+	let reader: Reader | undefined;
 	if (slider) {
-		new Reader()
+		reader = new Reader()
 			.withChapterState(function () {
 				const id = document.querySelector<HTMLAnchorElement>(
 					'[class^="Navigation-module_chapterTitle"]'
@@ -98,8 +99,13 @@ export default async () => {
 				}
 				return progress;
 			})
-			.observe(slider, { childList: false, subtree: false, attributeFilter: ["style"] })
-			.start();
+			.observe(slider, { childList: false, subtree: false, attributeFilter: ["style"] });
+		reader.start();
 	}
 	initialized = true;
+	return () => {
+		if (reader) {
+			reader.cleanup();
+		}
+	};
 };

@@ -16,7 +16,7 @@ function findMangaDexId(): string | undefined {
 }
 
 let initialized = false;
-export default async () => {
+export default async function run() {
 	info("Chapter page");
 
 	// * Wait for required existing node
@@ -64,8 +64,9 @@ export default async () => {
 	// * Handle page change
 	// Call the Reader state automatically
 	const container = document.querySelector<HTMLElement>(".md--progress") ?? undefined;
+	let reader: Reader | undefined;
 	if (container) {
-		new Reader()
+		reader = new Reader()
 			.withChapterState(function () {
 				const chapterLink = document.querySelector<HTMLAnchorElement>('a[href^="/chapter/"]');
 				if (chapterLink) {
@@ -104,8 +105,13 @@ export default async () => {
 				}
 				return undefined;
 			})
-			.observe(container, { childList: true, subtree: true, attributeFilter: ["class"] })
-			.start();
+			.observe(container, { childList: true, subtree: true, attributeFilter: ["class"] });
+		reader.start();
 	}
 	initialized = true;
-};
+	return () => {
+		if (reader) {
+			reader.cleanup();
+		}
+	};
+}

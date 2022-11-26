@@ -30,13 +30,6 @@ export default class Reader<T extends {} | undefined = undefined> {
 		this.initialized = false;
 	}
 
-	protected cleanup() {
-		if (this.observer) {
-			this.observer.disconnect();
-			this.observer = undefined;
-		}
-	}
-
 	withChapterState(callback: (this: this) => ChapterState | undefined) {
 		this.getChapterState = callback;
 		return this;
@@ -125,6 +118,13 @@ export default class Reader<T extends {} | undefined = undefined> {
 		}
 		if (this.observer && this.observerOptions) {
 			this.observer.observe(this.observerOptions.target, this.observerOptions.options);
+		}
+	}
+
+	cleanup() {
+		if (this.observer) {
+			this.observer.disconnect();
+			this.observer = undefined;
 		}
 	}
 }

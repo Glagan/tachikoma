@@ -42,35 +42,23 @@ export function chapterRows(): ChapterRow[] {
 		.reverse();
 }
 
-let highlightWith: Title | undefined = undefined;
 async function waitAndHighlightRows(title: Title) {
-	const execute = highlightWith == undefined;
-	highlightWith = title;
-	if (execute) {
-		try {
-			await waitForSelector(chapterSelector);
-			if (highlightWith) {
-				const rows = chapterRows();
-				highlight(rows, title);
-			}
-			highlightWith = undefined;
-		} catch (error) {
-			// Ignore errors, Network Error or no chapters
+	try {
+		await waitForSelector(chapterSelector);
+		const rows = chapterRows();
+		if (rows.length > 0) {
+			highlight(rows, title);
 		}
+	} catch (error) {
+		// Ignore errors, Network Error or no chapters
 	}
 }
 
-let randomObserver: MutationObserver | undefined;
 async function run() {
 	info("Title page");
-	highlightWith = undefined;
-	if (randomObserver) {
-		randomObserver.disconnect();
-		randomObserver = undefined;
-	}
 
 	// * Wait for required existing node
-	await waitForSelector('[to^="/title/"]');
+	await waitForSelector('.manga-container [to^="/title/"]');
 
 	// * Handle page
 	const mangaDexId = findMangaDexId();
@@ -114,7 +102,7 @@ async function run() {
 
 	// * Handle title page change
 	let lastId: string | undefined;
-	randomObserver = new MutationObserver((_, observer) => {
+	const randomObserver = new MutationObserver((_, observer) => {
 		if (location.pathname.startsWith("/title/") && document.querySelector('[to^="/title/"]')) {
 			const currentId = findMangaDexId();
 			if (!lastId) lastId = currentId;
@@ -124,22 +112,21 @@ async function run() {
 				run();
 			}
 		} else {
-			randomObserver?.disconnect();
-			randomObserver = undefined;
+			randomObserver.disconnect();
 		}
 	});
 	randomObserver.observe(document.body, { childList: true, subtree: true });
 
 	// * Handle page change (update highlight)
 	const chapterColumnSelector = `div[id^='${informations.id}']`;
+	let pageObserver: undefined | MutationObserver;
 	waitForSelector(chapterColumnSelector).then(() => {
 		const chapterColumn = document.querySelector(chapterColumnSelector);
 		if (chapterColumn) {
 			let lastPage: string | null = null;
 			let waitingForSelector = false;
-			const pageObserver = new MutationObserver((_, observer) => {
+			pageObserver = new MutationObserver((_, observer) => {
 				if (!location.pathname.startsWith("/title/")) {
-					pageObserver.disconnect();
 					return;
 				}
 				const currentPage = new URLSearchParams(location.search).get("page");
@@ -157,6 +144,11 @@ async function run() {
 			pageObserver.observe(chapterColumn.nextElementSibling!, { childList: true, subtree: true });
 		}
 	});
+
+	return () => {
+		randomObserver.disconnect();
+		pageObserver?.disconnect();
+	};
 }
 
 export default run;
