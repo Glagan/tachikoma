@@ -2,6 +2,7 @@ import { debug, info } from "@Core/Logger";
 import Title from "@Core/Title";
 import MangaDex from "@Service/MangaDex";
 import { ChapterRow, highlight, TitleChapterGroup } from "@Core/Highlight";
+import { waitForSelector } from "@Core/Utility";
 import { fullChapterFromString, IDFromLink } from "../Utility";
 import ToggleHidden from "../ToggleHidden.svelte";
 
@@ -92,10 +93,12 @@ async function run() {
 
 	// * Add page listener
 	// * Highlight and hide chapters
-	const container = document.querySelector(".container > div:last-child > div:nth-child(2)");
+	const container = document.querySelector(".page-container > div:last-child > div:nth-child(2)");
 	if (container) {
 		let lastPage: string | null = null;
 		let waitingForSelector = false;
+
+		// Add an observer on the page number to reload highlight on page change
 		const pageObserver = new MutationObserver((_, observer) => {
 			const currentPage = new URLSearchParams(location.search).get("page");
 			if (currentPage != lastPage) {
@@ -109,6 +112,12 @@ async function run() {
 			}
 		});
 		pageObserver.observe(container, { childList: true, subtree: true });
+
+		// Initial highlight
+		waitForSelector(".chapter-feed__container").then(() => {
+			highlightTitlesChapters();
+		});
+
 		return () => {
 			pageObserver.disconnect();
 		};

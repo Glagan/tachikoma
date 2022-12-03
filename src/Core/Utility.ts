@@ -49,7 +49,7 @@ export function file(file: string): string {
 	return runtime.getURL(file);
 }
 
-export function waitForSelector(selector: string, timeout: number = 5000): Promise<boolean> {
+export function waitForSelector(selector: string, timeout: number = 10000): Promise<boolean> {
 	if (!document.querySelector(selector)) {
 		debug("Waiting for", selector, "to load");
 		return new Promise((resolve, reject) => {

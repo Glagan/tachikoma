@@ -58,7 +58,7 @@ async function run() {
 	info("Title page");
 
 	// * Wait for required existing node
-	await waitForSelector('.manga-container [to^="/title/"]');
+	await waitForSelector('.layout-container [to^="/title/"]');
 
 	// * Handle page
 	const mangaDexId = findMangaDexId();
